@@ -52,7 +52,7 @@ void Helix::fetchUsers(QStringList userIds, QStringList userLogins,
     }
 
     // TODO: set on success and on error
-    this->makeRequest("users", urlQuery)
+    this->makeGet("users", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto root = result.parseJson();
             auto data = root.value("data");
@@ -142,7 +142,7 @@ void Helix::fetchUsersFollows(
     }
 
     // TODO: set on success and on error
-    this->makeRequest("users/follows", urlQuery)
+    this->makeGet("users/follows", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto root = result.parseJson();
             if (root.empty())
@@ -186,7 +186,7 @@ void Helix::fetchStreams(
     }
 
     // TODO: set on success and on error
-    this->makeRequest("streams", urlQuery)
+    this->makeGet("streams", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto root = result.parseJson();
             auto data = root.value("data");
@@ -279,7 +279,7 @@ void Helix::fetchGames(QStringList gameIds, QStringList gameNames,
     }
 
     // TODO: set on success and on error
-    this->makeRequest("games", urlQuery)
+    this->makeGet("games", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto root = result.parseJson();
             auto data = root.value("data");
@@ -315,7 +315,7 @@ void Helix::searchGames(QString gameName,
     QUrlQuery urlQuery;
     urlQuery.addQueryItem("query", gameName);
 
-    this->makeRequest("search/categories", urlQuery)
+    this->makeGet("search/categories", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto root = result.parseJson();
             auto data = root.value("data");
@@ -485,8 +485,7 @@ void Helix::createClip(QString channelId,
     QUrlQuery urlQuery;
     urlQuery.addQueryItem("broadcaster_id", channelId);
 
-    this->makeRequest("clips", urlQuery)
-        .type(NetworkRequestType::Post)
+    this->makePost("clips", urlQuery)
         .header("Content-Type", "application/json")
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto root = result.parseJson();
@@ -538,7 +537,7 @@ void Helix::getChannel(QString broadcasterId,
     QUrlQuery urlQuery;
     urlQuery.addQueryItem("broadcaster_id", broadcasterId);
 
-    this->makeRequest("channels", urlQuery)
+    this->makeGet("channels", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto root = result.parseJson();
             auto data = root.value("data");
@@ -573,10 +572,8 @@ void Helix::createStreamMarker(
     }
     payload.insert("user_id", QJsonValue(broadcasterId));
 
-    this->makeRequest("streams/markers", QUrlQuery())
-        .type(NetworkRequestType::Post)
-        .header("Content-Type", "application/json")
-        .payload(QJsonDocument(payload).toJson(QJsonDocument::Compact))
+    this->makePost("streams/markers", QUrlQuery())
+        .json(payload)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto root = result.parseJson();
             auto data = root.value("data");
@@ -628,7 +625,7 @@ void Helix::loadBlocks(QString userId,
     urlQuery.addQueryItem("broadcaster_id", userId);
     urlQuery.addQueryItem("first", "100");
 
-    this->makeRequest("users/blocks", urlQuery)
+    this->makeGet("users/blocks", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto root = result.parseJson();
             auto data = root.value("data");
@@ -664,8 +661,7 @@ void Helix::blockUser(QString targetUserId,
     QUrlQuery urlQuery;
     urlQuery.addQueryItem("target_user_id", targetUserId);
 
-    this->makeRequest("users/blocks", urlQuery)
-        .type(NetworkRequestType::Put)
+    this->makePut("users/blocks", urlQuery)
         .onSuccess([successCallback](auto /*result*/) -> Outcome {
             successCallback();
             return Success;
@@ -684,8 +680,7 @@ void Helix::unblockUser(QString targetUserId,
     QUrlQuery urlQuery;
     urlQuery.addQueryItem("target_user_id", targetUserId);
 
-    this->makeRequest("users/blocks", urlQuery)
-        .type(NetworkRequestType::Delete)
+    this->makeDelete("users/blocks", urlQuery)
         .onSuccess([successCallback](auto /*result*/) -> Outcome {
             successCallback();
             return Success;
@@ -703,7 +698,6 @@ void Helix::updateChannel(QString broadcasterId, QString gameId,
                           HelixFailureCallback failureCallback)
 {
     QUrlQuery urlQuery;
-    auto data = QJsonDocument();
     auto obj = QJsonObject();
     if (!gameId.isEmpty())
     {
@@ -724,12 +718,9 @@ void Helix::updateChannel(QString broadcasterId, QString gameId,
         return;
     }
 
-    data.setObject(obj);
     urlQuery.addQueryItem("broadcaster_id", broadcasterId);
-    this->makeRequest("channels", urlQuery)
-        .type(NetworkRequestType::Patch)
-        .header("Content-Type", "application/json")
-        .payload(data.toJson())
+    this->makePatch("channels", urlQuery)
+        .json(obj)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             successCallback(result);
             return Success;
@@ -751,10 +742,8 @@ void Helix::manageAutoModMessages(
     payload.insert("msg_id", msgID);
     payload.insert("action", action);
 
-    this->makeRequest("moderation/automod/message", QUrlQuery())
-        .type(NetworkRequestType::Post)
-        .header("Content-Type", "application/json")
-        .payload(QJsonDocument(payload).toJson(QJsonDocument::Compact))
+    this->makePost("moderation/automod/message", QUrlQuery())
+        .json(payload)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             successCallback();
             return Success;
@@ -810,7 +799,7 @@ void Helix::getCheermotes(
 
     urlQuery.addQueryItem("broadcaster_id", broadcasterId);
 
-    this->makeRequest("bits/cheermotes", urlQuery)
+    this->makeGet("bits/cheermotes", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto root = result.parseJson();
             auto data = root.value("data");
@@ -848,7 +837,7 @@ void Helix::getEmoteSetData(QString emoteSetId,
 
     urlQuery.addQueryItem("emote_set_id", emoteSetId);
 
-    this->makeRequest("chat/emotes/set", urlQuery)
+    this->makeGet("chat/emotes/set", urlQuery)
         .onSuccess([successCallback, failureCallback,
                     emoteSetId](auto result) -> Outcome {
             QJsonObject root = result.parseJson();
@@ -880,7 +869,7 @@ void Helix::getChannelEmotes(
     QUrlQuery urlQuery;
     urlQuery.addQueryItem("broadcaster_id", broadcasterId);
 
-    this->makeRequest("chat/emotes", urlQuery)
+    this->makeGet("chat/emotes", urlQuery)
         .onSuccess([successCallback,
                     failureCallback](NetworkResult result) -> Outcome {
             QJsonObject root = result.parseJson();
@@ -920,10 +909,8 @@ void Helix::updateUserChatColor(
     payload.insert("user_id", QJsonValue(userID));
     payload.insert("color", QJsonValue(color));
 
-    this->makeRequest("chat/color", QUrlQuery())
-        .type(NetworkRequestType::Put)
-        .header("Content-Type", "application/json")
-        .payload(QJsonDocument(payload).toJson(QJsonDocument::Compact))
+    this->makePut("chat/color", QUrlQuery())
+        .json(payload)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto obj = result.parseJson();
             if (result.status() != 204)
@@ -1000,8 +987,7 @@ void Helix::deleteChatMessages(
         urlQuery.addQueryItem("message_id", messageID);
     }
 
-    this->makeRequest("moderation/chat", urlQuery)
-        .type(NetworkRequestType::Delete)
+    this->makeDelete("moderation/chat", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             if (result.status() != 204)
             {
@@ -1079,8 +1065,7 @@ void Helix::addChannelModerator(
     urlQuery.addQueryItem("broadcaster_id", broadcasterID);
     urlQuery.addQueryItem("user_id", userID);
 
-    this->makeRequest("moderation/moderators", urlQuery)
-        .type(NetworkRequestType::Post)
+    this->makePost("moderation/moderators", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             if (result.status() != 204)
             {
@@ -1168,8 +1153,7 @@ void Helix::removeChannelModerator(
     urlQuery.addQueryItem("broadcaster_id", broadcasterID);
     urlQuery.addQueryItem("user_id", userID);
 
-    this->makeRequest("moderation/moderators", urlQuery)
-        .type(NetworkRequestType::Delete)
+    this->makeDelete("moderation/moderators", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             if (result.status() != 204)
             {
@@ -1255,10 +1239,8 @@ void Helix::sendChatAnnouncement(
         std::string{magic_enum::enum_name<HelixAnnouncementColor>(color)};
     body.insert("color", QString::fromStdString(colorStr).toLower());
 
-    this->makeRequest("chat/announcements", urlQuery)
-        .type(NetworkRequestType::Post)
-        .header("Content-Type", "application/json")
-        .payload(QJsonDocument(body).toJson(QJsonDocument::Compact))
+    this->makePost("chat/announcements", urlQuery)
+        .json(body)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             if (result.status() != 204)
             {
@@ -1327,8 +1309,7 @@ void Helix::addChannelVIP(
     urlQuery.addQueryItem("broadcaster_id", broadcasterID);
     urlQuery.addQueryItem("user_id", userID);
 
-    this->makeRequest("channels/vips", urlQuery)
-        .type(NetworkRequestType::Post)
+    this->makePost("channels/vips", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             if (result.status() != 204)
             {
@@ -1406,8 +1387,7 @@ void Helix::removeChannelVIP(
     urlQuery.addQueryItem("broadcaster_id", broadcasterID);
     urlQuery.addQueryItem("user_id", userID);
 
-    this->makeRequest("channels/vips", urlQuery)
-        .type(NetworkRequestType::Delete)
+    this->makeDelete("channels/vips", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             if (result.status() != 204)
             {
@@ -1496,8 +1476,7 @@ void Helix::unbanUser(
     urlQuery.addQueryItem("moderator_id", moderatorID);
     urlQuery.addQueryItem("user_id", userID);
 
-    this->makeRequest("moderation/bans", urlQuery)
-        .type(NetworkRequestType::Delete)
+    this->makeDelete("moderation/bans", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             if (result.status() != 204)
             {
@@ -1602,8 +1581,7 @@ void Helix::startRaid(
     urlQuery.addQueryItem("from_broadcaster_id", fromBroadcasterID);
     urlQuery.addQueryItem("to_broadcaster_id", toBroadcasterID);
 
-    this->makeRequest("raids", urlQuery)
-        .type(NetworkRequestType::Post)
+    this->makePost("raids", urlQuery)
         .onSuccess(
             [successCallback, failureCallback](auto /*result*/) -> Outcome {
                 successCallback();
@@ -1683,8 +1661,7 @@ void Helix::cancelRaid(
 
     urlQuery.addQueryItem("broadcaster_id", broadcasterID);
 
-    this->makeRequest("raids", urlQuery)
-        .type(NetworkRequestType::Delete)
+    this->makeDelete("raids", urlQuery)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             if (result.status() != 204)
             {
@@ -1844,10 +1821,8 @@ void Helix::updateChatSettings(
     urlQuery.addQueryItem("broadcaster_id", broadcasterID);
     urlQuery.addQueryItem("moderator_id", moderatorID);
 
-    this->makeRequest("chat/settings", urlQuery)
-        .type(NetworkRequestType::Patch)
-        .header("Content-Type", "application/json")
-        .payload(QJsonDocument(payload).toJson(QJsonDocument::Compact))
+    this->makePatch("chat/settings", urlQuery)
+        .json(payload)
         .onSuccess([successCallback](auto result) -> Outcome {
             if (result.status() != 200)
             {
@@ -1970,7 +1945,7 @@ void Helix::fetchChatters(
         urlQuery.addQueryItem("after", after);
     }
 
-    this->makeRequest("chat/chatters", urlQuery)
+    this->makeGet("chat/chatters", urlQuery)
         .onSuccess([successCallback](auto result) -> Outcome {
             if (result.status() != 200)
             {
@@ -2079,7 +2054,7 @@ void Helix::fetchModerators(
         urlQuery.addQueryItem("after", after);
     }
 
-    this->makeRequest("moderation/moderators", urlQuery)
+    this->makeGet("moderation/moderators", urlQuery)
         .onSuccess([successCallback](auto result) -> Outcome {
             if (result.status() != 200)
             {
@@ -2164,10 +2139,8 @@ void Helix::banUser(QString broadcasterID, QString moderatorID, QString userID,
         payload["data"] = data;
     }
 
-    this->makeRequest("moderation/bans", urlQuery)
-        .type(NetworkRequestType::Post)
-        .header("Content-Type", "application/json")
-        .payload(QJsonDocument(payload).toJson(QJsonDocument::Compact))
+    this->makePost("moderation/bans", urlQuery)
+        .json(payload)
         .onSuccess([successCallback](auto result) -> Outcome {
             if (result.status() != 200)
             {
@@ -2263,10 +2236,8 @@ void Helix::sendWhisper(
     QJsonObject payload;
     payload["message"] = message;
 
-    this->makeRequest("whispers", urlQuery)
-        .type(NetworkRequestType::Post)
-        .header("Content-Type", "application/json")
-        .payload(QJsonDocument(payload).toJson(QJsonDocument::Compact))
+    this->makePost("whispers", urlQuery)
+        .json(payload)
         .onSuccess([successCallback](auto result) -> Outcome {
             if (result.status() != 204)
             {
@@ -2408,8 +2379,7 @@ void Helix::getChannelVIPs(
     //   as the mod list can go over 100 (I assume, I see no limit)
     urlQuery.addQueryItem("first", "100");
 
-    this->makeRequest("channels/vips", urlQuery)
-        .type(NetworkRequestType::Get)
+    this->makeGet("channels/vips", urlQuery)
         .header("Content-Type", "application/json")
         .onSuccess([successCallback](auto result) -> Outcome {
             if (result.status() != 200)
@@ -2496,10 +2466,8 @@ void Helix::startCommercial(
     payload.insert("broadcaster_id", QJsonValue(broadcasterID));
     payload.insert("length", QJsonValue(length));
 
-    this->makeRequest("channels/commercial", QUrlQuery())
-        .type(NetworkRequestType::Post)
-        .header("Content-Type", "application/json")
-        .payload(QJsonDocument(payload).toJson(QJsonDocument::Compact))
+    this->makePost("channels/commercial", QUrlQuery())
+        .json(payload)
         .onSuccess([successCallback, failureCallback](auto result) -> Outcome {
             auto obj = result.parseJson();
             if (obj.isEmpty())
@@ -2589,7 +2557,7 @@ void Helix::getGlobalBadges(
 {
     using Error = HelixGetGlobalBadgesError;
 
-    this->makeRequest("chat/badges/global", QUrlQuery())
+    this->makeGet("chat/badges/global", QUrlQuery())
         .onSuccess([successCallback](auto result) -> Outcome {
             if (result.status() != 200)
             {
@@ -2636,7 +2604,7 @@ void Helix::getChannelBadges(
     QUrlQuery urlQuery;
     urlQuery.addQueryItem("broadcaster_id", broadcasterID);
 
-    this->makeRequest("chat/badges", urlQuery)
+    this->makeGet("chat/badges", urlQuery)
         .onSuccess([successCallback](auto result) -> Outcome {
             if (result.status() != 200)
             {
@@ -2688,10 +2656,8 @@ void Helix::updateShieldMode(
     QJsonObject payload;
     payload["is_active"] = isActive;
 
-    this->makeRequest("moderation/shield_mode", urlQuery)
-        .type(NetworkRequestType::Put)
-        .header("Content-Type", "application/json")
-        .payload(QJsonDocument(payload).toJson(QJsonDocument::Compact))
+    this->makePut("moderation/shield_mode", urlQuery)
+        .json(payload)
         .onSuccess([successCallback](auto result) -> Outcome {
             if (result.status() != 200)
             {
@@ -2744,7 +2710,109 @@ void Helix::updateShieldMode(
         .execute();
 }
 
-NetworkRequest Helix::makeRequest(QString url, QUrlQuery urlQuery)
+// https://dev.twitch.tv/docs/api/reference/#send-a-shoutout
+void Helix::sendShoutout(
+    QString fromBroadcasterID, QString toBroadcasterID, QString moderatorID,
+    ResultCallback<> successCallback,
+    FailureCallback<HelixSendShoutoutError, QString> failureCallback)
+{
+    using Error = HelixSendShoutoutError;
+
+    QUrlQuery urlQuery;
+    urlQuery.addQueryItem("from_broadcaster_id", fromBroadcasterID);
+    urlQuery.addQueryItem("to_broadcaster_id", toBroadcasterID);
+    urlQuery.addQueryItem("moderator_id", moderatorID);
+
+    this->makePost("chat/shoutouts", urlQuery)
+        .header("Content-Type", "application/json")
+        .onSuccess([successCallback](NetworkResult result) -> Outcome {
+            if (result.status() != 204)
+            {
+                qCWarning(chatterinoTwitch)
+                    << "Success result for sending shoutout was "
+                    << result.status() << "but we expected it to be 204";
+            }
+
+            successCallback();
+            return Success;
+        })
+        .onError([failureCallback](NetworkResult result) -> void {
+            const auto obj = result.parseJson();
+            auto message = obj["message"].toString();
+
+            switch (result.status())
+            {
+                case 400: {
+                    if (message.startsWith("The broadcaster may not give "
+                                           "themselves a Shoutout.",
+                                           Qt::CaseInsensitive))
+                    {
+                        failureCallback(Error::UserIsBroadcaster, message);
+                    }
+                    else if (message.startsWith(
+                                 "The broadcaster is not streaming live or "
+                                 "does not have one or more viewers.",
+                                 Qt::CaseInsensitive))
+                    {
+                        failureCallback(Error::BroadcasterNotLive, message);
+                    }
+                    else
+                    {
+                        failureCallback(Error::UserNotAuthorized, message);
+                    }
+                }
+                break;
+
+                case 401: {
+                    if (message.startsWith("Missing scope",
+                                           Qt::CaseInsensitive))
+                    {
+                        failureCallback(Error::UserMissingScope, message);
+                    }
+                    else
+                    {
+                        failureCallback(Error::UserNotAuthorized, message);
+                    }
+                }
+                break;
+
+                case 403: {
+                    failureCallback(Error::UserNotAuthorized, message);
+                }
+                break;
+
+                case 429: {
+                    failureCallback(Error::Ratelimited, message);
+                }
+                break;
+
+                case 500: {
+                    // Helix returns 500 when user is not mod,
+                    if (message.isEmpty())
+                    {
+                        failureCallback(Error::Unknown,
+                                        "Twitch internal server error");
+                    }
+                    else
+                    {
+                        failureCallback(Error::Unknown, message);
+                    }
+                }
+                break;
+
+                default: {
+                    qCWarning(chatterinoTwitch)
+                        << "Helix send shoutout, unhandled error data:"
+                        << result.status() << result.getData() << obj;
+                    failureCallback(Error::Unknown, message);
+                }
+            }
+        })
+        .execute();
+}
+
+NetworkRequest Helix::makeRequest(const QString &url, const QUrlQuery &urlQuery,
+                                  NetworkRequestType type)
 {
     assert(!url.startsWith("/"));
 
@@ -2768,11 +2836,36 @@ NetworkRequest Helix::makeRequest(QString url, QUrlQuery urlQuery)
 
     fullUrl.setQuery(urlQuery);
 
-    return NetworkRequest(fullUrl)
+    return NetworkRequest(fullUrl, type)
         .timeout(5 * 1000)
         .header("Accept", "application/json")
         .header("Client-ID", this->clientId)
         .header("Authorization", "Bearer " + this->oauthToken);
+}
+
+NetworkRequest Helix::makeGet(const QString &url, const QUrlQuery &urlQuery)
+{
+    return this->makeRequest(url, urlQuery, NetworkRequestType::Get);
+}
+
+NetworkRequest Helix::makeDelete(const QString &url, const QUrlQuery &urlQuery)
+{
+    return this->makeRequest(url, urlQuery, NetworkRequestType::Delete);
+}
+
+NetworkRequest Helix::makePost(const QString &url, const QUrlQuery &urlQuery)
+{
+    return this->makeRequest(url, urlQuery, NetworkRequestType::Post);
+}
+
+NetworkRequest Helix::makePut(const QString &url, const QUrlQuery &urlQuery)
+{
+    return this->makeRequest(url, urlQuery, NetworkRequestType::Put);
+}
+
+NetworkRequest Helix::makePatch(const QString &url, const QUrlQuery &urlQuery)
+{
+    return this->makeRequest(url, urlQuery, NetworkRequestType::Patch);
 }
 
 void Helix::update(QString clientId, QString oauthToken)

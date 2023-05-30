@@ -1,5 +1,6 @@
 #include "singletons/Settings.hpp"
 
+#include "Application.hpp"
 #include "controllers/filters/FilterRecord.hpp"
 #include "controllers/highlights/HighlightBadge.hpp"
 #include "controllers/highlights/HighlightBlacklistUser.hpp"
@@ -137,6 +138,11 @@ Settings::Settings(const QString &settingsDirectory)
         },
         false);
 #endif
+    this->enableStreamerMode.connect(
+        []() {
+            getApp()->streamerModeChanged.invoke();
+        },
+        false);
 }
 void Settings::moveLegacyDankerinoSettings_()
 {

@@ -196,6 +196,11 @@ void SettingsDialog::filterElements(const QString &text)
     }
 }
 
+void SettingsDialog::setElementFilter(const QString &query)
+{
+    this->ui_.search->setText(query);
+}
+
 void SettingsDialog::addTabs()
 {
     this->ui_.tabContainer->setSpacing(0);
@@ -207,7 +212,7 @@ void SettingsDialog::addTabs()
                                     : ":/settings/externaltools.svg";
 
     // clang-format off
-    this->addTab([]{return new GeneralPage;},          "General",        ":/settings/about.svg");
+    this->addTab([]{return new GeneralPage;},          "General",        ":/settings/about.svg", SettingsTabId::General);
     this->addTab([]{return new DankerinoPage;},        "Dankerino",      ":/settings/about.svg");
     this->ui_.tabContainer->addSpacing(16);
     this->addTab([]{return new AccountsPage;},         "Accounts",       ":/settings/accounts.svg", SettingsTabId::Accounts);
@@ -321,10 +326,20 @@ void SettingsDialog::showDialog(QWidget *parent,
             }
             break;
 
+        case SettingsDialogPreference::StreamerMode: {
+            instance->selectTab(SettingsTabId::General);
+        }
+        break;
+
         default:;
     }
 
     instance->show();
+    if (preferredTab == SettingsDialogPreference::StreamerMode)
+    {
+        // this is needed because each time the settings are opened, the query is reset
+        instance->setElementFilter("Streamer Mode");
+    }
     instance->activateWindow();
     instance->raise();
     instance->setFocus();
