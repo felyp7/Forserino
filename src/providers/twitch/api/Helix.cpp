@@ -360,8 +360,7 @@ void Helix::updateStreamTags(QString broadcasterId, QStringList tags,
 
     auto urlQuery = QUrlQuery();
     urlQuery.addQueryItem("broadcaster_id", broadcasterId);
-    this->makeRequest("streams/tags", urlQuery)
-        .type(NetworkRequestType::Put)
+    this->makeGet("streams/tags", urlQuery)
         .payload(data.toJson())
         .header("Content-Type", "application/json")
         .onSuccess([successCallback,
@@ -385,7 +384,7 @@ void Helix::getStreamTags(QString broadcasterId,
 {
     auto urlQuery = QUrlQuery();
     urlQuery.addQueryItem("broadcaster_id", broadcasterId);
-    this->makeRequest("streams/tags", urlQuery)
+    this->makeGet("streams/tags", urlQuery)
         .onSuccess([successCallback,
                     failureCallback](NetworkResult result) -> Outcome {
             auto root = result.parseJson();
@@ -425,7 +424,7 @@ void Helix::fetchStreamTags(
         urlQuery.addQueryItem("after", after);
     }
     urlQuery.addQueryItem("first", "100");
-    this->makeRequest("tags/streams", urlQuery)
+    this->makeGet("tags/streams", urlQuery)
         .onSuccess([successCallback,
                     failureCallback](NetworkResult result) -> Outcome {
             auto root = result.parseJson();

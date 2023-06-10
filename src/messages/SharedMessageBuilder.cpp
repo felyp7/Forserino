@@ -271,25 +271,27 @@ QString SharedMessageBuilder::stylizeUsername(const QString &username,
         break;
     }
 
+    // XXX: upstream uses getCSettings().matchNickname here but dankerino
+    // doesn't to keep old behavior
     auto nicknames = getCSettings().nicknames.readOnly();
 
     for (const auto &nickname : *nicknames)
     {
-        QString temp = usernameText;
-        if (nickname.match(usernameText))
+        if (auto nicknameText = nickname.match(usernameText))
         {
             const static QString SET_COLOR_COMMAND = "::hack-set-color ";
-            if (usernameText.startsWith(SET_COLOR_COMMAND))
+            if (nicknameText->startsWith(SET_COLOR_COMMAND))
             {
                 auto color =
-                    QColor(usernameText.mid(SET_COLOR_COMMAND.length()));
+                    QColor(nicknameText->mid(SET_COLOR_COMMAND.length()));
                 if (usernameColor != nullptr && color.isValid())
                 {
                     *usernameColor = color;
-                    usernameText = temp;
+                    // usernameText stays the same
                 }
                 continue;  // actual nicknames go after this shit hack
             }
+            usernameText = *nicknameText;
             break;
         }
     }
