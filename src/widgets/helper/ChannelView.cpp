@@ -332,8 +332,10 @@ void ChannelView::updatePauses()
         this->pauseEnd_ = boost::none;
         this->pauseTimer_.stop();
 
-        this->scrollBar_->offset(this->pauseScrollOffset_);
-        this->pauseScrollOffset_ = 0;
+        this->scrollBar_->offsetMaximum(this->pauseScrollMaximumOffset_);
+        this->scrollBar_->offsetMinimum(this->pauseScrollMinimumOffset_);
+        this->pauseScrollMinimumOffset_ = 0;
+        this->pauseScrollMaximumOffset_ = 0;
 
         this->queueLayout();
     }
@@ -457,7 +459,7 @@ void ChannelView::performLayout(bool causedByScrollbar)
 void ChannelView::layoutVisibleMessages(
     const LimitedQueueSnapshot<MessageLayoutPtr> &messages)
 {
-    const auto start = size_t(this->scrollBar_->getCurrentValue());
+    const auto start = size_t(this->scrollBar_->getRelativeCurrentValue());
     const auto layoutWidth = this->getLayoutWidth();
     const auto flags = this->getFlags();
     auto redrawRequired = false;
@@ -465,7 +467,7 @@ void ChannelView::layoutVisibleMessages(
     if (messages.size() > start)
     {
         auto y = int(-(messages[start]->getHeight() *
-                       (fmod(this->scrollBar_->getCurrentValue(), 1))));
+                       (fmod(this->scrollBar_->getRelativeCurrentValue(), 1))));
 
         for (auto i = start; i < messages.size() && y <= this->height(); i++)
         {
@@ -525,21 +527,17 @@ void ChannelView::updateScrollbar(
 
     if (!showScrollbar && !causedByScrollbar)
     {
-        this->scrollBar_->setDesiredValue(0);
+        this->scrollBar_->scrollToTop();
     }
     this->showScrollBar_ = showScrollbar;
-
-    this->scrollBar_->setMaximum(messages.size());
 
     // If we were showing the latest messages and the scrollbar now wants to be
     // rendered, scroll to bottom
     if (this->enableScrollingToBottom_ && this->showingLatestMessages_ &&
-        showScrollbar)
+        showScrollbar && !causedByScrollbar)
     {
         this->scrollBar_->scrollToBottom(
-            // this->messageWasAdded &&
             getSettings()->enableSmoothScrollingNewMessages.getValue());
-        this->messageWasAdded_ = false;
     }
 }
 
@@ -548,6 +546,9 @@ void ChannelView::clearMessages()
     // Clear all stored messages in this chat widget
     this->messages_.clear();
     this->scrollBar_->clearHighlights();
+    this->scrollBar_->resetMaximum();
+    this->scrollBar_->setMaximum(0);
+    this->scrollBar_->setMinimum(0);
     this->queueLayout();
 
     this->lastMessageHasAlternateBackground_ = false;
@@ -754,12 +755,6 @@ void ChannelView::setChannel(ChannelPtr underlyingChannel)
             this->messageAddedAtStart(messages);
         });
 
-    // on message removed
-    this->channelConnections_.managedConnect(
-        this->channel_->messageRemovedFromStart, [this](MessagePtr &message) {
-            this->messageRemoveFromStart(message);
-        });
-
     // on message replaced
     this->channelConnections_.managedConnect(
         this->channel_->messageReplaced,
@@ -774,6 +769,8 @@ void ChannelView::setChannel(ChannelPtr underlyingChannel)
                                              });
 
     auto snapshot = underlyingChannel->getMessageSnapshot();
+
+    this->scrollBar_->setMaximum(qreal(snapshot.size()));
 
     for (const auto &msg : snapshot)
     {
@@ -807,7 +804,7 @@ void ChannelView::setChannel(ChannelPtr underlyingChannel)
     if (auto tc = dynamic_cast<TwitchChannel *>(underlyingChannel.get()))
     {
         this->channelConnections_.managedConnect(
-            tc->liveStatusChanged, [this]() {
+            tc->streamStatusChanged, [this]() {
                 this->liveStatusChanged.invoke();
             });
     }
@@ -885,31 +882,26 @@ void ChannelView::messageAppended(MessagePtr &message,
     this->lastMessageHasAlternateBackground_ =
         !this->lastMessageHasAlternateBackground_;
 
-    if (!this->scrollBar_->isAtBottom() &&
-        this->scrollBar_->getCurrentValueAnimation().state() ==
-            QPropertyAnimation::Running)
+    if (this->paused())
     {
-        QEventLoop loop;
-
-        connect(&this->scrollBar_->getCurrentValueAnimation(),
-                &QAbstractAnimation::stateChanged, &loop, &QEventLoop::quit);
-
-        loop.exec();
+        this->pauseScrollMaximumOffset_++;
+    }
+    else
+    {
+        this->scrollBar_->offsetMaximum(1);
     }
 
     if (this->messages_.pushBack(messageRef))
     {
         if (this->paused())
         {
-            if (!this->scrollBar_->isAtBottom())
-                this->pauseScrollOffset_--;
+            this->pauseScrollMinimumOffset_++;
+            this->pauseSelectionOffset_++;
         }
         else
         {
-            if (this->scrollBar_->isAtBottom())
-                this->scrollBar_->scrollToBottom();
-            else
-                this->scrollBar_->offset(-1);
+            this->scrollBar_->offsetMinimum(1);
+            this->selection_.shiftMessageIndex(1);
         }
     }
 
@@ -935,7 +927,6 @@ void ChannelView::messageAppended(MessagePtr &message,
         this->scrollBar_->addHighlight(message->getScrollBarHighlight());
     }
 
-    this->messageWasAdded_ = true;
     this->queueLayout();
 }
 
@@ -960,12 +951,14 @@ void ChannelView::messageAddedAtStart(std::vector<MessagePtr> &messages)
     }
 
     /// Add the messages at the start
-    if (this->messages_.pushFront(messageRefs).size() > 0)
+    auto addedMessages = this->messages_.pushFront(messageRefs);
+    if (!addedMessages.empty())
     {
         if (this->scrollBar_->isAtBottom())
             this->scrollBar_->scrollToBottom();
         else
-            this->scrollBar_->offset(qreal(messages.size()));
+            this->scrollBar_->offset(qreal(addedMessages.size()));
+        this->scrollBar_->offsetMaximum(qreal(addedMessages.size()));
     }
 
     if (this->showScrollbarHighlights())
@@ -978,21 +971,6 @@ void ChannelView::messageAddedAtStart(std::vector<MessagePtr> &messages)
         }
 
         this->scrollBar_->addHighlightsAtStart(highlights);
-    }
-
-    this->messageWasAdded_ = true;
-    this->queueLayout();
-}
-
-void ChannelView::messageRemoveFromStart(MessagePtr &message)
-{
-    if (this->paused())
-    {
-        this->pauseSelectionOffset_ += 1;
-    }
-    else
-    {
-        this->selection_.shiftMessageIndex(1);
     }
 
     this->queueLayout();
@@ -1028,6 +1006,9 @@ void ChannelView::messagesUpdated()
 
     this->messages_.clear();
     this->scrollBar_->clearHighlights();
+    this->scrollBar_->resetMaximum();
+    this->scrollBar_->setMaximum(qreal(snapshot.size()));
+    this->scrollBar_->setMinimum(0);
     this->lastMessageHasAlternateBackground_ = false;
     this->lastMessageHasAlternateBackgroundReverse_ = true;
 
@@ -1231,7 +1212,8 @@ void ChannelView::scrollToMessageLayout(MessageLayout *layout,
 
     if (this->showScrollBar_)
     {
-        this->getScrollBar().setDesiredValue(messageIdx);
+        this->getScrollBar().setDesiredValue(this->scrollBar_->getMinimum() +
+                                             qreal(messageIdx));
     }
 }
 
@@ -1262,7 +1244,7 @@ void ChannelView::drawMessages(QPainter &painter)
 {
     auto &messagesSnapshot = this->getMessagesSnapshot();
 
-    size_t start = size_t(this->scrollBar_->getCurrentValue());
+    const auto start = size_t(this->scrollBar_->getRelativeCurrentValue());
 
     if (start >= messagesSnapshot.size())
     {
@@ -1270,7 +1252,7 @@ void ChannelView::drawMessages(QPainter &painter)
     }
 
     int y = int(-(messagesSnapshot[start].get()->getHeight() *
-                  (fmod(this->scrollBar_->getCurrentValue(), 1))));
+                  (fmod(this->scrollBar_->getRelativeCurrentValue(), 1))));
 
     MessageLayout *end = nullptr;
     bool windowFocused = this->window() == QApplication::activeWindow();
@@ -1372,7 +1354,8 @@ void ChannelView::wheelEvent(QWheelEvent *event)
 
         auto &snapshot = this->getMessagesSnapshot();
         int snapshotLength = int(snapshot.size());
-        int i = std::min<int>(int(desired), snapshotLength);
+        int i = std::min<int>(int(desired - this->scrollBar_->getMinimum()),
+                              snapshotLength - 1);
 
         if (delta > 0)
         {
@@ -2105,23 +2088,74 @@ void ChannelView::handleMouseClick(QMouseEvent *event,
                 if (link.type == Link::UserInfo)
                 {
                     if (hoveredElement->getFlags().has(
-                            MessageElementFlag::Username) &&
-                        event->modifiers() == Qt::ShiftModifier)
+                            MessageElementFlag::Username))
                     {
-                        // Start a new reply if Shift+Right-clicking the message username
-                        this->setInputReply(layout->getMessagePtr());
-                    }
-                    else
-                    {
-                        // Insert @username into split input
-                        const bool commaMention =
-                            getSettings()->mentionUsersWithComma;
-                        const bool isFirstWord =
-                            split && split->getInput().isEditFirstWord();
-                        auto userMention = formatUserMention(
-                            link.value, isFirstWord, commaMention,
-                            getSettings()->lowercaseUsernames);
-                        insertText("@" + userMention + " ");
+                        Qt::KeyboardModifier userSpecifiedModifier =
+                            getSettings()->usernameRightClickModifier;
+
+                        if (userSpecifiedModifier ==
+                            Qt::KeyboardModifier::NoModifier)
+                        {
+                            qCWarning(chatterinoCommon)
+                                << "sanity check failed: "
+                                   "invalid settings detected "
+                                   "Settings::usernameRightClickModifier is "
+                                   "NoModifier, which should never happen";
+                            return;
+                        }
+
+                        Qt::KeyboardModifiers modifiers{userSpecifiedModifier};
+                        auto isModifierHeld = event->modifiers() == modifiers;
+
+                        UsernameRightClickBehavior action{};
+                        if (isModifierHeld)
+                        {
+                            action = getSettings()
+                                         ->usernameRightClickModifierBehavior;
+                        }
+                        else
+                        {
+                            action = getSettings()->usernameRightClickBehavior;
+                        }
+
+                        switch (action)
+                        {
+                            case UsernameRightClickBehavior::Mention: {
+                                if (split == nullptr)
+                                {
+                                    return;
+                                }
+
+                                // Insert @username into split input
+                                const bool commaMention =
+                                    getSettings()->mentionUsersWithComma;
+                                const bool isFirstWord =
+                                    split->getInput().isEditFirstWord();
+                                auto userMention = formatUserMention(
+                                    link.value, isFirstWord, commaMention,
+                                    getSettings()->lowercaseUsernames);
+                                insertText("@" + userMention + " ");
+                            }
+                            break;
+
+                            case UsernameRightClickBehavior::Reply: {
+                                // Start a new reply if matching user's settings
+                                this->setInputReply(layout->getMessagePtr());
+                            }
+                            break;
+
+                            case UsernameRightClickBehavior::Ignore:
+                                break;
+
+                            default: {
+                                qCWarning(chatterinoCommon)
+                                    << "unhandled or corrupted "
+                                       "UsernameRightClickBehavior value in "
+                                       "ChannelView::handleMouseClick:"
+                                    << action;
+                            }
+                            break;  // unreachable
+                        }
                     }
 
                     return;
@@ -2784,7 +2818,7 @@ bool ChannelView::tryGetMessageAt(QPoint p,
 {
     auto &messagesSnapshot = this->getMessagesSnapshot();
 
-    size_t start = this->scrollBar_->getCurrentValue();
+    const auto start = size_t(this->scrollBar_->getRelativeCurrentValue());
 
     if (start >= messagesSnapshot.size())
     {
@@ -2792,7 +2826,7 @@ bool ChannelView::tryGetMessageAt(QPoint p,
     }
 
     int y = -(messagesSnapshot[start]->getHeight() *
-              (fmod(this->scrollBar_->getCurrentValue(), 1)));
+              (fmod(this->scrollBar_->getRelativeCurrentValue(), 1)));
 
     for (size_t i = start; i < messagesSnapshot.size(); ++i)
     {

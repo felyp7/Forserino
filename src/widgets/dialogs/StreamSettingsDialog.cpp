@@ -89,7 +89,7 @@ void StreamSettingsDialog::accept()
         getHelix()->updateChannel(
             this->roomId_, gameId, "", title,
             [](NetworkResult result) {
-                qCDebug(chatterinoCommon) << "OK!" << result.status();
+                qCDebug(chatterinoCommon) << "OK!" << *result.status();
             },
             [] {
                 QMessageBox::warning(
