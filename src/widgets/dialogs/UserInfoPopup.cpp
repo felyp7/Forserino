@@ -143,7 +143,6 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, QWidget *parent,
     assert(split != nullptr &&
            "split being nullptr causes lots of bugs down the road");
     this->setWindowTitle("Usercard");
-    this->setStayInScreenRect(true);
 
     HotkeyController::HotkeyMap actions{
         {"delete",
@@ -795,9 +794,6 @@ void UserInfoPopup::setData(const QString &name,
     this->userStateChanged_.invoke();
 
     this->updateLatestMessages();
-    QTimer::singleShot(1, this, [this] {
-        this->setStayInScreenRect(true);
-    });
 }
 
 void UserInfoPopup::updateLatestMessages()
@@ -916,13 +912,7 @@ void UserInfoPopup::updateUserData()
             });
 
         // get ignore state
-        bool isIgnoring = false;
-
-        if (auto blocks = currentUser->accessBlockedUserIds();
-            blocks->find(user.id) != blocks->end())
-        {
-            isIgnoring = true;
-        }
+        bool isIgnoring = currentUser->blockedUserIds().contains(user.id);
 
         // get ignoreHighlights state
         bool isIgnoringHighlights = false;

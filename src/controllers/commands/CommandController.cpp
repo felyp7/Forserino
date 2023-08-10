@@ -923,7 +923,8 @@ void CommandController::initialize(Settings &, Paths &paths)
             static_cast<QWidget *>(&(getApp()->windows->getMainWindow())),
             currentSplit);
         userPopup->setData(userName, channel);
-        userPopup->move(QCursor::pos());
+        userPopup->moveTo(QCursor::pos(), false,
+                          BaseWindow::BoundsChecker::CursorPosition);
         userPopup->show();
         return "";
     });
@@ -3241,6 +3242,7 @@ void CommandController::initialize(Settings &, Paths &paths)
     this->registerCommand("/shoutout", &commands::sendShoutout);
 
     this->registerCommand("/c2-set-logging-rules", &commands::setLoggingRules);
+    this->registerCommand("/c2-theme-autoreload", &commands::toggleThemeReload);
 }
 
 void CommandController::save()
