@@ -147,7 +147,7 @@ void SharedMessageBuilder::parseUsername()
 
 void SharedMessageBuilder::parseHighlights()
 {
-    if (getCSettings().isBlacklistedUser(this->ircMessage->nick()))
+    if (getSettings()->isBlacklistedUser(this->ircMessage->nick()))
     {
         // Do nothing. We ignore highlights from this user.
         return;
@@ -206,7 +206,7 @@ void SharedMessageBuilder::triggerHighlights()
         return;
     }
 
-    if (getCSettings().isMutedChannel(this->channel->getName()))
+    if (getSettings()->isMutedChannel(this->channel->getName()))
     {
         // Do nothing. Pings are muted in this channel.
         return;
@@ -271,9 +271,9 @@ QString SharedMessageBuilder::stylizeUsername(const QString &username,
         break;
     }
 
-    // XXX: upstream uses getCSettings().matchNickname here but dankerino
-    // doesn't to keep old behavior
-    auto nicknames = getCSettings().nicknames.readOnly();
+    // XXX: upstream uses getSettings().matchNickname here but dankerino
+    // doesn't, to keep old behavior
+    auto nicknames = getSettings()->nicknames.readOnly();
 
     for (const auto &nickname : *nicknames)
     {

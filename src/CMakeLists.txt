@@ -9,8 +9,6 @@ option(CHATTERINO_DEBUG_NATIVE_MESSAGES "Debug native messages" OFF)
 set(SOURCE_FILES
         Application.cpp
         Application.hpp
-        BaseSettings.cpp
-        BaseSettings.hpp
         BrowserExtension.cpp
         BrowserExtension.hpp
         RunGui.cpp
@@ -238,8 +236,6 @@ set(SOURCE_FILES
         providers/LinkResolver.hpp
         providers/NetworkConfigurationProvider.cpp
         providers/NetworkConfigurationProvider.hpp
-        providers/RecentMessagesApi.cpp
-        providers/RecentMessagesApi.hpp
 
         providers/seventv/SeventvBadges.cpp
         providers/seventv/SeventvBadges.hpp
@@ -292,6 +288,11 @@ set(SOURCE_FILES
         providers/liveupdates/BasicPubSubClient.hpp
         providers/liveupdates/BasicPubSubManager.hpp
         providers/liveupdates/BasicPubSubWebsocket.hpp
+
+        providers/recentmessages/Api.cpp
+        providers/recentmessages/Api.hpp
+        providers/recentmessages/Impl.cpp
+        providers/recentmessages/Impl.hpp
 
         providers/seventv/SeventvAPI.cpp
         providers/seventv/SeventvAPI.hpp
@@ -399,6 +400,7 @@ set(SOURCE_FILES
         util/AttachToConsole.cpp
         util/AttachToConsole.hpp
         util/CancellationToken.hpp
+        util/ChannelHelpers.hpp
         util/Clipboard.cpp
         util/Clipboard.hpp
         util/ConcurrentMap.hpp

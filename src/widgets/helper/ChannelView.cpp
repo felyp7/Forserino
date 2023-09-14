@@ -232,8 +232,15 @@ void ChannelView::initializeLayout()
 void ChannelView::initializeScrollbar()
 {
     this->scrollBar_->getCurrentValueChanged().connect([this] {
-        this->performLayout(true);
-        this->queueUpdate();
+        if (this->isVisible())
+        {
+            this->performLayout(true);
+            this->queueUpdate();
+        }
+        else
+        {
+            this->layoutQueued_ = true;
+        }
     });
 }
 
@@ -417,32 +424,34 @@ void ChannelView::scaleChangedEvent(float scale)
 
 void ChannelView::queueUpdate()
 {
-    //    if (this->updateTimer.isActive()) {
-    //        this->updateQueued = true;
-    //        return;
-    //    }
-
-    //    this->repaint();
-
     this->update();
-
-    //    this->updateTimer.start();
 }
 
 void ChannelView::queueLayout()
 {
-    //    if (!this->layoutCooldown->isActive()) {
-    this->performLayout();
-
-    //        this->layoutCooldown->start();
-    //    } else {
-    //        this->layoutQueued = true;
-    //    }
+    if (this->isVisible())
+    {
+        this->performLayout();
+    }
+    else
+    {
+        this->layoutQueued_ = true;
+    }
 }
 
-void ChannelView::performLayout(bool causedByScrollbar)
+void ChannelView::showEvent(QShowEvent * /*event*/)
+{
+    if (this->layoutQueued_)
+    {
+        this->performLayout(false, true);
+    }
+}
+
+void ChannelView::performLayout(bool causedByScrollbar, bool causedByShow)
 {
     // BenchmarkGuard benchmark("layout");
+
+    this->layoutQueued_ = false;
 
     /// Get messages and check if there are at least 1
     const auto &messages = this->getMessagesSnapshot();
@@ -455,7 +464,7 @@ void ChannelView::performLayout(bool causedByScrollbar)
     this->layoutVisibleMessages(messages);
 
     /// Update scrollbar
-    this->updateScrollbar(messages, causedByScrollbar);
+    this->updateScrollbar(messages, causedByScrollbar, causedByShow);
 
     this->goToBottom_->setVisible(this->enableScrollingToBottom_ &&
                                   this->scrollBar_->isVisible() &&
@@ -494,7 +503,7 @@ void ChannelView::layoutVisibleMessages(
 
 void ChannelView::updateScrollbar(
     const LimitedQueueSnapshot<MessageLayoutPtr> &messages,
-    bool causedByScrollbar)
+    bool causedByScrollbar, bool causedByShow)
 {
     if (messages.size() == 0)
     {
@@ -543,6 +552,7 @@ void ChannelView::updateScrollbar(
         showScrollbar && !causedByScrollbar)
     {
         this->scrollBar_->scrollToBottom(
+            !causedByShow &&
             getSettings()->enableSmoothScrollingNewMessages.getValue());
     }
 }
@@ -803,7 +813,7 @@ void ChannelView::setChannel(ChannelPtr underlyingChannel)
 
     this->underlyingChannel_ = underlyingChannel;
 
-    this->queueLayout();
+    this->performLayout();
     this->queueUpdate();
 
     // Notifications
@@ -907,6 +917,10 @@ void ChannelView::messageAppended(MessagePtr &message,
         else
         {
             this->scrollBar_->offsetMinimum(1);
+            if (this->showingLatestMessages_ && !this->isVisible())
+            {
+                this->scrollBar_->scrollToBottom(false);
+            }
             this->selection_.shiftMessageIndex(1);
         }
     }
@@ -1814,7 +1828,7 @@ void ChannelView::mouseMoveEvent(QMouseEvent *event)
             }
         }
 
-        tooltipWidget->moveTo(event->globalPos(), true,
+        tooltipWidget->moveTo(event->globalPos() + QPoint(16, 16),
                               BaseWindow::BoundsChecker::CursorPosition);
         tooltipWidget->setWordWrap(isLinkValid);
         tooltipWidget->show();
@@ -2670,7 +2684,7 @@ void ChannelView::showUserInfoPopup(const QString &userName,
     userPopup->setData(userName, contextChannel, openingChannel);
 
     QPoint offset(userPopup->width() / 3, userPopup->height() / 5);
-    userPopup->moveTo(QCursor::pos() - offset, false,
+    userPopup->moveTo(QCursor::pos() - offset,
                       BaseWindow::BoundsChecker::CursorPosition);
     userPopup->show();
 }
