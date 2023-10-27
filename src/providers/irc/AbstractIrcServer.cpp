@@ -61,7 +61,7 @@ AbstractIrcServer::AbstractIrcServer()
         this->writeConnection_->connectionLost, [this](bool timeout) {
             qCDebug(chatterinoIrc)
                 << "Write connection reconnect requested. Timeout:" << timeout;
-            this->writeConnection_->smartReconnect.invoke();
+            this->writeConnection_->smartReconnect();
         });
 
     // Listen to read connection message signals
@@ -97,7 +97,7 @@ AbstractIrcServer::AbstractIrcServer()
                 this->addGlobalSystemMessage(
                     "Server connection timed out, reconnecting");
             }
-            this->readConnection_->smartReconnect.invoke();
+            this->readConnection_->smartReconnect();
         });
 }
 

@@ -1853,7 +1853,7 @@ void Helix::updateEmoteMode(
 
 void Helix::updateFollowerMode(
     QString broadcasterID, QString moderatorID,
-    boost::optional<int> followerModeDuration,
+    std::optional<int> followerModeDuration,
     ResultCallback<HelixChatSettings> successCallback,
     FailureCallback<HelixUpdateChatSettingsError, QString> failureCallback)
 {
@@ -1870,7 +1870,7 @@ void Helix::updateFollowerMode(
 
 void Helix::updateNonModeratorChatDelay(
     QString broadcasterID, QString moderatorID,
-    boost::optional<int> nonModeratorChatDelayDuration,
+    std::optional<int> nonModeratorChatDelayDuration,
     ResultCallback<HelixChatSettings> successCallback,
     FailureCallback<HelixUpdateChatSettingsError, QString> failureCallback)
 {
@@ -1889,7 +1889,7 @@ void Helix::updateNonModeratorChatDelay(
 
 void Helix::updateSlowMode(
     QString broadcasterID, QString moderatorID,
-    boost::optional<int> slowModeWaitTime,
+    std::optional<int> slowModeWaitTime,
     ResultCallback<HelixChatSettings> successCallback,
     FailureCallback<HelixUpdateChatSettingsError, QString> failureCallback)
 {
@@ -2250,7 +2250,7 @@ void Helix::fetchModerators(
 // Ban/timeout a user
 // https://dev.twitch.tv/docs/api/reference#ban-user
 void Helix::banUser(QString broadcasterID, QString moderatorID, QString userID,
-                    boost::optional<int> duration, QString reason,
+                    std::optional<int> duration, QString reason,
                     ResultCallback<> successCallback,
                     FailureCallback<HelixBanUserError, QString> failureCallback)
 {
@@ -3002,14 +3002,14 @@ NetworkRequest Helix::makeRequest(const QString &url, const QUrlQuery &urlQuery,
     {
         qCDebug(chatterinoTwitch)
             << "Helix::makeRequest called without a client ID set BabyRage";
-        // return boost::none;
+        // return std::nullopt;
     }
 
     if (this->oauthToken.isEmpty())
     {
         qCDebug(chatterinoTwitch)
             << "Helix::makeRequest called without an oauth token set BabyRage";
-        // return boost::none;
+        // return std::nullopt;
     }
 
     const QString baseUrl("https://api.twitch.tv/helix/");

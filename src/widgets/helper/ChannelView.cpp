@@ -231,7 +231,9 @@ void ChannelView::initializeLayout()
 
 void ChannelView::initializeScrollbar()
 {
-    this->scrollBar_->getCurrentValueChanged().connect([this] {
+    // We can safely ignore the scroll bar's signal connection since the scroll bar will
+    // always be destroyed before the ChannelView
+    std::ignore = this->scrollBar_->getCurrentValueChanged().connect([this] {
         if (this->isVisible())
         {
             this->performLayout(true);
@@ -293,13 +295,12 @@ bool ChannelView::paused() const
     return this->pausable() && !this->pauses_.empty();
 }
 
-void ChannelView::pause(PauseReason reason, boost::optional<uint> msecs)
+void ChannelView::pause(PauseReason reason, std::optional<uint> msecs)
 {
     if (msecs)
     {
         /// Msecs has a value
-        auto timePoint =
-            SteadyClock::now() + std::chrono::milliseconds(msecs.get());
+        auto timePoint = SteadyClock::now() + std::chrono::milliseconds(*msecs);
         auto it = this->pauses_.find(reason);
 
         if (it == this->pauses_.end())
@@ -310,15 +311,19 @@ void ChannelView::pause(PauseReason reason, boost::optional<uint> msecs)
         else
         {
             /// If the new time point is newer then we override.
-            if (it->second && it->second.get() < timePoint)
-                it->second = timePoint;
+            auto &previousTimePoint = it->second;
+            if (previousTimePoint.has_value() &&
+                previousTimePoint.value() < timePoint)
+            {
+                previousTimePoint = timePoint;
+            }
         }
     }
     else
     {
         /// Msecs is none -> pause is infinite.
         /// We just override the value.
-        this->pauses_[reason] = boost::none;
+        this->pauses_[reason] = std::nullopt;
     }
 
     this->updatePauses();
@@ -341,7 +346,7 @@ void ChannelView::updatePauses()
         this->unpaused();
 
         /// No pauses so we can stop the timer
-        this->pauseEnd_ = boost::none;
+        this->pauseEnd_ = std::nullopt;
         this->pauseTimer_.stop();
 
         this->scrollBar_->offsetMaximum(this->pauseScrollMaximumOffset_);
@@ -357,7 +362,7 @@ void ChannelView::updatePauses()
                          }))
     {
         /// Some of the pauses are infinite
-        this->pauseEnd_ = boost::none;
+        this->pauseEnd_ = std::nullopt;
         this->pauseTimer_.stop();
     }
     else
@@ -368,7 +373,7 @@ void ChannelView::updatePauses()
                              [](auto &&a, auto &&b) {
                                  return a.second > b.second;
                              })
-                ->second.get();
+                ->second.value();
 
         if (pauseEnd != this->pauseEnd_)
         {
@@ -384,6 +389,7 @@ void ChannelView::unpaused()
 {
     /// Move selection
     this->selection_.shiftMessageIndex(this->pauseSelectionOffset_);
+    this->doubleClickSelection_.shiftMessageIndex(this->pauseSelectionOffset_);
 
     this->pauseSelectionOffset_ = 0;
 }
@@ -611,6 +617,11 @@ QString ChannelView::getSelectedText()
                       : layout->getLastCharacterIndex() + 1;
 
         layout->addSelectionText(result, from, to);
+
+        if (msg != indexEnd)
+        {
+            result += '\n';
+        }
     }
 
     return result;
@@ -642,13 +653,12 @@ bool ChannelView::getEnableScrollingToBottom() const
     return this->enableScrollingToBottom_;
 }
 
-void ChannelView::setOverrideFlags(boost::optional<MessageElementFlags> value)
+void ChannelView::setOverrideFlags(std::optional<MessageElementFlags> value)
 {
     this->overrideFlags_ = std::move(value);
 }
 
-const boost::optional<MessageElementFlags> &ChannelView::getOverrideFlags()
-    const
+const std::optional<MessageElementFlags> &ChannelView::getOverrideFlags() const
 {
     return this->overrideFlags_;
 }
@@ -694,7 +704,7 @@ void ChannelView::setChannel(ChannelPtr underlyingChannel)
     this->channelConnections_.managedConnect(
         underlyingChannel->messageAppended,
         [this](MessagePtr &message,
-               boost::optional<MessageFlags> overridingFlags) {
+               std::optional<MessageFlags> overridingFlags) {
             if (this->shouldIncludeMessage(message))
             {
                 if (this->channel_->lastDate_ != QDate::currentDate())
@@ -710,12 +720,12 @@ void ChannelView::setChannel(ChannelPtr underlyingChannel)
                 // logging will be handled. Prevent duplications.
                 if (overridingFlags)
                 {
-                    overridingFlags.get().set(MessageFlag::DoNotLog);
+                    overridingFlags->set(MessageFlag::DoNotLog);
                 }
                 else
                 {
                     overridingFlags = MessageFlags(message->flags);
-                    overridingFlags.get().set(MessageFlag::DoNotLog);
+                    overridingFlags->set(MessageFlag::DoNotLog);
                 }
 
                 this->channel_->addMessage(message, overridingFlags);
@@ -761,7 +771,7 @@ void ChannelView::setChannel(ChannelPtr underlyingChannel)
     this->channelConnections_.managedConnect(
         this->channel_->messageAppended,
         [this](MessagePtr &message,
-               boost::optional<MessageFlags> overridingFlags) {
+               std::optional<MessageFlags> overridingFlags) {
             this->messageAppended(message, std::move(overridingFlags));
         });
 
@@ -877,12 +887,12 @@ bool ChannelView::hasSourceChannel() const
 }
 
 void ChannelView::messageAppended(MessagePtr &message,
-                                  boost::optional<MessageFlags> overridingFlags)
+                                  std::optional<MessageFlags> overridingFlags)
 {
     auto *messageFlags = &message->flags;
     if (overridingFlags)
     {
-        messageFlags = overridingFlags.get_ptr();
+        messageFlags = &*overridingFlags;
     }
 
     auto messageRef = std::make_shared<MessageLayout>(message);
@@ -922,6 +932,7 @@ void ChannelView::messageAppended(MessagePtr &message,
                 this->scrollBar_->scrollToBottom(false);
             }
             this->selection_.shiftMessageIndex(1);
+            this->doubleClickSelection_.shiftMessageIndex(1);
         }
     }
 
@@ -1083,21 +1094,20 @@ void ChannelView::resizeEvent(QResizeEvent *)
     this->update();
 }
 
+void ChannelView::setSelection(const Selection &newSelection)
+{
+    if (this->selection_ != newSelection)
+    {
+        this->selection_ = newSelection;
+        this->selectionChanged.invoke();
+        this->update();
+    }
+}
+
 void ChannelView::setSelection(const SelectionItem &start,
                                const SelectionItem &end)
 {
-    // selections
-    if (!this->selecting_ && start != end)
-    {
-        // this->messagesAddedSinceSelectionPause_ = 0;
-
-        this->selecting_ = true;
-        // this->pausedBySelection_ = true;
-    }
-
-    this->selection_ = Selection(start, end);
-
-    this->selectionChanged.invoke();
+    this->setSelection({start, end});
 }
 
 MessageElementFlags ChannelView::getFlags() const
@@ -1106,7 +1116,7 @@ MessageElementFlags ChannelView::getFlags() const
 
     if (this->overrideFlags_)
     {
-        return this->overrideFlags_.get();
+        return *this->overrideFlags_;
     }
 
     MessageElementFlags flags = app->windows->getWordFlags();
@@ -1512,16 +1522,29 @@ void ChannelView::mouseMoveEvent(QMouseEvent *event)
         this->currentMousePosition_ = event->screenPos();
     }
 
-    // is selecting
+    // check for word underneath cursor
+    const MessageLayoutElement *hoverLayoutElement =
+        layout->getElementAt(relativePos);
+
+    // selecting single characters
     if (this->isLeftMouseDown_)
     {
-        // this->pause(PauseReason::Selecting, 300);
-        int index = layout->getSelectionIndex(relativePos);
-
+        auto index = layout->getSelectionIndex(relativePos);
         this->setSelection(this->selection_.start,
                            SelectionItem(messageIndex, index));
+    }
 
-        this->queueUpdate();
+    // selecting whole words
+    if (this->isDoubleClick_ && hoverLayoutElement)
+    {
+        auto [wordStart, wordEnd] =
+            this->getWordBounds(layout.get(), hoverLayoutElement, relativePos);
+        auto hoveredWord = Selection{SelectionItem(messageIndex, wordStart),
+                                     SelectionItem(messageIndex, wordEnd)};
+        // combined selection spanning from initially selected word to hoveredWord
+        auto selectUnion = this->doubleClickSelection_ | hoveredWord;
+
+        this->setSelection(selectUnion);
     }
 
     // message under cursor is collapsed
@@ -1532,151 +1555,11 @@ void ChannelView::mouseMoveEvent(QMouseEvent *event)
         return;
     }
 
-    // check if word underneath cursor
-    const MessageLayoutElement *hoverLayoutElement =
-        layout->getElementAt(relativePos);
-
     if (hoverLayoutElement == nullptr)
     {
         this->setCursor(Qt::ArrowCursor);
         tooltipWidget->hide();
         return;
-    }
-
-    if (this->isDoubleClick_)
-    {
-        int wordStart;
-        int wordEnd;
-        this->getWordBounds(layout.get(), hoverLayoutElement, relativePos,
-                            wordStart, wordEnd);
-        SelectionItem newStart(messageIndex, wordStart);
-        SelectionItem newEnd(messageIndex, wordEnd);
-
-        // Selection changed in same message
-        if (messageIndex == this->doubleClickSelection_.origMessageIndex)
-        {
-            // Selecting to the left
-            if (wordStart < this->selection_.start.charIndex &&
-                !this->doubleClickSelection_.selectingRight)
-            {
-                this->doubleClickSelection_.selectingLeft = true;
-                // Ensure that the original word stays selected(Edge case)
-                if (wordStart > this->doubleClickSelection_.originalEnd)
-                {
-                    this->setSelection(
-                        this->doubleClickSelection_.origStartItem, newEnd);
-                }
-                else
-                {
-                    this->setSelection(newStart, this->selection_.end);
-                }
-                // Selecting to the right
-            }
-            else if (wordEnd > this->selection_.end.charIndex &&
-                     !this->doubleClickSelection_.selectingLeft)
-            {
-                this->doubleClickSelection_.selectingRight = true;
-                // Ensure that the original word stays selected(Edge case)
-                if (wordEnd < this->doubleClickSelection_.originalStart)
-                {
-                    this->setSelection(newStart,
-                                       this->doubleClickSelection_.origEndItem);
-                }
-                else
-                {
-                    this->setSelection(this->selection_.start, newEnd);
-                }
-            }
-            // Swapping from selecting left to selecting right
-            if (wordStart > this->selection_.start.charIndex &&
-                !this->doubleClickSelection_.selectingRight)
-            {
-                if (wordStart > this->doubleClickSelection_.originalEnd)
-                {
-                    this->doubleClickSelection_.selectingLeft = false;
-                    this->doubleClickSelection_.selectingRight = true;
-                    this->setSelection(
-                        this->doubleClickSelection_.origStartItem, newEnd);
-                }
-                else
-                {
-                    this->setSelection(newStart, this->selection_.end);
-                }
-                // Swapping from selecting right to selecting left
-            }
-            else if (wordEnd < this->selection_.end.charIndex &&
-                     !this->doubleClickSelection_.selectingLeft)
-            {
-                if (wordEnd < this->doubleClickSelection_.originalStart)
-                {
-                    this->doubleClickSelection_.selectingLeft = true;
-                    this->doubleClickSelection_.selectingRight = false;
-                    this->setSelection(newStart,
-                                       this->doubleClickSelection_.origEndItem);
-                }
-                else
-                {
-                    this->setSelection(this->selection_.start, newEnd);
-                }
-            }
-            // Selection changed in a different message
-        }
-        else
-        {
-            // Message over the original
-            if (messageIndex < this->selection_.start.messageIndex)
-            {
-                // Swapping from left to right selecting
-                if (!this->doubleClickSelection_.selectingLeft)
-                {
-                    this->doubleClickSelection_.selectingLeft = true;
-                    this->doubleClickSelection_.selectingRight = false;
-                }
-                if (wordStart < this->selection_.start.charIndex &&
-                    !this->doubleClickSelection_.selectingRight)
-                {
-                    this->doubleClickSelection_.selectingLeft = true;
-                }
-                this->setSelection(newStart,
-                                   this->doubleClickSelection_.origEndItem);
-                // Message under the original
-            }
-            else if (messageIndex > this->selection_.end.messageIndex)
-            {
-                // Swapping from right to left selecting
-                if (!this->doubleClickSelection_.selectingRight)
-                {
-                    this->doubleClickSelection_.selectingLeft = false;
-                    this->doubleClickSelection_.selectingRight = true;
-                }
-                if (wordEnd > this->selection_.end.charIndex &&
-                    !this->doubleClickSelection_.selectingLeft)
-                {
-                    this->doubleClickSelection_.selectingRight = true;
-                }
-                this->setSelection(this->doubleClickSelection_.origStartItem,
-                                   newEnd);
-                // Selection changed in non original message
-            }
-            else
-            {
-                if (this->doubleClickSelection_.selectingLeft)
-                {
-                    this->setSelection(newStart, this->selection_.end);
-                }
-                else
-                {
-                    this->setSelection(this->selection_.start, newEnd);
-                }
-            }
-        }
-        // Reset direction of selection
-        if (wordStart == this->doubleClickSelection_.originalStart &&
-            wordEnd == this->doubleClickSelection_.originalEnd)
-        {
-            this->doubleClickSelection_.selectingLeft =
-                this->doubleClickSelection_.selectingRight = false;
-        }
     }
 
     auto element = &hoverLayoutElement->getCreator();
@@ -1829,7 +1712,7 @@ void ChannelView::mouseMoveEvent(QMouseEvent *event)
         }
 
         tooltipWidget->moveTo(event->globalPos() + QPoint(16, 16),
-                              BaseWindow::BoundsChecker::CursorPosition);
+                              widgets::BoundsChecking::CursorPosition);
         tooltipWidget->setWordWrap(isLinkValid);
         tooltipWidget->show();
     }
@@ -1953,13 +1836,11 @@ void ChannelView::mouseReleaseEvent(QMouseEvent *event)
     // check if mouse was pressed
     if (event->button() == Qt::LeftButton)
     {
-        this->doubleClickSelection_.selectingLeft =
-            this->doubleClickSelection_.selectingRight = false;
         if (this->isDoubleClick_)
         {
             this->isDoubleClick_ = false;
             // Was actually not a wanted triple-click
-            if (fabsf(distanceBetweenPoints(this->lastDClickPosition_,
+            if (fabsf(distanceBetweenPoints(this->lastDoubleClickPosition_,
                                             event->screenPos())) > 10.f)
             {
                 this->clickTimer_->stop();
@@ -1973,6 +1854,15 @@ void ChannelView::mouseReleaseEvent(QMouseEvent *event)
             if (fabsf(distanceBetweenPoints(this->lastLeftPressPosition_,
                                             event->screenPos())) > 15.f)
             {
+                return;
+            }
+
+            // Triple-clicking a message selects the whole message
+            if (foundElement && this->clickTimer_->isActive() &&
+                (fabsf(distanceBetweenPoints(this->lastDoubleClickPosition_,
+                                             event->screenPos())) < 10.f))
+            {
+                this->selectWholeMessage(layout.get(), messageIndex);
                 return;
             }
         }
@@ -2056,15 +1946,6 @@ void ChannelView::mouseReleaseEvent(QMouseEvent *event)
 
     const MessageLayoutElement *hoverLayoutElement =
         layout->getElementAt(relativePos);
-    // Triple-clicking a message selects the whole message
-    if (this->clickTimer_->isActive() && this->selecting_)
-    {
-        if (fabsf(distanceBetweenPoints(this->lastDClickPosition_,
-                                        event->screenPos())) < 10.f)
-        {
-            this->selectWholeMessage(layout.get(), messageIndex);
-        }
-    }
 
     // handle the click
     this->handleMouseClick(event, hoverLayoutElement, layout);
@@ -2079,16 +1960,6 @@ void ChannelView::handleMouseClick(QMouseEvent *event,
     switch (event->button())
     {
         case Qt::LeftButton: {
-            if (this->selecting_)
-            {
-                // this->pausedBySelection = false;
-                this->selecting_ = false;
-                // this->pauseTimeout.stop();
-                // this->pausedTemporarily = false;
-
-                this->queueLayout();
-            }
-
             if (hoveredElement == nullptr)
             {
                 return;
@@ -2611,6 +2482,10 @@ void ChannelView::mouseDoubleClickEvent(QMouseEvent *event)
         return;
     }
 
+    this->isDoubleClick_ = true;
+    this->lastDoubleClickPosition_ = event->screenPos();
+    this->clickTimer_->start();
+
     // message under cursor is collapsed
     if (layout->flags.has(MessageLayoutFlag::Collapsed))
     {
@@ -2619,38 +2494,17 @@ void ChannelView::mouseDoubleClickEvent(QMouseEvent *event)
 
     const MessageLayoutElement *hoverLayoutElement =
         layout->getElementAt(relativePos);
-    this->lastDClickPosition_ = event->screenPos();
 
     if (hoverLayoutElement == nullptr)
     {
-        // Possibility for triple click which doesn't have to be over an
-        // existing layout element
-        this->clickTimer_->start();
         return;
     }
 
-    if (!this->isLeftMouseDown_)
-    {
-        this->isDoubleClick_ = true;
-
-        int wordStart;
-        int wordEnd;
-        this->getWordBounds(layout.get(), hoverLayoutElement, relativePos,
-                            wordStart, wordEnd);
-
-        this->clickTimer_->start();
-
-        SelectionItem wordMin(messageIndex, wordStart);
-        SelectionItem wordMax(messageIndex, wordEnd);
-
-        this->doubleClickSelection_.originalStart = wordStart;
-        this->doubleClickSelection_.originalEnd = wordEnd;
-        this->doubleClickSelection_.origMessageIndex = messageIndex;
-        this->doubleClickSelection_.origStartItem = wordMin;
-        this->doubleClickSelection_.origEndItem = wordMax;
-
-        this->setSelection(wordMin, wordMax);
-    }
+    auto [wordStart, wordEnd] =
+        this->getWordBounds(layout.get(), hoverLayoutElement, relativePos);
+    this->doubleClickSelection_ = {SelectionItem(messageIndex, wordStart),
+                                   SelectionItem(messageIndex, wordEnd)};
+    this->setSelection(this->doubleClickSelection_);
 
     if (getSettings()->linksDoubleClickOnly)
     {
@@ -2685,7 +2539,7 @@ void ChannelView::showUserInfoPopup(const QString &userName,
 
     QPoint offset(userPopup->width() / 3, userPopup->height() / 5);
     userPopup->moveTo(QCursor::pos() - offset,
-                      BaseWindow::BoundsChecker::CursorPosition);
+                      widgets::BoundsChecking::CursorPosition);
     userPopup->show();
 }
 
@@ -2906,17 +2760,18 @@ void ChannelView::selectWholeMessage(MessageLayout *layout, int &messageIndex)
     this->setSelection(msgStart, msgEnd);
 }
 
-void ChannelView::getWordBounds(MessageLayout *layout,
-                                const MessageLayoutElement *element,
-                                const QPoint &relativePos, int &wordStart,
-                                int &wordEnd)
+/// @returns [wordStart, wordEnd] position indexes for word hovered by mouse
+std::pair<size_t, size_t> ChannelView::getWordBounds(
+    MessageLayout *layout, const MessageLayoutElement *element,
+    const QPoint &relativePos)
 {
-    const int mouseInWordIndex = element->getMouseOverIndex(relativePos);
-    wordStart = layout->getSelectionIndex(relativePos) - mouseInWordIndex;
-    const int selectionLength = element->getSelectionIndexCount();
-    const int length =
+    const auto wordStart = layout->getSelectionIndex(relativePos) -
+                           element->getMouseOverIndex(relativePos);
+    const auto selectionLength = element->getSelectionIndexCount();
+    const auto length =
         element->hasTrailingSpace() ? selectionLength - 1 : selectionLength;
-    wordEnd = wordStart + length;
+
+    return {wordStart, wordStart + length};
 }
 
 void ChannelView::enableScrolling(const QPointF &scrollStart)
