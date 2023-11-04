@@ -32,18 +32,7 @@ AbstractIrcServer::AbstractIrcServer()
         {
             return;
         }
-        if (message.size() == 0)
-        {
-            return;
-        }
-        if (message.at(0) == '$')
-        {
-            this->readConnection_->sendRaw("JOIN " + message.mid(1));
-        }
-        else
-        {
-            this->readConnection_->sendRaw("JOIN #" + message);
-        }
+        this->readConnection_->sendRaw("JOIN #" + message);
     };
     this->joinBucket_.reset(new RatelimitBucket(
         JOIN_RATELIMIT_BUDGET, JOIN_RATELIMIT_COOLDOWN, actuallyJoin, this));
@@ -238,18 +227,7 @@ ChannelPtr AbstractIrcServer::getOrAddChannel(const QString &dirtyChannelName)
 
         if (this->readConnection_)
         {
-            if (channelName.size() == 0)
-            {
-                return;
-            }
-            if (channelName.at(0) == '$')
-            {
-                this->readConnection_->sendRaw("PART " + channelName.mid(1));
-            }
-            else
-            {
-                this->readConnection_->sendRaw("PART #" + channelName);
-            }
+            this->readConnection_->sendRaw("PART #" + channelName);
         }
     });
 

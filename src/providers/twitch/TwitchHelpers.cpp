@@ -11,11 +11,6 @@ bool trimChannelName(const QString &channelName, QString &outChannelName)
         qCDebug(chatterinoTwitch) << "channel name length below 2";
         return false;
     }
-    if (!channelName.startsWith("#"))
-    {
-        outChannelName = "$" + channelName;
-        return true;
-    }
 
     outChannelName = channelName.mid(1);
 

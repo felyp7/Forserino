@@ -2,6 +2,12 @@
 
 ## Unversioned
 
+### Dankerino
+
+- Major: Remove PU support as they don't exist now. (No PR)
+
+### Upstream
+
 - Major: Allow use of Twitch follower emotes in other channels if subscribed. (#4922)
 - Minor: Migrate to the new Get Channel Followers Helix endpoint, fixing follower count not showing up in usercards. (#4809)
 - Minor: The account switcher is now styled to match your theme. (#4817)
