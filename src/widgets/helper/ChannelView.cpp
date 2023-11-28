@@ -2335,6 +2335,10 @@ void ChannelView::addMessageContextMenuItems(QMenu *menu,
 
         if (messagePtr->replyThread != nullptr)
         {
+            menu->addAction("Reply to &original thread", [this, &messagePtr] {
+                this->setInputReply(messagePtr->replyThread->root());
+            });
+
             menu->addAction("View &thread", [this, &messagePtr] {
                 this->showReplyThreadPopup(messagePtr);
             });
@@ -2875,19 +2879,17 @@ void ChannelView::setInputReply(const MessagePtr &message)
         return;
     }
 
-    auto thread = message->replyThread;
-
-    if (!thread)
+    if (!message->replyThread)
     {
         // Message did not already have a thread attached, try to find or create one
         if (auto *tc =
                 dynamic_cast<TwitchChannel *>(this->underlyingChannel_.get()))
         {
-            thread = tc->getOrCreateThread(message);
+            tc->getOrCreateThread(message);
         }
         else if (auto *tc = dynamic_cast<TwitchChannel *>(this->channel_.get()))
         {
-            thread = tc->getOrCreateThread(message);
+            tc->getOrCreateThread(message);
         }
         else
         {
@@ -2898,7 +2900,7 @@ void ChannelView::setInputReply(const MessagePtr &message)
         }
     }
 
-    this->split_->setInputReply(thread);
+    this->split_->setInputReply(message);
 }
 
 void ChannelView::showReplyThreadPopup(const MessagePtr &message)

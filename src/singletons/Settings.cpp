@@ -137,6 +137,7 @@ bool Settings::toggleMutedChannel(const QString &channelName)
 Settings *Settings::instance_ = nullptr;
 
 Settings::Settings(const QString &settingsDirectory)
+    : prevInstance_(Settings::instance_)
 {
     QString settingsPath = settingsDirectory + "/settings.json";
 
@@ -203,7 +204,10 @@ void Settings::moveLegacyDankerinoSettings_()
     }
 }
 
-Settings::~Settings() = default;
+Settings::~Settings()
+{
+    Settings::instance_ = this->prevInstance_;
+}
 
 void Settings::saveSnapshot()
 {

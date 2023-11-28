@@ -1,11 +1,9 @@
 #include "controllers/notifications/NotificationController.hpp"
 
 #include "Application.hpp"
-#include "common/NetworkRequest.hpp"
-#include "common/Outcome.hpp"
 #include "common/QLogging.hpp"
 #include "controllers/notifications/NotificationModel.hpp"
-#include "controllers/sound/SoundController.hpp"
+#include "controllers/sound/ISoundController.hpp"
 #include "messages/Message.hpp"
 #include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/TwitchIrcServer.hpp"
@@ -107,7 +105,7 @@ void NotificationController::playSound()
                   getSettings()->notificationPathSound.getValue())
             : QUrl("qrc:/sounds/ping2.wav");
 
-    getApp()->sound->play(highlightSoundUrl);
+    getIApp()->getSound()->play(highlightSoundUrl);
 }
 
 NotificationModel *NotificationController::createModel(QObject *parent,
