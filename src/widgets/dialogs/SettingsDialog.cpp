@@ -6,6 +6,7 @@
 #include "controllers/hotkeys/HotkeyController.hpp"
 #include "singletons/Settings.hpp"
 #include "util/LayoutCreator.hpp"
+#include "widgets/BaseWindow.hpp"
 #include "widgets/helper/Button.hpp"
 #include "widgets/helper/SettingsDialogTab.hpp"
 #include "widgets/settingspages/AboutPage.hpp"
@@ -30,9 +31,14 @@
 namespace chatterino {
 
 SettingsDialog::SettingsDialog(QWidget *parent)
-    : BaseWindow({BaseWindow::Flags::DisableCustomScaling,
-                  BaseWindow::Flags::Dialog, BaseWindow::DisableLayoutSave},
-                 parent)
+    : BaseWindow(
+          {
+              BaseWindow::Flags::DisableCustomScaling,
+              BaseWindow::Flags::Dialog,
+              BaseWindow::DisableLayoutSave,
+              BaseWindow::BoundsCheckOnShow,
+          },
+          parent)
 {
     this->setObjectName("SettingsDialog");
     this->setWindowTitle("Chatterino Settings");
@@ -385,9 +391,10 @@ void SettingsDialog::themeChangedEvent()
     this->setPalette(palette);
 }
 
-void SettingsDialog::showEvent(QShowEvent *)
+void SettingsDialog::showEvent(QShowEvent *e)
 {
     this->ui_.search->setText("");
+    BaseWindow::showEvent(e);
 }
 
 ///// Widget creation helpers
