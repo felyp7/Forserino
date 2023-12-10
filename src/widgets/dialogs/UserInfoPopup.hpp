@@ -1,6 +1,7 @@
 #pragma once
 
 #include "widgets/DraggablePopup.hpp"
+#include "widgets/helper/EffectLabel.hpp"
 
 #include <pajlada/signals/scoped-connection.hpp>
 #include <pajlada/signals/signal.hpp>
@@ -82,6 +83,8 @@ private:
 
         Label *noMessagesLabel = nullptr;
         ChannelView *latestMessages = nullptr;
+
+        EffectLabel2 *usercardLabel = nullptr;
     } ui_;
 
     class TimeoutWidget : public BaseWidget
