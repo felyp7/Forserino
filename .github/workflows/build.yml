@@ -4,7 +4,7 @@ name: Build
 on:
   push:
     branches:
-      - dankerino
+      - forserino
       - "bugfix-release/*"
       - "release/*"
   pull_request:
@@ -413,7 +413,7 @@ jobs:
   create-release:
     needs: build
     runs-on: ubuntu-latest
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/dankerino')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/forserino')
 
     steps:
       - uses: actions/checkout@v4
