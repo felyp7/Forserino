@@ -402,6 +402,18 @@ void GeneralPage::initLayout(GeneralPageView &layout)
         },
         false);
 
+    layout.addTitle("Rainbow username colors");
+    layout.addCheckbox(
+        "Change color to create a rainbow effect before sending each message",
+        s.rainbowMessages);
+    layout.addCheckbox(
+        "Use true rainbow colors (requires Twitch Prime or Turbo)",
+        s.rainbowMessagesPrime);
+    layout.addIntInput("Rainbow speed (HSL hue increase per new color)",
+                       s.rainbowSpeed, 1, 100, 1);
+    layout.addIntInput("Rainbow starting color (HSL hue)", s.rainbowStartingHue,
+                       0, 359, 1);
+
     layout.addTitle("Messages");
     layout.addCheckbox(
         "Separate with lines", s.separateMessages, false,

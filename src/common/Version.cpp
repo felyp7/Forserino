@@ -18,7 +18,7 @@ Version::Version()
     this->isModified_ = true;
 #endif
 
-    this->fullVersion_ = "Chatterino ";
+    this->fullVersion_ = "Forserino ";
     if (Modes::instance().isNightly)
     {
         this->fullVersion_ += "Nightly ";

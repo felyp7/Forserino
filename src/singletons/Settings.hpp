@@ -183,6 +183,10 @@ public:
     /// Behaviour
     BoolSetting allowDuplicateMessages = {"/behaviour/allowDuplicateMessages",
                                           true};
+    BoolSetting rainbowMessages = {"/behaviour/rainbow/enabled", false};
+    BoolSetting rainbowMessagesPrime = {"/behaviour/rainbow/primeColors", true};
+    IntSetting rainbowSpeed = {"/behaviour/rainbow/speed", 10};
+    IntSetting rainbowStartingHue = {"/behaviour/rainbow/startingHue", 0};
     BoolSetting mentionUsersWithAt = {"/behaviour/mentionUsersWithAt", false};
     BoolSetting showJoins = {"/behaviour/showJoins", false};
     BoolSetting showParts = {"/behaviour/showParts", false};
@@ -579,6 +583,8 @@ public:
         "/misc/twitch/lowRateLimitDelay",
         1100,
     };
+    BoolSetting ignoreMaxMessageRateLimit = {
+      "/misc/twitch/ignoreMaxMessageRateLimit", false};
     BoolSetting abnormalNonceDetection = {"/misc/abnormalNonceDetection",
                                           false};
     BoolSetting normalNonceDetection = {"/misc/normalNonceDetection", false};
