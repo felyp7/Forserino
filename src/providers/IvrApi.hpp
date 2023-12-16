@@ -73,6 +73,17 @@ struct IvrEmote {
     }
 };
 
+struct IvrModVip {
+    const QJsonArray mods;
+    const QJsonArray vips;
+
+    IvrModVip(const QJsonObject &root)
+        : mods(root.value("mods").toArray())
+        , vips(root.value("vips").toArray())
+    {
+    }
+};
+
 class IvrApi final
 {
 public:
@@ -80,11 +91,16 @@ public:
     void getSubage(QString userName, QString channelName,
                    ResultCallback<IvrSubage> resultCallback,
                    IvrFailureCallback failureCallback);
-
+    
     // https://api.ivr.fi/v2/docs/static/index.html#/Twitch/get_twitch_emotes_sets
     void getBulkEmoteSets(QString emoteSetList,
                           ResultCallback<QJsonArray> successCallback,
                           IvrFailureCallback failureCallback);
+
+    // https://api.ivr.fi/v2/docs/static/index.html#/Twitch/get_twitch_modvip__channel_
+    void getModVip(QString channelName,
+                   ResultCallback<IvrModVip> resultCallback,
+                   IvrFailureCallback failureCallback);
 
     static void initialize();
 

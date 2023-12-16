@@ -32,6 +32,8 @@
 #include "controllers/plugins/PluginController.hpp"
 #include "messages/Message.hpp"
 #include "messages/MessageBuilder.hpp"
+#include "providers/IvrApi.hpp"
+#include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/TwitchAccount.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
 #include "providers/twitch/TwitchCommon.hpp"
@@ -40,14 +42,69 @@
 #include "util/CombinePath.hpp"
 #include "util/QStringHash.hpp"
 #include "util/Qt.hpp"
+#include "common/Env.hpp"
+#include "common/LinkParser.hpp"
+#include "common/NetworkResult.hpp"
+#include "common/QLogging.hpp"
+#include "common/SignalVector.hpp"
+#include "controllers/userdata/UserDataController.hpp"
+#include "messages/Image.hpp"
+#include "messages/MessageElement.hpp"
+#include "messages/MessageThread.hpp"
+#include "providers/irc/IrcChannel2.hpp"
+#include "providers/irc/IrcServer.hpp"
+#include "providers/twitch/TwitchIrcServer.hpp"
+#include "providers/twitch/TwitchMessageBuilder.hpp"
+#include "singletons/Settings.hpp"
+#include "singletons/Theme.hpp"
+#include "singletons/WindowManager.hpp"
+#include "util/Clipboard.hpp"
+#include "util/FormatTime.hpp"
+#include "util/Helpers.hpp"
+#include "util/IncognitoBrowser.hpp"
+#include "util/PostToThread.hpp"
+#include "util/StreamLink.hpp"
+#include "util/Twitch.hpp"
+#include "widgets/dialogs/ReplyThreadPopup.hpp"
+#include "widgets/dialogs/UserInfoPopup.hpp"
+#include "widgets/helper/ChannelView.hpp"
+#include "widgets/splits/Split.hpp"
+#include "widgets/splits/SplitContainer.hpp"
+#include "widgets/Window.hpp"
 
-#include <QString>
-
+#include <QApplication>
+#include <QDesktopServices>
+#include <QFile>
+#include <QRegularExpression>
+#include <QUrl>
 #include <unordered_map>
 
 namespace {
 
 using namespace chatterino;
+
+bool areIRCCommandsStillAvailable()
+{
+    // 11th of February 2023, 06:00am UTC
+    const QDateTime migrationTime(QDate(2023, 2, 11), QTime(6, 0), Qt::UTC);
+    auto now = QDateTime::currentDateTimeUtc();
+    return now < migrationTime;
+}
+
+QString useIRCCommand(const QStringList &words)
+{
+    // Reform the original command
+    auto originalCommand = words.join(" ");
+
+    // Replace the / with a . to pass it along to TMI
+    auto newCommand = originalCommand;
+    newCommand.replace(0, 1, ".");
+
+    qCDebug(chatterinoTwitch)
+        << "Forwarding command" << originalCommand << "as" << newCommand;
+
+    return newCommand;
+}
 
 using VariableReplacer = std::function<QString(
     const QString &, const ChannelPtr &, const Message *)>;
@@ -356,7 +413,131 @@ void CommandController::initialize(Settings &, Paths &paths)
 
     this->registerCommand("/test-chatters", &commands::testChatters);
 
-    this->registerCommand("/mods", &commands::getModerators);
+    auto formatModsError = [](HelixGetModeratorsError error, QString message) {
+        using Error = HelixGetModeratorsError;
+
+        QString errorMessage = QString("Failed to get moderators - ");
+
+        switch (error)
+        {
+            case Error::Forwarded: {
+                errorMessage += message;
+            }
+            break;
+
+            case Error::UserMissingScope: {
+                errorMessage += "Missing required scope. "
+                                "Re-login with your "
+                                "account and try again.";
+            }
+            break;
+
+            case Error::UserNotAuthorized: {
+                errorMessage +=
+                    "Due to Twitch restrictions, "
+                    "this command can only be used by the broadcaster. "
+                    "To see the list of mods you must use the Twitch website.";
+            }
+            break;
+
+            case Error::Unknown: {
+                errorMessage += "An unknown error has occurred.";
+            }
+            break;
+        }
+        return errorMessage;
+    };
+
+    this->registerCommand("/mods",
+        [formatModsError](const QStringList &words, auto channel) -> QString {
+            auto twitchChannel = dynamic_cast<TwitchChannel *>(channel.get());
+
+            if (twitchChannel == nullptr)
+            {
+                channel->addMessage(makeSystemMessage(
+                    "The /mods command only works in Twitch Channels"));
+                return "";
+            }
+
+            switch (getSettings()->helixTimegateModerators.getValue())
+            {
+                case HelixTimegateOverride::Timegate: {
+                    if (areIRCCommandsStillAvailable())
+                    {
+                        return useIRCCommand(words);
+                    }
+                }
+                break;
+
+                case HelixTimegateOverride::AlwaysUseIRC: {
+                    return useIRCCommand(words);
+                }
+                break;
+                case HelixTimegateOverride::AlwaysUseHelix: {
+                    // Fall through to helix logic
+                }
+                break;
+            }
+
+            if (twitchChannel->isBroadcaster())
+            {
+                getHelix()->getModerators(
+                    twitchChannel->roomId(), 500,
+                    [channel, twitchChannel](auto result) {
+                        if (result.empty())
+                        {
+                            channel->addMessage(makeSystemMessage(
+                                "This channel does not have any moderators."));
+                            return;
+                        }
+                        // TODO: sort results?
+
+                        MessageBuilder builder;
+                        TwitchMessageBuilder::listOfUsersSystemMessage(
+                            "The moderators of this channel are", result,
+                            twitchChannel, &builder);
+                        channel->addMessage(builder.release());
+                    },
+                    [channel, formatModsError](auto error, auto message) {
+                        auto errorMessage = formatModsError(error, message);
+                        channel->addMessage(makeSystemMessage(errorMessage));
+                    });
+            }
+            else
+            {
+                QString target = channel->getName();
+                getIvr()->getModVip(
+                    target,
+                    [channel, twitchChannel, target](auto result) {
+                        if (result.mods.empty())
+                        {
+                            channel->addMessage(makeSystemMessage(
+                                "This channel does not have any moderators."));
+                            return;
+                        }
+
+                        QStringList mods;
+                        for (int i = 0; i < result.mods.size(); i++)
+                        {
+                            mods.append(result.mods.at(i)
+                                            .toObject()
+                                            .value("login")
+                                            .toString());
+                        }
+
+                        MessageBuilder builder;
+                        TwitchMessageBuilder::listOfUsersSystemMessage(
+                            "The moderators of this channel are", mods,
+                            twitchChannel, &builder);
+                        channel->addMessage(builder.release());
+                    },
+                    [channel]() {
+                        channel->addMessage(makeSystemMessage(
+                            "Could not get moderators list from IVR!"));
+                    });
+            }
+            return "";
+        });
 
     this->registerCommand("/clip", &commands::clip);
 
@@ -436,7 +617,164 @@ void CommandController::initialize(Settings &, Paths &paths)
         this->registerCommand(cmd, &commands::sendWhisper);
     }
 
-    this->registerCommand("/vips", &commands::getVIPs);
+auto formatVIPListError = [](HelixListVIPsError error,
+                                 const QString &message) -> QString {
+        using Error = HelixListVIPsError;
+
+        QString errorMessage = QString("Failed to list VIPs - ");
+
+        switch (error)
+        {
+            case Error::Forwarded: {
+                errorMessage += message;
+            }
+            break;
+
+            case Error::Ratelimited: {
+                errorMessage += "You are being ratelimited by Twitch. Try "
+                                "again in a few seconds.";
+            }
+            break;
+
+            case Error::UserMissingScope: {
+                // TODO(pajlada): Phrase MISSING_REQUIRED_SCOPE
+                errorMessage += "Missing required scope. "
+                                "Re-login with your "
+                                "account and try again.";
+            }
+            break;
+
+            case Error::UserNotAuthorized: {
+                // TODO(pajlada): Phrase MISSING_PERMISSION
+                errorMessage += "You don't have permission to "
+                                "perform that action.";
+            }
+            break;
+
+            case Error::UserNotBroadcaster: {
+                errorMessage +=
+                    "Due to Twitch restrictions, "
+                    "this command can only be used by the broadcaster. "
+                    "To see the list of VIPs you must use the Twitch website.";
+            }
+            break;
+
+            case Error::Unknown: {
+                errorMessage += "An unknown error has occurred.";
+            }
+            break;
+        }
+        return errorMessage;
+    };
+
+    this->registerCommand("/vips",
+        [formatVIPListError](const QStringList &words,
+                             auto channel) -> QString {
+            auto *twitchChannel = dynamic_cast<TwitchChannel *>(channel.get());
+            if (twitchChannel == nullptr)
+            {
+                channel->addMessage(makeSystemMessage(
+                    "The /vips command only works in Twitch channels"));
+                return "";
+            }
+
+            switch (getSettings()->helixTimegateVIPs.getValue())
+            {
+                case HelixTimegateOverride::Timegate: {
+                    if (areIRCCommandsStillAvailable())
+                    {
+                        return useIRCCommand(words);
+                    }
+
+                    // fall through to Helix logic
+                }
+                break;
+
+                case HelixTimegateOverride::AlwaysUseIRC: {
+                    return useIRCCommand(words);
+                }
+                break;
+
+                case HelixTimegateOverride::AlwaysUseHelix: {
+                    // do nothing and fall through to Helix logic
+                }
+                break;
+            }
+            auto currentUser = getApp()->accounts->twitch.getCurrent();
+            if (currentUser->isAnon())
+            {
+                channel->addMessage(makeSystemMessage(
+                    "Due to Twitch restrictions, "  //
+                    "this command can only be used by the broadcaster. "
+                    "To see the list of VIPs you must use the "
+                    "Twitch website."));
+                return "";
+            }
+
+            if (twitchChannel->isBroadcaster())
+            {
+                getHelix()->getChannelVIPs(
+                    twitchChannel->roomId(),
+                    [channel,
+                     twitchChannel](const std::vector<HelixVip> &vipList) {
+                        if (vipList.empty())
+                        {
+                            channel->addMessage(makeSystemMessage(
+                                "This channel does not have any VIPs."));
+                            return;
+                        }
+
+                        auto messagePrefix =
+                            QString("The VIPs of this channel are");
+
+                        // TODO: sort results?
+                        MessageBuilder builder;
+                        TwitchMessageBuilder::listOfUsersSystemMessage(
+                            messagePrefix, vipList, twitchChannel, &builder);
+
+                        channel->addMessage(builder.release());
+                    },
+                    [channel, formatVIPListError](auto error, auto message) {
+                        auto errorMessage = formatVIPListError(error, message);
+                        channel->addMessage(makeSystemMessage(errorMessage));
+                    });
+            }
+            else
+            {
+                QString target = channel->getName();
+                getIvr()->getModVip(
+                    target,
+                    [channel, twitchChannel, target](auto result) {
+                        if (result.vips.isEmpty())
+                        {
+                            channel->addMessage(makeSystemMessage(
+                                "This channel does not have any VIPs."));
+                            return;
+                        }
+
+                        QStringList vips;
+                        for (int i = 0; i < result.vips.size(); i++)
+                        {
+                            vips.append(result.vips.at(i)
+                                            .toObject()
+                                            .value("login")
+                                            .toString());
+                        }
+
+                        MessageBuilder builder;
+                        TwitchMessageBuilder::listOfUsersSystemMessage(
+                            "The VIPs of this channel are", vips, twitchChannel,
+                            &builder);
+                        channel->addMessage(builder.release());
+                    },
+                    [channel]() {
+                        channel->addMessage(makeSystemMessage(
+                            "Could not get VIPs list from IVR!"));
+                    });
+            }
+
+            return "";
+        });
 
     this->registerCommand("/commercial", &commands::startCommercial);
 

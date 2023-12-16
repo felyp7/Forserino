@@ -1021,6 +1021,7 @@ void UserInfoPopup::updateUserData()
                 }
             },
             [] {});
+            
     };
 
     if (!this->userId_.isEmpty())
