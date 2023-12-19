@@ -450,7 +450,7 @@ bool TwitchIrcServer::prepareToSend(TwitchChannel *channel)
     // check if you are sending messages too fast
     if (!lastMessage.empty() && lastMessage.back() + minMessageOffset > now)
     {
-        if (this->lastErrorTimeSpeed_ + 30s < now)
+        if (!getSettings()->ignoreMaxMessageRateLimit && this->lastErrorTimeSpeed_ + 30s < now)
         {
             auto errorMessage =
                 makeSystemMessage("You are sending messages too quickly.");
@@ -599,15 +599,7 @@ bool TwitchIrcServer::prepareToSend(TwitchChannel *channel)
     }
     else
     {
-        if (channel->getName().startsWith("$"))
-        {
-            this->sendRawMessage("PRIVMSG " + channel->getName().mid(1) + " :" +
-                                 message);
-        }
-        else
-        {
-            this->sendMessage(channel->getName(), message);
-        }
+        this->sendMessage(channel->getName(), message);
     }
 
     sent = true;
