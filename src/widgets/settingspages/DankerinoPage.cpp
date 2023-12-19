@@ -71,7 +71,7 @@ void DankerinoPage::initLayout(GeneralPageView &layout)
         "Low rate limit spam delay in milliseconds (non mod/vip)",
         s.twitchLowRateLimitDelay, 500, 3000, 1100);
     layout.addCheckbox(
-        "Disable 20 messages/30sec rate limit (bot limits [get a life {said FELYP8}])",
+        "Disable 20 messages/30sec rate limit (enables bot limits)",
         s.ignoreMaxMessageRateLimit);
 
     if (s.dankerinoThreeLetterApiEasterEgg)
