@@ -187,6 +187,8 @@ public:
     BoolSetting rainbowMessagesPrime = {"/behaviour/rainbow/primeColors", true};
     IntSetting rainbowSpeed = {"/behaviour/rainbow/speed", 10};
     IntSetting rainbowStartingHue = {"/behaviour/rainbow/startingHue", 0};
+    IntSetting rainbowSaturation = {"/behaviour/rainbow/saturation", 153};
+    IntSetting rainbowLight = {"/behaviour/rainbow/light", 128};
     BoolSetting mentionUsersWithAt = {"/behaviour/mentionUsersWithAt", false};
     BoolSetting showJoins = {"/behaviour/showJoins", false};
     BoolSetting showParts = {"/behaviour/showParts", false};

@@ -518,8 +518,8 @@ bool TwitchIrcServer::prepareToSend(TwitchChannel *channel)
                 hue -= 360;
             }
 
-            const auto sat = 153;
-            const auto light = 128;
+            const auto sat = getSettings()->rainbowSaturation;
+            const auto light = getSettings()->rainbowLight;
             color = QColor::fromHsl(hue, sat, light).name();
 
             rainbowHue[channel->getName()] = hue;
@@ -599,7 +599,15 @@ bool TwitchIrcServer::prepareToSend(TwitchChannel *channel)
     }
     else
     {
-        this->sendMessage(channel->getName(), message);
+       if (channel->getName().startsWith("$"))
+        {
+            this->sendRawMessage("PRIVMSG " + channel->getName().mid(1) + " :" +
+                                 message);
+        }
+        else
+        {
+            this->sendMessage(channel->getName(), message);
+        }
     }
 
     sent = true;

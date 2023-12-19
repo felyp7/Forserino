@@ -413,7 +413,8 @@ void GeneralPage::initLayout(GeneralPageView &layout)
                        s.rainbowSpeed, 1, 100, 1);
     layout.addIntInput("Rainbow starting color (HSL hue)", s.rainbowStartingHue,
                        0, 359, 1);
-
+    layout.addIntInput("Rainbow saturation", s.rainbowSaturation, 0, 255, 1);
+    layout.addIntInput("Rainbow light", s.rainbowLight, 0, 255, 1);
     layout.addTitle("Messages");
     layout.addCheckbox(
         "Separate with lines", s.separateMessages, false,
