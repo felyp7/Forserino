@@ -73,7 +73,7 @@ void DankerinoPage::initLayout(GeneralPageView &layout)
     layout.addCheckbox(
         "Disable 20 messages/30sec rate limit (enables bot limits)",
         s.ignoreMaxMessageRateLimit);
-
+    layout.addCheckbox("Use bot limits for JOINs", s.useBotLimitsJoin);
     if (s.dankerinoThreeLetterApiEasterEgg)
     {
         layout.addCheckbox("Click to disable GraphQL easter egg and "

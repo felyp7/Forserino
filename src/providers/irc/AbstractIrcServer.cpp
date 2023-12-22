@@ -5,6 +5,7 @@
 #include "messages/LimitedQueueSnapshot.hpp"
 #include "messages/Message.hpp"
 #include "messages/MessageBuilder.hpp"
+#include "singletons/Settings.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
 
 #include <QCoreApplication>
@@ -17,6 +18,7 @@ const int MAX_FALLOFF_COUNTER = 60;
 
 // Ratelimits for joinBucket_
 const int JOIN_RATELIMIT_BUDGET = 18;
+const int BOT_JOIN_RATELIMIT_BUDGET = 2000;
 const int JOIN_RATELIMIT_COOLDOWN = 12500;
 
 AbstractIrcServer::AbstractIrcServer()
@@ -35,8 +37,19 @@ AbstractIrcServer::AbstractIrcServer()
         }
         this->readConnection_->sendRaw("JOIN #" + message);
     };
-    this->joinBucket_.reset(new RatelimitBucket(
-        JOIN_RATELIMIT_BUDGET, JOIN_RATELIMIT_COOLDOWN, actuallyJoin, this));
+
+     if (getSettings()->useBotLimitsJoin)
+    {
+        this->joinBucket_.reset(new RatelimitBucket(
+            BOT_JOIN_RATELIMIT_BUDGET, JOIN_RATELIMIT_COOLDOWN,
+            actuallyJoin, this));
+    }
+    else
+    {
+        this->joinBucket_.reset(new RatelimitBucket(
+            JOIN_RATELIMIT_BUDGET, JOIN_RATELIMIT_COOLDOWN,
+            actuallyJoin, this));
+    }
 
     QObject::connect(this->writeConnection_.get(),
                      &Communi::IrcConnection::messageReceived, this,
