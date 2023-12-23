@@ -1,10 +1,14 @@
 #pragma once
 
+#include "singletons/Paths.hpp"
+#include "widgets/BaseWindow.hpp"
 #include "widgets/DraggablePopup.hpp"
 #include "widgets/helper/EffectLabel.hpp"
 
 #include <pajlada/signals/scoped-connection.hpp>
 #include <pajlada/signals/signal.hpp>
+#include <QMovie>
+#include <widgets/helper/EffectLabel.hpp>
 
 #include <chrono>
 
@@ -77,6 +81,7 @@ private:
         Label *userIDLabel = nullptr;
         Label *followageLabel = nullptr;
         Label *subageLabel = nullptr;
+        Label *rolesLabel = nullptr;
 
         QCheckBox *block = nullptr;
         QCheckBox *ignoreHighlights = nullptr;

@@ -82,6 +82,28 @@ void IvrApi::getBulkEmoteSets(QString emoteSetList,
         .execute();
 }
 
+void IvrApi::getUserRoles(QString userName,
+                          ResultCallback<IvrResolve> successCallback,
+                          IvrFailureCallback failureCallback)
+{
+    assert(!userName.isEmpty());
+
+    this->makeRequest(QString("twitch/user"),
+                      QUrlQuery(QString("login=%1").arg(userName)))
+        .onSuccess([successCallback, failureCallback](auto result) {
+            auto root = result.parseJsonArray();
+
+            successCallback(root);
+        })
+        .onError([failureCallback](auto result) {
+            qCWarning(chatterinoIvr)
+                << "Failed IVR API Call!" << result.formatError()
+                << QString(result.getData());
+            failureCallback();
+        })
+        .execute();
+}
+
 NetworkRequest IvrApi::makeRequest(QString url, QUrlQuery urlQuery)
 {
     assert(!url.startsWith("/"));
