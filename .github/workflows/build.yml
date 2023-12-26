@@ -30,13 +30,6 @@ jobs:
     strategy:
       matrix:
         include:
-          # Ubuntu 20.04, Qt 5.12
-          - os: ubuntu-20.04
-            qt-version: 5.12.12
-            force-lto: false
-            plugins: true
-            skip-artifact: true
-            skip-crashpad: true
           # Ubuntu 22.04, Qt 5.15
           - os: ubuntu-22.04
             qt-version: 5.15.2
@@ -442,18 +435,6 @@ jobs:
         name: Windows Qt5.15.2
         with:
           name: chatterino-windows-x86-64-Qt-5.15.2.zip
-          path: release-artifacts/
-
-      - uses: actions/download-artifact@v3
-        name: Linux Qt5.12.12 AppImage
-        with:
-          name: Chatterino-x86_64-5.12.12.AppImage
-          path: release-artifacts/
-
-      - uses: actions/download-artifact@v3
-        name: Ubuntu 20.04 Qt5.12.12 deb
-        with:
-          name: Chatterino-ubuntu-20.04-Qt-5.12.12.deb
           path: release-artifacts/
 
       - uses: actions/download-artifact@v3
