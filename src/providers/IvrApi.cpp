@@ -34,6 +34,26 @@ void IvrApi::getSubage(QString userName, QString channelName,
         .execute();
 }
 
+void IvrApi::getFounders(QString channelName,
+                         ResultCallback<QJsonArray> successCallback,
+                         IvrFailureCallback failureCallback)
+{
+    assert(!channelName.isEmpty());
+
+    this->makeRequest(QString("twitch/founders/%1").arg(channelName), {})
+        .onSuccess([successCallback, failureCallback](auto result) {
+            auto root = result.parseJson().value("founders").toArray();
+
+            successCallback(root);
+        })
+        .onError([failureCallback](auto result) {
+            qCWarning(chatterinoIvr)
+                << "Failed IVR API Call!" << result.formatError()
+                << QString(result.getData());
+            failureCallback();
+        })
+        .execute();
+}
 
 void IvrApi::getModVip(QString channelName,
                        ResultCallback<IvrModVip> successCallback,

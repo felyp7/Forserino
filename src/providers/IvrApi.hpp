@@ -146,6 +146,11 @@ public:
                           ResultCallback<QJsonArray> successCallback,
                           IvrFailureCallback failureCallback);
 
+    // https://api.ivr.fi/v2/docs/static/index.html#/Twitch/get_twitch_founders__login_
+    void getFounders(QString channelName,
+                     ResultCallback<QJsonArray> resultCallback,
+                     IvrFailureCallback failureCallback);
+
     // https://api.ivr.fi/v2/docs/static/index.html#/Twitch/get_twitch_modvip__channel_
     void getModVip(QString channelName,
                    ResultCallback<IvrModVip> resultCallback,

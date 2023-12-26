@@ -601,7 +601,48 @@ void CommandController::initialize(Settings &, Paths &paths)
 
     this->registerCommand("/followers", &commands::followers);
     this->registerCommand("/followersoff", &commands::followersOff);
+    this->registerCommand(
+        "/founders", [](const QStringList &words, auto channel) -> QString {
+            auto twitchChannel = dynamic_cast<TwitchChannel *>(channel.get());
+            QString target(words.value(1).toLower());
 
+            if (twitchChannel == nullptr)
+            {
+                channel->addMessage(makeSystemMessage(
+                    "The /founders command only works in Twitch Channels"));
+                return "";
+            }
+
+            if (words.value(1).isEmpty())
+            {
+                target = channel->getName();
+            }
+
+            getIvr()->getFounders(
+                target,
+                [channel, twitchChannel, target](auto result) {
+                    QStringList founders;
+
+                    for (int i = 0; i < result.size(); i++)
+                    {
+                        founders.append(result.at(i)
+                                            .toObject()
+                                            .value("displayName")
+                                            .toString());
+                    }
+
+                    MessageBuilder builder;
+                    TwitchMessageBuilder::listOfUsersSystemMessage(
+                        QString("The founders of %1 are").arg(target), founders,
+                        twitchChannel, &builder);
+                    channel->addMessage(builder.release());
+                },
+                [channel]() {
+                    channel->addMessage(
+                        makeSystemMessage("Could not get founders list!"));
+                });
+            return "";
+        });
     this->registerCommand("/uniquechat", &commands::uniqueChat);
     this->registerCommand("/r9kbeta", &commands::uniqueChat);
     this->registerCommand("/uniquechatoff", &commands::uniqueChatOff);
