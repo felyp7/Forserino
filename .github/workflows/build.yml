@@ -30,11 +30,11 @@ jobs:
     strategy:
       matrix:
         include:
-          # Ubuntu 20.04, Qt 5.12
+          # Ubuntu 20.04, Qt 5.12 - about time to drop this one
           - os: ubuntu-20.04
             qt-version: 5.12.12
             force-lto: false
-            plugins: true
+            plugins: false
             skip-artifact: false
             skip-crashpad: false
           # Ubuntu 22.04, Qt 5.15
