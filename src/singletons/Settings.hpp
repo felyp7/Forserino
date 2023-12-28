@@ -383,6 +383,23 @@ public:
                                            ""};
     QStringSetting subHighlightColor = {"/highlighting/subHighlightColor", ""};
 
+    BoolSetting enableAutomodHighlight = {
+        "/highlighting/automod/enabled",
+        true,
+    };
+    BoolSetting enableAutomodHighlightSound = {
+        "/highlighting/automod/enableSound",
+        false,
+    };
+    BoolSetting enableAutomodHighlightTaskbar = {
+        "/highlighting/automod/enableTaskbarFlashing",
+        false,
+    };
+    QStringSetting automodHighlightSoundUrl = {
+        "/highlighting/automod/soundUrl",
+        "",
+    };
+
     BoolSetting enableThreadHighlight = {
         "/highlighting/thread/nameIsHighlightKeyword", true};
     BoolSetting showThreadHighlightInMentions = {
@@ -518,7 +535,6 @@ public:
         ThumbnailPreviewMode::AlwaysShow,
     };
     QStringSetting cachePath = {"/cache/path", ""};
-    BoolSetting restartOnCrash = {"/misc/restartOnCrash", false};
     BoolSetting attachExtensionToAnyProcess = {
         "/misc/attachExtensionToAnyProcess", false};
     BoolSetting askOnImageUpload = {"/misc/askOnImageUpload", true};

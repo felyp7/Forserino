@@ -38,6 +38,7 @@
 #include "providers/twitch/TwitchChannel.hpp"
 #include "providers/twitch/TwitchIrcServer.hpp"
 #include "providers/twitch/TwitchMessageBuilder.hpp"
+#include "singletons/CrashHandler.hpp"
 #include "singletons/Emotes.hpp"
 #include "singletons/Fonts.hpp"
 #include "singletons/helper/LoggingChannel.hpp"
@@ -113,6 +114,7 @@ Application::Application(Settings &_settings, Paths &_paths)
     , toasts(&this->emplace<Toasts>())
     , imageUploader(&this->emplace<ImageUploader>())
     , seventvAPI(&this->emplace<SeventvAPI>())
+    , crashHandler(&this->emplace<CrashHandler>())
 
     , commands(&this->emplace<CommandController>())
     , notifications(&this->emplace<NotificationController>())
@@ -174,7 +176,9 @@ void Application::initialize(Settings &settings, Paths &paths)
         singleton->initialize(settings, paths);
     }
 
-    // add crash message
+    // Show crash message.
+    // On Windows, the crash message was already shown.
+#ifndef Q_OS_WIN
     if (!getArgs().isFramelessEmbed && getArgs().crashRecovery)
     {
         if (auto selected =
@@ -195,6 +199,7 @@ void Application::initialize(Settings &settings, Paths &paths)
             }
         }
     }
+#endif
 
     this->windows->updateWordTypeMask();
 
@@ -547,7 +552,8 @@ void Application::initPubSub()
                                 senderDisplayName, senderColor};
                             postToThread([chan, action] {
                                 const auto p =
-                                    makeAutomodMessage(action, chan->getName());
+                                    TwitchMessageBuilder::makeAutomodMessage(
+                                        action, chan->getName());
                                 chan->addMessage(p.first);
                                 chan->addMessage(p.second);
 
@@ -579,7 +585,8 @@ void Application::initPubSub()
                 }
 
                 postToThread([chan, action] {
-                    const auto p = makeAutomodMessage(action, chan->getName());
+                    const auto p = TwitchMessageBuilder::makeAutomodMessage(
+                        action, chan->getName());
                     chan->addMessage(p.first);
                     chan->addMessage(p.second);
                 });
@@ -621,7 +628,8 @@ void Application::initPubSub()
                 }
 
                 postToThread([chan, action] {
-                    const auto p = makeAutomodInfoMessage(action);
+                    const auto p =
+                        TwitchMessageBuilder::makeAutomodInfoMessage(action);
                     chan->addMessage(p);
                 });
             });
