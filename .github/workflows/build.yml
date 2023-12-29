@@ -30,6 +30,13 @@ jobs:
     strategy:
       matrix:
         include:
+          # Ubuntu 20.04, Qt 5.12 - about time to drop this one
+          - os: ubuntu-20.04
+            qt-version: 5.12.12
+            force-lto: false
+            plugins: false
+            skip-artifact: false
+            skip-crashpad: false
           # Ubuntu 22.04, Qt 5.15
           - os: ubuntu-22.04
             qt-version: 5.15.2
@@ -106,18 +113,18 @@ jobs:
 
       - name: Fetch upstream commit
         run: |
-          git remote add upstream https://github.com/chatterino/Chatterino2
-          git fetch upstream master
-          echo "☑ Fetched upstream"
-          OLD_BRANCH=$(git branch --show-current)
-          OLD_COMMIT=$(git rev-parse HEAD)
-          echo "Old branch was \"$OLD_BRANCH\"; old commit was \"$OLD_COMMIT\""
-          git checkout -b master --track upstream/master
-          echo "☑ Checked out upstream"
-          git pull
-          echo "☑ Pulled upstream"
-          git checkout "$OLD_BRANCH" || git checkout "$OLD_COMMIT"
-          echo "☑ Checked out old position"
+            git remote add upstream https://github.com/chatterino/Chatterino2
+            git fetch upstream master
+            echo "☑ Fetched upstream"
+            OLD_BRANCH=$(git branch --show-current)
+            OLD_COMMIT=$(git rev-parse HEAD)
+            echo "Old branch was \"$OLD_BRANCH\"; old commit was \"$OLD_COMMIT\""
+            git checkout -b master --track upstream/master
+            echo "☑ Checked out upstream"
+            git pull
+            echo "☑ Pulled upstream"
+            git checkout "$OLD_BRANCH" || git checkout "$OLD_COMMIT"
+            echo "☑ Checked out old position"
         shell: bash
 
       - name: Install Qt5
