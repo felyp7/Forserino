@@ -106,18 +106,18 @@ jobs:
 
       - name: Fetch upstream commit
         run: |
-            git remote add upstream https://github.com/chatterino/Chatterino2
-            git fetch upstream master
-            echo "☑ Fetched upstream"
-            OLD_BRANCH=$(git branch --show-current)
-            OLD_COMMIT=$(git rev-parse HEAD)
-            echo "Old branch was \"$OLD_BRANCH\"; old commit was \"$OLD_COMMIT\""
-            git checkout -b master --track upstream/master
-            echo "☑ Checked out upstream"
-            git pull
-            echo "☑ Pulled upstream"
-            git checkout "$OLD_BRANCH" || git checkout "$OLD_COMMIT"
-            echo "☑ Checked out old position"
+          git remote add upstream https://github.com/chatterino/Chatterino2
+          git fetch upstream master
+          echo "☑ Fetched upstream"
+          OLD_BRANCH=$(git branch --show-current)
+          OLD_COMMIT=$(git rev-parse HEAD)
+          echo "Old branch was \"$OLD_BRANCH\"; old commit was \"$OLD_COMMIT\""
+          git checkout -b master --track upstream/master
+          echo "☑ Checked out upstream"
+          git pull
+          echo "☑ Pulled upstream"
+          git checkout "$OLD_BRANCH" || git checkout "$OLD_COMMIT"
+          echo "☑ Checked out old position"
         shell: bash
 
       - name: Install Qt5
@@ -266,14 +266,14 @@ jobs:
 
       - name: Upload artifact (Windows - binary)
         if: startsWith(matrix.os, 'windows') && !matrix.skip-artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: chatterino-windows-x86-64-Qt-${{ matrix.qt-version }}.zip
           path: build/chatterino-windows-x86-64-Qt-${{ matrix.qt-version }}.zip
 
       - name: Upload artifact (Windows - symbols)
         if: startsWith(matrix.os, 'windows') && !matrix.skip-artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: chatterino-windows-x86-64-Qt-${{ matrix.qt-version }}-symbols.pdb.7z
           path: build/bin/chatterino-Qt-${{ matrix.qt-version }}.pdb.7z
@@ -348,14 +348,14 @@ jobs:
 
       - name: Upload artifact - AppImage (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu-20.04') && !matrix.skip-artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Chatterino-x86_64-${{ matrix.qt-version }}.AppImage
           path: build/Chatterino-x86_64.AppImage
 
       - name: Upload artifact - .deb (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu') && !matrix.skip-artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Chatterino-${{ matrix.os }}-Qt-${{ matrix.qt-version }}.deb
           path: build/Chatterino-${{ matrix.os }}-x86_64.deb
@@ -399,7 +399,7 @@ jobs:
 
       - name: Upload artifact (MacOS)
         if: startsWith(matrix.os, 'macos')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: chatterino-macos-Qt-${{ matrix.qt-version }}.dmg
           path: build/chatterino-macos-Qt-${{ matrix.qt-version }}.dmg
@@ -413,37 +413,37 @@ jobs:
         with:
           fetch-depth: 0 # allows for tags access
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         name: Ubuntu 22.04 Qt6.2.4 deb
         with:
           name: Chatterino-ubuntu-22.04-Qt-6.2.4.deb
           path: release-artifacts/
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         name: Windows Qt6.5.0
         with:
           name: chatterino-windows-x86-64-Qt-6.5.0.zip
           path: release-artifacts/
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         name: Windows Qt6.5.0 symbols
         with:
           name: chatterino-windows-x86-64-Qt-6.5.0-symbols.pdb.7z
           path: release-artifacts/
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         name: Windows Qt5.15.2
         with:
           name: chatterino-windows-x86-64-Qt-5.15.2.zip
           path: release-artifacts/
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         name: Ubuntu 22.04 Qt5.15.2 deb
         with:
           name: Chatterino-ubuntu-22.04-Qt-5.15.2.deb
           path: release-artifacts/
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         name: macOS x86_64 Qt5.15.2 dmg
         with:
           name: chatterino-macos-Qt-5.15.2.dmg

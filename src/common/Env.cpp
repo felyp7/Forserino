@@ -3,6 +3,7 @@
 #include "common/QLogging.hpp"
 #include "util/TypeName.hpp"
 
+#include <QtGlobal>
 #include <QVariant>
 
 namespace chatterino {
