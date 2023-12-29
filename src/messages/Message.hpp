@@ -50,7 +50,9 @@ enum class MessageFlag : int64_t {
     LiveUpdatesAdd = (1LL << 28),
     LiveUpdatesRemove = (1LL << 29),
     LiveUpdatesUpdate = (1LL << 30),
-    WebchatDetected = (1LL << 31),
+    /// The message caught by AutoMod containing the user who sent the message & its contents
+    AutoModOffendingMessage = (1LL << 31),
+    WebchatDetected = (1LL << 32),
 };
 
 using MessageFlags = FlagsEnum<MessageFlag>;

@@ -239,9 +239,9 @@ jobs:
         run: |
           cd build
           set cl=/MP
-          nmake /S /NOLOGO crashpad_handler
+          nmake /S /NOLOGO chatterino-crash-handler
           mkdir Chatterino2/crashpad
-          cp bin/crashpad/crashpad_handler.exe Chatterino2/crashpad/crashpad_handler.exe
+          cp bin/crashpad/crashpad-handler.exe Chatterino2/crashpad/crashpad-handler.exe
           7z a bin/chatterino-Qt-${{ matrix.qt-version }}.pdb.7z bin/chatterino.pdb
 
       - name: Prepare build dir (windows)
@@ -435,6 +435,18 @@ jobs:
         name: Windows Qt5.15.2
         with:
           name: chatterino-windows-x86-64-Qt-5.15.2.zip
+          path: release-artifacts/
+
+      - uses: actions/download-artifact@v4
+        name: Linux Qt5.12.12 AppImage
+        with:
+          name: Chatterino-x86_64-5.12.12.AppImage
+          path: release-artifacts/
+
+      - uses: actions/download-artifact@v4
+        name: Ubuntu 20.04 Qt5.12.12 deb
+        with:
+          name: Chatterino-ubuntu-20.04-Qt-5.12.12.deb
           path: release-artifacts/
 
       - uses: actions/download-artifact@v4
