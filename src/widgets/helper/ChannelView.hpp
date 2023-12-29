@@ -75,11 +75,28 @@ public:
         Search,
     };
 
-    explicit ChannelView(BaseWidget *parent = nullptr, Split *split = nullptr,
+    /// Creates a channel view without a split.
+    /// In such a view, usercards and reply-threads can't be opened.
+    ///
+    /// @param parent The parent of this widget. Can be `nullptr`.
+    /// @param context The context in which this view is shown (e.g. as a usercard).
+    /// @param messagesLimit The maximum amount of messages this view will display.
+    explicit ChannelView(QWidget *parent, Context context = Context::None,
+                         size_t messagesLimit = 1000);
+
+    /// Creates a channel view in a split.
+    ///
+    /// @param parent The parent of this widget.
+    /// @param split The split containing this widget.
+    ///              @a split must be in the widget tree of @a parent.
+    /// @param context The context in which this view is shown (e.g. as a usercard).
+    /// @param messagesLimit The maximum amount of messages this view will display.
+    explicit ChannelView(QWidget *parent, Split *split,
                          Context context = Context::None,
                          size_t messagesLimit = 1000);
 
     void queueUpdate();
+    void queueUpdate(const QRect &area);
     Scrollbar &getScrollBar();
 
     QString getSelectedText();
@@ -192,6 +209,12 @@ protected:
                          QPoint &relativePos, int &index);
 
 private:
+    struct InternalCtor {
+    };
+
+    ChannelView(InternalCtor tag, QWidget *parent, Split *split,
+                Context context, size_t messagesLimit);
+
     void initializeLayout();
     void initializeScrollbar();
     void initializeSignals();
@@ -210,7 +233,7 @@ private:
     void updateScrollbar(const LimitedQueueSnapshot<MessageLayoutPtr> &messages,
                          bool causedByScrollbar, bool causedByShow);
 
-    void drawMessages(QPainter &painter);
+    void drawMessages(QPainter &painter, const QRect &area);
     void setSelection(const SelectionItem &start, const SelectionItem &end);
     void setSelection(const Selection &newSelection);
     void selectWholeMessage(MessageLayout *layout, int &messageIndex);
@@ -251,6 +274,10 @@ private:
     bool lastMessageHasAlternateBackground_ = false;
     bool lastMessageHasAlternateBackgroundReverse_ = true;
 
+    /// Tracks the area of animated elements in the last full repaint.
+    /// If this is empty (QRect::isEmpty()), no animated element is shown.
+    QRect animationArea_;
+
     bool pausable_ = false;
     QTimer pauseTimer_;
     std::unordered_map<PauseReason, std::optional<SteadyClock::time_point>>
@@ -270,7 +297,7 @@ private:
     ChannelPtr channel_ = nullptr;
     ChannelPtr underlyingChannel_ = nullptr;
     ChannelPtr sourceChannel_ = nullptr;
-    Split *split_ = nullptr;
+    Split *split_;
 
     Scrollbar *scrollBar_;
     EffectLabel *goToBottom_{};
