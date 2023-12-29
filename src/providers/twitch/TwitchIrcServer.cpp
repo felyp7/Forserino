@@ -610,6 +610,7 @@ bool TwitchIrcServer::prepareToSend(TwitchChannel *channel)
             this->sendMessage(channel->getName(), message);
         }
     }
+
     sent = true;
 }
 
