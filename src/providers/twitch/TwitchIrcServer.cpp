@@ -544,7 +544,64 @@ bool TwitchIrcServer::prepareToSend(TwitchChannel *channel)
             nonPrimeColorsIndex[channel->getName()] = colorID;
         }
 
+        if (getSettings()->rainbowMethod) {
+         if (channel->getName().startsWith("$"))
+                {
+                    this->sendRawMessage("PRIVMSG " +
+                                         channel->getName().mid(1) + " :" +
+                                         message);
+                }
+                else
+                {
+                    this->sendMessage(channel->getName(), message);
+                }
+
         getHelix()->updateUserChatColor(
+            getApp()->accounts->twitch.getCurrent()->getUserId(), color,
+            [channel, this, &sent, message] {
+            },
+            [color, channel, this, &sent, message](auto error,
+                                                   auto helixErrorMessage) {
+                QString errorMessage =
+                    QString("Failed to change color to %1 - ").arg(color);
+
+                switch (error)
+                {
+                    case HelixUpdateUserChatColorError::UserMissingScope: {
+                        errorMessage +=
+                            "Missing required scope. Re-login with your "
+                            "account and try again.";
+                    }
+                    break;
+
+                    case HelixUpdateUserChatColorError::Forwarded: {
+                        errorMessage += helixErrorMessage + ".";
+                    }
+                    break;
+
+                    case HelixUpdateUserChatColorError::Unknown:
+                    default: {
+                        errorMessage += "An unknown error has occurred.";
+                    }
+                    break;
+                }
+
+                channel->addMessage(makeSystemMessage(errorMessage));
+
+                if (channel->getName().startsWith("$"))
+                {
+                    this->sendRawMessage("PRIVMSG " +
+                                         channel->getName().mid(1) + " :" +
+                                         message);
+                }
+                else
+                {
+                    this->sendMessage(channel->getName(), message);
+                }
+            });
+        }
+        else if (!getSettings()->rainbowMethod) {
+            getHelix()->updateUserChatColor(
             getApp()->accounts->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message] {
                 if (channel->getName().startsWith("$"))
@@ -597,6 +654,7 @@ bool TwitchIrcServer::prepareToSend(TwitchChannel *channel)
                     this->sendMessage(channel->getName(), message);
                 }
             });
+        }
     }
     else
     {

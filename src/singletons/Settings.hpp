@@ -184,6 +184,7 @@ public:
     BoolSetting allowDuplicateMessages = {"/behaviour/allowDuplicateMessages",
                                           true};
     BoolSetting rainbowMessages = {"/behaviour/rainbow/enabled", false};
+    BoolSetting rainbowMethod = {"/behaviour/rainbow/method", false};
     BoolSetting rainbowMessagesPrime = {"/behaviour/rainbow/primeColors", true};
     IntSetting rainbowSpeed = {"/behaviour/rainbow/speed", 10};
     IntSetting rainbowStartingHue = {"/behaviour/rainbow/startingHue", 0};

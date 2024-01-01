@@ -408,6 +408,9 @@ void GeneralPage::initLayout(GeneralPageView &layout)
         "Change color to create a rainbow effect before sending each message",
         s.rainbowMessages);
     layout.addCheckbox(
+        "Make colors change after sending a message",  
+        s.rainbowMethod, false, "by default colors change before the message is sent (for slower internets Enabled is better)");
+    layout.addCheckbox(
         "Use true rainbow colors (requires Twitch Prime or Turbo)",
         s.rainbowMessagesPrime);
     layout.addIntInput("Rainbow speed (HSL hue increase per new color)",
