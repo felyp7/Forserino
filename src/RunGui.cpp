@@ -3,7 +3,7 @@
 #include "Application.hpp"
 #include "common/Args.hpp"
 #include "common/Modes.hpp"
-#include "common/NetworkManager.hpp"
+#include "common/network/NetworkManager.hpp"
 #include "common/QLogging.hpp"
 #include "singletons/CrashHandler.hpp"
 #include "singletons/Paths.hpp"
@@ -98,9 +98,9 @@ namespace {
         installCustomPalette();
     }
 
-    void showLastCrashDialog()
+    void showLastCrashDialog(const Args &args)
     {
-        auto *dialog = new LastRunCrashDialog;
+        auto *dialog = new LastRunCrashDialog(args);
         // Use exec() over open() to block the app from being loaded
         // and to be able to set the safe mode.
         dialog->exec();
@@ -223,16 +223,16 @@ namespace {
     }
 }  // namespace
 
-void runGui(QApplication &a, Paths &paths, Settings &settings)
+void runGui(QApplication &a, Paths &paths, Settings &settings, const Args &args)
 {
     initQt();
     initResources();
     initSignalHandler();
 
 #ifdef Q_OS_WIN
-    if (getArgs().crashRecovery)
+    if (args.crashRecovery)
     {
-        showLastCrashDialog();
+        showLastCrashDialog(args);
     }
 #endif
 
@@ -271,12 +271,12 @@ void runGui(QApplication &a, Paths &paths, Settings &settings)
     chatterino::NetworkManager::init();
     chatterino::Updates::instance().checkForUpdates();
 
-    Application app(settings, paths);
+    Application app(settings, paths, args);
     app.initialize(settings, paths);
     app.run(a);
     app.save();
 
-    if (!getArgs().dontSaveSettings)
+    if (!args.dontSaveSettings)
     {
         pajlada::Settings::SettingManager::gSave();
     }
@@ -287,6 +287,8 @@ void runGui(QApplication &a, Paths &paths, Settings &settings)
     // flushing windows clipboard to keep copied messages
     flushClipboard();
 #endif
+
+    app.fakeDtor();
 
     _exit(0);
 }

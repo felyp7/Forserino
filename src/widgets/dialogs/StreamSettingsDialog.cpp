@@ -1,7 +1,7 @@
 #include "StreamSettingsDialog.hpp"
 
 #include "Application.hpp"
-#include "common/NetworkResult.hpp"
+#include "common/network/NetworkResult.hpp"
 #include "common/QLogging.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
 #include "singletons/WindowManager.hpp"

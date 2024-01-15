@@ -18,7 +18,6 @@ namespace chatterino {
 
 class Settings;
 class Paths;
-class PubSub;
 class TwitchChannel;
 class BttvLiveUpdates;
 class SeventvEventAPI;
@@ -80,7 +79,6 @@ public:
     const ChannelPtr automodChannel;
     IndirectChannel watchingChannel;
 
-    PubSub *pubsub;
     std::unique_ptr<BttvLiveUpdates> bttvLiveUpdates;
     std::unique_ptr<SeventvEventAPI> seventvEventAPI;
 
