@@ -1,8 +1,8 @@
 #include "singletons/ImageUploader.hpp"
 
 #include "common/Env.hpp"
-#include "common/NetworkRequest.hpp"
-#include "common/NetworkResult.hpp"
+#include "common/network/NetworkRequest.hpp"
+#include "common/network/NetworkResult.hpp"
 #include "common/QLogging.hpp"
 #include "messages/MessageBuilder.hpp"
 #include "providers/twitch/TwitchMessageBuilder.hpp"
@@ -127,9 +127,6 @@ void ImageUploader::sendImageUploadRequest(RawImageData imageData,
                                            ChannelPtr channel,
                                            QPointer<ResizingTextEdit> textEdit)
 {
-    const static char *const boundary = "thisistheboudaryasd";
-    const static QString contentType =
-        QString("multipart/form-data; boundary=%1").arg(boundary);
     QUrl url(getSettings()->imageUploaderUrl.getValue().isEmpty()
                  ? getSettings()->imageUploaderUrl.getDefaultValue()
                  : getSettings()->imageUploaderUrl);
@@ -152,11 +149,9 @@ void ImageUploader::sendImageUploadRequest(RawImageData imageData,
                    QString("form-data; name=\"%1\"; filename=\"control_v.%2\"")
                        .arg(formField)
                        .arg(imageData.format));
-    payload->setBoundary(boundary);
     payload->append(part);
 
     NetworkRequest(url, NetworkRequestType::Post)
-        .header("Content-Type", contentType)
         .headerList(extraHeaders)
         .multiPart(payload)
         .onSuccess(

@@ -52,7 +52,12 @@ enum class MessageFlag : int64_t {
     LiveUpdatesUpdate = (1LL << 30),
     /// The message caught by AutoMod containing the user who sent the message & its contents
     AutoModOffendingMessage = (1LL << 31),
-    WebchatDetected = (1LL << 32),
+    LowTrustUsers = (1LL << 32),
+    /// The message is sent by a user marked as restricted with Twitch's "Low Trust"/"Suspicious User" feature
+    RestrictedMessage = (1LL << 33),
+    /// The message is sent by a user marked as monitor with Twitch's "Low Trust"/"Suspicious User" feature
+    MonitoredMessage = (1LL << 34),
+    WebchatDetected = (1LL << 35),
 };
 
 using MessageFlags = FlagsEnum<MessageFlag>;

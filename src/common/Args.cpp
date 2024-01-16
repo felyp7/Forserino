@@ -1,4 +1,4 @@
-#include "Args.hpp"
+#include "common/Args.hpp"
 
 #include "common/QLogging.hpp"
 #include "debug/AssertInGuiThread.hpp"
@@ -198,7 +198,9 @@ void Args::applyCustomChannelLayout(const QString &argValue)
         for (const WindowDescriptor &window : configLayout.windows_)
         {
             if (window.type_ != WindowType::Main)
+            {
                 continue;
+            }
 
             return window.geometry_;
         }
@@ -212,7 +214,9 @@ void Args::applyCustomChannelLayout(const QString &argValue)
     for (const QString &channelArg : channelArgList)
     {
         if (channelArg.isEmpty())
+        {
             continue;
+        }
 
         // Twitch is default platform
         QString platform = "t";
@@ -246,20 +250,6 @@ void Args::applyCustomChannelLayout(const QString &argValue)
         layout.windows_.emplace_back(std::move(window));
         this->customChannelLayout = std::move(layout);
     }
-}
-
-static Args *instance = nullptr;
-
-void initArgs(const QApplication &app)
-{
-    instance = new Args(app);
-}
-
-const Args &getArgs()
-{
-    assert(instance);
-
-    return *instance;
 }
 
 }  // namespace chatterino

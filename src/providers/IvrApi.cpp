@@ -1,7 +1,6 @@
 #include "IvrApi.hpp"
 
-#include "common/NetworkResult.hpp"
-#include "common/Outcome.hpp"
+#include "common/network/NetworkResult.hpp"
 #include "common/QLogging.hpp"
 
 #include <QUrlQuery>
