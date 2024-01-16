@@ -44,7 +44,6 @@
 #include "util/Qt.hpp"
 #include "common/Env.hpp"
 #include "common/LinkParser.hpp"
-#include "common/NetworkResult.hpp"
 #include "common/QLogging.hpp"
 #include "common/SignalVector.hpp"
 #include "controllers/userdata/UserDataController.hpp"
