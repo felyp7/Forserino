@@ -1,7 +1,7 @@
 #include "TwitchBadges.hpp"
 
-#include "common/NetworkRequest.hpp"
-#include "common/NetworkResult.hpp"
+#include "common/network/NetworkRequest.hpp"
+#include "common/network/NetworkResult.hpp"
 #include "common/QLogging.hpp"
 #include "messages/Emote.hpp"
 #include "messages/Image.hpp"
@@ -28,6 +28,12 @@ TwitchBadges::TwitchBadges()
 void TwitchBadges::loadTwitchBadges()
 {
     assert(this->loaded_ == false);
+
+    if (!getHelix())
+    {
+        // This is intended for tests and benchmarks.
+        return;
+    }
 
     getHelix()->getGlobalBadges(
         [this](auto globalBadges) {

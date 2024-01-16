@@ -255,7 +255,8 @@ MessageBuilder::MessageBuilder(const BanAction &action, uint32_t count)
             this->emplaceSystemTextAndUpdate("banned", text);
             if (action.reason.isEmpty())
             {
-                this->emplaceSystemTextAndUpdate(action.target.login, text)
+                this->emplaceSystemTextAndUpdate(action.target.login + ".",
+                                                 text)
                     ->setLink({Link::UserInfo, action.target.login});
             }
             else
@@ -315,7 +316,7 @@ MessageBuilder::MessageBuilder(const UnbanAction &action)
         ->setLink({Link::UserInfo, action.source.login});
     this->emplaceSystemTextAndUpdate(
         action.wasBan() ? "unbanned" : "untimedout", text);
-    this->emplaceSystemTextAndUpdate(action.target.login, text)
+    this->emplaceSystemTextAndUpdate(action.target.login + ".", text)
         ->setLink({Link::UserInfo, action.target.login});
 
     this->message().messageText = text;
@@ -636,11 +637,11 @@ void MessageBuilder::addLink(const ParsedLink &parsedLink)
     auto linkElement = Link(Link::Url, matchedLink);
 
     auto textColor = MessageColor(MessageColor::Link);
-    auto linkMELowercase =
+    auto *linkMELowercase =
         this->emplace<TextElement>(lowercaseLinkString,
                                    MessageElementFlag::LowercaseLink, textColor)
             ->setLink(linkElement);
-    auto linkMEOriginal =
+    auto *linkMEOriginal =
         this->emplace<TextElement>(origLink, MessageElementFlag::OriginalLink,
                                    textColor)
             ->setLink(linkElement);
