@@ -111,6 +111,11 @@ public:
     explicit TwitchChannel(const QString &channelName);
     ~TwitchChannel() override;
 
+    TwitchChannel(const TwitchChannel &) = delete;
+    TwitchChannel(TwitchChannel &&) = delete;
+    TwitchChannel &operator=(const TwitchChannel &) = delete;
+    TwitchChannel &operator=(TwitchChannel &&) = delete;
+
     void initialize();
 
     // Channel methods
@@ -131,7 +136,7 @@ public:
     const QString &subscriptionUrl();
     const QString &channelUrl();
     const QString &popoutPlayerUrl();
-    int chatterCount();
+    int chatterCount() const;
     bool isLive() const override;
     QString roomId() const;
     SharedAccessGuard<const RoomModes> accessRoomModes() const;
@@ -301,7 +306,7 @@ private:
      * This is done at most once every 60s.
      */
     void updateSevenTVActivity();
-    void listenSevenTVCosmetics();
+    void listenSevenTVCosmetics() const;
 
     /**
      * @brief Sets the live status of this Twitch channel
@@ -313,7 +318,7 @@ private:
     void setVIP(bool value);
     void setStaff(bool value);
     void setRoomId(const QString &id);
-    void setRoomModes(const RoomModes &roomModes_);
+    void setRoomModes(const RoomModes &newRoomModes);
     void setDisplayName(const QString &name);
     void setLocalizedName(const QString &name);
 
@@ -372,7 +377,7 @@ private:
     const QString popoutPlayerUrl_;
     int chatterCount_{};
     UniqueAccess<StreamStatus> streamStatus_;
-    UniqueAccess<RoomModes> roomModes_;
+    UniqueAccess<RoomModes> roomModes;
     bool disconnected_{};
     std::optional<std::chrono::time_point<std::chrono::system_clock>>
         lastConnectedAt_{};

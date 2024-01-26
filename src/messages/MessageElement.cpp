@@ -522,14 +522,14 @@ void TextElement::addToContainer(MessageLayoutContainer &container,
     if (flags.hasAny(this->getFlags()))
     {
         QFontMetrics metrics =
-            app->fonts->getFontMetrics(this->style_, container.getScale());
+            app->getFonts()->getFontMetrics(this->style_, container.getScale());
 
         for (Word &word : this->words_)
         {
             auto getTextLayoutElement = [&](QString text, int width,
                                             bool hasTrailingSpace) {
-                auto color = this->color_.getColor(*app->themes);
-                app->themes->normalizeColor(color);
+                auto color = this->color_.getColor(*app->getThemes());
+                app->getThemes()->normalizeColor(color);
 
                 auto *e = (new TextLayoutElement(
                                *this, text, QSize(width, metrics.height()),
@@ -642,12 +642,12 @@ void SingleLineTextElement::addToContainer(MessageLayoutContainer &container,
     if (flags.hasAny(this->getFlags()))
     {
         QFontMetrics metrics =
-            app->fonts->getFontMetrics(this->style_, container.getScale());
+            app->getFonts()->getFontMetrics(this->style_, container.getScale());
 
         auto getTextLayoutElement = [&](QString text, int width,
                                         bool hasTrailingSpace) {
-            auto color = this->color_.getColor(*app->themes);
-            app->themes->normalizeColor(color);
+            auto color = this->color_.getColor(*app->getThemes());
+            app->getThemes()->normalizeColor(color);
 
             auto *e = (new TextLayoutElement(
                            *this, text, QSize(width, metrics.height()), color,
@@ -685,7 +685,8 @@ void SingleLineTextElement::addToContainer(MessageLayoutContainer &container,
                 currentText += ' ';
             }
 
-            for (const auto &parsedWord : app->emotes->emojis.parse(word.text))
+            for (const auto &parsedWord :
+                 app->getEmotes()->getEmojis()->parse(word.text))
             {
                 if (parsedWord.type() == typeid(QString))
                 {

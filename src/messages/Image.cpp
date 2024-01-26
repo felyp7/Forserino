@@ -53,7 +53,7 @@ namespace detail {
             DebugCount::increase("animated images");
 
             this->gifTimerConnection_ =
-                getApp()->emotes->gifTimer.signal.connect([this] {
+                getIApp()->getEmotes()->getGIFTimer().signal.connect([this] {
                     this->advance();
                 });
         }
@@ -252,7 +252,7 @@ namespace detail {
             }
         }
 
-        getApp()->windows->forceLayoutChannelViews();
+        getIApp()->getWindows()->forceLayoutChannelViews();
 
         loadedEventQueued = false;
     }
