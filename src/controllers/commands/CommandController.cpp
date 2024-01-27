@@ -742,7 +742,7 @@ auto formatVIPListError = [](HelixListVIPsError error,
                 }
                 break;
             }
-            auto currentUser = getApp()->accounts->twitch.getCurrent();
+            auto currentUser = getIApp()->getAccounts()->twitch.getCurrent()->getUserName();
             if (currentUser->isAnon())
             {
                 channel->addMessage(makeSystemMessage(
