@@ -5,10 +5,10 @@
 #include "controllers/highlights/HighlightController.hpp"
 #include "messages/MessageBuilder.hpp"
 #include "mocks/Channel.hpp"
+#include "mocks/ChatterinoBadges.hpp"
 #include "mocks/EmptyApplication.hpp"
 #include "mocks/TwitchIrcServer.hpp"
 #include "mocks/UserData.hpp"
-#include "providers/chatterino/ChatterinoBadges.hpp"
 #include "providers/ffz/FfzBadges.hpp"
 #include "providers/seventv/SeventvBadges.hpp"
 #include "providers/twitch/TwitchBadge.hpp"
@@ -50,7 +50,7 @@ public:
         return &this->twitch;
     }
 
-    ChatterinoBadges *getChatterinoBadges() override
+    IChatterinoBadges *getChatterinoBadges() override
     {
         return &this->chatterinoBadges;
     }
@@ -70,14 +70,32 @@ public:
         return &this->highlights;
     }
 
+    BttvEmotes *getBttvEmotes() override
+    {
+        return &this->bttvEmotes;
+    }
+
+    FfzEmotes *getFfzEmotes() override
+    {
+        return &this->ffzEmotes;
+    }
+
+    SeventvEmotes *getSeventvEmotes() override
+    {
+        return &this->seventvEmotes;
+    }
+
     AccountController accounts;
     Emotes emotes;
     mock::UserDataController userData;
     mock::MockTwitchIrcServer twitch;
-    ChatterinoBadges chatterinoBadges;
+    mock::ChatterinoBadges chatterinoBadges;
     FfzBadges ffzBadges;
     SeventvBadges seventvBadges;
     HighlightController highlights;
+    BttvEmotes bttvEmotes;
+    FfzEmotes ffzEmotes;
+    SeventvEmotes seventvEmotes;
 };
 
 }  // namespace

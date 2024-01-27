@@ -91,8 +91,8 @@ void WindowManager::showAccountSelectPopup(QPoint point)
     w->setFocus();
 }
 
-WindowManager::WindowManager()
-    : windowLayoutFilePath(combinePath(getPaths()->settingsDirectory,
+WindowManager::WindowManager(const Paths &paths)
+    : windowLayoutFilePath(combinePath(paths.settingsDirectory,
                                        WindowManager::WINDOW_LAYOUT_FILENAME))
 {
     qCDebug(chatterinoWindowmanager) << "init WindowManager";
@@ -121,7 +121,7 @@ WindowManager::WindowManager()
     this->saveTimer->setSingleShot(true);
 
     QObject::connect(this->saveTimer, &QTimer::timeout, [] {
-        getApp()->windows->save();
+        getIApp()->getWindows()->save();
     });
 }
 
@@ -209,6 +209,11 @@ void WindowManager::forceLayoutChannelViews()
 {
     this->incGeneration();
     this->layoutChannelViews(nullptr);
+}
+
+void WindowManager::invalidateChannelViewBuffers(Channel *channel)
+{
+    this->invalidateBuffersRequested.invoke(channel);
 }
 
 void WindowManager::repaintVisibleChatWidgets(Channel *channel)
@@ -338,7 +343,7 @@ void WindowManager::setEmotePopupPos(QPoint pos)
     this->emotePopupPos_ = pos;
 }
 
-void WindowManager::initialize(Settings &settings, Paths &paths)
+void WindowManager::initialize(Settings &settings, const Paths &paths)
 {
     (void)paths;
     assertInGuiThread();
@@ -346,9 +351,10 @@ void WindowManager::initialize(Settings &settings, Paths &paths)
     // We can safely ignore this signal connection since both Themes and WindowManager
     // share the Application state lifetime
     // NOTE: APPLICATION_LIFETIME
-    std::ignore = getApp()->themes->repaintVisibleChatWidgets_.connect([this] {
-        this->repaintVisibleChatWidgets();
-    });
+    std::ignore =
+        getIApp()->getThemes()->repaintVisibleChatWidgets_.connect([this] {
+            this->repaintVisibleChatWidgets();
+        });
 
     assert(!this->initialized_);
 
@@ -362,6 +368,12 @@ void WindowManager::initialize(Settings &settings, Paths &paths)
         else
         {
             windowLayout = this->loadWindowLayoutFromFile();
+        }
+
+        auto desired = getIApp()->getArgs().activateChannel;
+        if (desired)
+        {
+            windowLayout.activateOrAddChannel(desired->provider, desired->name);
         }
 
         this->emotePopupPos_ = windowLayout.emotePopupPos_;
@@ -400,10 +412,10 @@ void WindowManager::initialize(Settings &settings, Paths &paths)
         this->forceLayoutChannelViews();
     });
     settings.alternateMessages.connect([this](auto, auto) {
-        this->forceLayoutChannelViews();
+        this->invalidateChannelViewBuffers();
     });
     settings.separateMessages.connect([this](auto, auto) {
-        this->forceLayoutChannelViews();
+        this->invalidateChannelViewBuffers();
     });
     settings.collpseMessagesMinLines.connect([this](auto, auto) {
         this->forceLayoutChannelViews();
