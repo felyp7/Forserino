@@ -93,7 +93,7 @@ void StreamSettingsDialog::accept()
             },
             [] {
                 QMessageBox::warning(
-                    getApp()->windows->getMainWindow().window(),
+                    getApp()->getWindows()->getMainWindow().window(),
                     "Failed to submit changes.",
                     "General: API responded with an error.");
             });
@@ -121,7 +121,7 @@ void StreamSettingsDialog::accept()
             [] {
                 qCDebug(chatterinoCommon) << "Update tags: fail";
                 QMessageBox::warning(
-                    getApp()->windows->getMainWindow().window(),
+                    getApp()->getWindows()->getMainWindow().window(),
                     "Failed to submit changes.",
                     "Tags: API responded with an error.");
             });
