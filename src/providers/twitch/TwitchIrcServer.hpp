@@ -114,11 +114,6 @@ private:
     std::map<QString, int> rainbowHue;
     std::map<QString, int> nonPrimeColorsIndex;
 
-    SeventvEmotes seventv;
-    BttvEmotes bttv;
-    FfzEmotes ffz;
-    SeventvEmotes seventv_;
-
     pajlada::Signals::SignalHolder signalHolder_;
 };
 
