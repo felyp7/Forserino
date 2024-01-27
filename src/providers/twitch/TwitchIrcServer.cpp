@@ -561,7 +561,7 @@ bool TwitchIrcServer::prepareToSend(TwitchChannel *channel)
                 }
 
         getHelix()->updateUserChatColor(
-            getApp()->accounts->twitch.getCurrent()->getUserId(), color,
+            getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message] {
             },
             [color, channel, this, &sent, message](auto error,
@@ -606,7 +606,7 @@ bool TwitchIrcServer::prepareToSend(TwitchChannel *channel)
         }
         else if (!getSettings()->rainbowMethod) {
             getHelix()->updateUserChatColor(
-            getApp()->accounts->twitch.getCurrent()->getUserId(), color,
+            getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message] {
                 if (channel->getName().startsWith("$"))
                 {
@@ -733,7 +733,7 @@ if (getSettings()->rainbowMessages)
         }
 
         getHelix()->updateUserChatColor(
-            getApp()->accounts->twitch.getCurrent()->getUserId(), color,
+            getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message, replyId] {
                     this->sendRawMessage("@reply-parent-msg-id=" + replyId + " PRIVMSG #" +
                          channel->getName() + " :" + message);
