@@ -333,12 +333,6 @@ jobs:
 
       # Linux
       - uses: actions/download-artifact@v4
-        name: Linux AppImage
-        with:
-          name: Chatterino-x86_64-Qt-6.6.1.AppImage
-          path: release-artifacts/
-
-      - uses: actions/download-artifact@v4
         name: Ubuntu 20.04 deb
         with:
           name: Chatterino-ubuntu-20.04-Qt-6.6.1.deb
