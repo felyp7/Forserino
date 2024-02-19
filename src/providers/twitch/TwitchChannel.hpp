@@ -83,6 +83,7 @@ public:
         QString game;
         QString gameId;
         QString uptime;
+        int uptimeSeconds = 0;
         QString streamType;
     };
 
@@ -138,6 +139,7 @@ public:
     const QString &popoutPlayerUrl();
     int chatterCount() const;
     bool isLive() const override;
+    bool isRerun() const override;
     QString roomId() const;
     SharedAccessGuard<const RoomModes> accessRoomModes() const;
     SharedAccessGuard<const StreamStatus> accessStreamStatus() const;
