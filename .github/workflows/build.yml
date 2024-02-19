@@ -335,13 +335,13 @@ jobs:
       - uses: actions/download-artifact@v4
         name: Ubuntu 20.04 deb
         with:
-          name: Chatterino-ubuntu-20.04-Qt-6.6.1.deb
+          name: Chatterino-ubuntu-20.04-Qt-5.15.2.deb
           path: release-artifacts/
 
       - uses: actions/download-artifact@v4
         name: Ubuntu 22.04 deb
         with:
-          name: Chatterino-ubuntu-22.04-Qt-6.6.1.deb
+          name: Chatterino-ubuntu-22.04-Qt-6.2.4.deb
           path: release-artifacts/
 
       - name: Copy flatpakref
