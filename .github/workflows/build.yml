@@ -24,87 +24,6 @@ env:
   CONAN_VERSION: 2.0.2
 
 jobs:
-  build-ubuntu-docker:
-    name: "Build Ubuntu in Docker"
-    runs-on: ubuntu-latest
-    container: ${{ matrix.container }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-20.04
-            container: ghcr.io/chatterino/chatterino2-build-ubuntu-20.04:latest
-            qt-version: 6.6.1
-            force-lto: false
-            plugins: true
-            skip-artifact: false
-            skip-crashpad: false
-            build-appimage: false
-            build-deb: true
-          - os: ubuntu-22.04
-            container: ghcr.io/chatterino/chatterino2-build-ubuntu-22.04:latest
-            qt-version: 6.6.1
-            force-lto: false
-            plugins: true
-            skip-artifact: false
-            skip-crashpad: false
-            build-appimage: true
-            build-deb: true
-    env:
-      C2_ENABLE_LTO: ${{ matrix.force-lto }}
-      C2_PLUGINS: ${{ matrix.plugins }}
-      C2_ENABLE_CRASHPAD: ${{ matrix.skip-crashpad == false }}
-      C2_BUILD_WITH_QT6: ${{ startsWith(matrix.qt-version, '6.') }}
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0 # allows for tags access
-
-      - name: Build
-        run: |
-          mkdir build
-          cd build
-          CXXFLAGS=-fno-sized-deallocation cmake \
-            -DCMAKE_INSTALL_PREFIX=appdir/usr/ \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DPAJLADA_SETTINGS_USE_BOOST_FILESYSTEM=On \
-            -DUSE_PRECOMPILED_HEADERS=OFF \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=On \
-            -DCHATTERINO_LTO="$C2_ENABLE_LTO" \
-            -DCHATTERINO_PLUGINS="$C2_PLUGINS" \
-            -DCMAKE_PREFIX_PATH="$Qt6_DIR/lib/cmake" \
-            -DBUILD_WITH_QT6="$C2_BUILD_WITH_QT6" \
-            -DCHATTERINO_STATIC_QT_BUILD=On \
-            ..
-          make -j"$(nproc)"
-
-      - name: Package - AppImage (Ubuntu)
-        if: matrix.build-appimage
-        run: |
-          cd build
-          sh ./../.CI/CreateAppImage.sh
-
-      - name: Upload artifact - AppImage (Ubuntu)
-        if: matrix.build-appimage
-        uses: actions/upload-artifact@v4
-        with:
-          name: Chatterino-x86_64-Qt-${{ matrix.qt-version }}.AppImage
-          path: build/Chatterino-x86_64.AppImage
-
-      - name: Package - .deb (Ubuntu)
-        if: matrix.build-deb
-        run: |
-          cd build
-          sh ./../.CI/CreateUbuntuDeb.sh
-
-      - name: Upload artifact - .deb (Ubuntu)
-        if: matrix.build-deb
-        uses: actions/upload-artifact@v4
-        with:
-          name: Chatterino-${{ matrix.os }}-Qt-${{ matrix.qt-version }}.deb
-          path: build/Chatterino-${{ matrix.os }}-x86_64.deb
-
   build:
     name: "Build ${{ matrix.os }}, Qt ${{ matrix.qt-version }} (LTO:${{ matrix.force-lto }}, crashpad:${{ matrix.skip-crashpad && 'off' || 'on' }})"
     runs-on: ${{ matrix.os }}
@@ -162,18 +81,18 @@ jobs:
 
       - name: Fetch upstream commit
         run: |
-            git remote add upstream https://github.com/chatterino/Chatterino2
-            git fetch upstream master
-            echo "☑ Fetched upstream"
-            OLD_BRANCH=$(git branch --show-current)
-            OLD_COMMIT=$(git rev-parse HEAD)
-            echo "Old branch was \"$OLD_BRANCH\"; old commit was \"$OLD_COMMIT\""
-            git checkout -b master --track upstream/master
-            echo "☑ Checked out upstream"
-            git pull
-            echo "☑ Pulled upstream"
-            git checkout "$OLD_BRANCH" || git checkout "$OLD_COMMIT"
-            echo "☑ Checked out old position"
+          git remote add upstream https://github.com/chatterino/Chatterino2
+          git fetch upstream master
+          echo "☑ Fetched upstream"
+          OLD_BRANCH=$(git branch --show-current)
+          OLD_COMMIT=$(git rev-parse HEAD)
+          echo "Old branch was \"$OLD_BRANCH\"; old commit was \"$OLD_COMMIT\""
+          git checkout -b master --track upstream/master
+          echo "☑ Checked out upstream"
+          git pull
+          echo "☑ Pulled upstream"
+          git checkout "$OLD_BRANCH" || git checkout "$OLD_COMMIT"
+          echo "☑ Checked out old position"
         shell: bash
 
       - name: Install Qt5
