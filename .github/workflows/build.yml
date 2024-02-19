@@ -303,7 +303,7 @@ jobs:
           path: build/chatterino-macos-Qt-${{ matrix.qt-version }}.dmg
 
   create-release:
-    needs: [build-ubuntu-docker, build]
+    needs: [build]
     runs-on: ubuntu-latest
     if: (github.event_name == 'push' && github.ref == 'refs/heads/forserino')
 
