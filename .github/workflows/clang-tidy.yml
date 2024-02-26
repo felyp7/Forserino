@@ -3,6 +3,7 @@ name: clang-tidy
 
 on:
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: clang-tidy-${{ github.ref }}
