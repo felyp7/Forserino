@@ -651,10 +651,16 @@ void TwitchIrcServer::onMessageSendRequested(
                   {
                   sendHelixMessage(channel, message);
                   }
-                  else
-                  {
+                else if (channel->getName().startsWith("$"))
+                {
+                    this->sendRawMessage("PRIVMSG " +
+                                         channel->getName().mid(1) + " :" +
+                                         message);
+                } 
+                else
+                {
                   this->sendMessage(channel->getName(), message);
-                  }
+                }
 
         getHelix()->updateUserChatColor(
             getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
@@ -688,14 +694,20 @@ void TwitchIrcServer::onMessageSendRequested(
 
                 channel->addMessage(makeSystemMessage(errorMessage));
 
-                    if (shouldSendHelixChat())
-                    {
-                    sendHelixMessage(channel, message);
-                    }
-                    else
-                    {
-                    this->sendMessage(channel->getName(), message);
-                    }
+                if (shouldSendHelixChat())
+                  {
+                  sendHelixMessage(channel, message);
+                  }
+                else if (channel->getName().startsWith("$"))
+                {
+                    this->sendRawMessage("PRIVMSG " +
+                                         channel->getName().mid(1) + " :" +
+                                         message);
+                } 
+                else
+                {
+                  this->sendMessage(channel->getName(), message);
+                }
             });
         }
         else if (!getSettings()->rainbowMethod) {
@@ -740,12 +752,18 @@ void TwitchIrcServer::onMessageSendRequested(
                 channel->addMessage(makeSystemMessage(errorMessage));
 
                 if (shouldSendHelixChat())
+                  {
+                  sendHelixMessage(channel, message);
+                  }
+                else if (channel->getName().startsWith("$"))
                 {
-                sendHelixMessage(channel, message);
-                }
+                    this->sendRawMessage("PRIVMSG " +
+                                         channel->getName().mid(1) + " :" +
+                                         message);
+                } 
                 else
                 {
-                this->sendMessage(channel->getName(), message);
+                  this->sendMessage(channel->getName(), message);
                 }
             });
         }
@@ -753,16 +771,21 @@ void TwitchIrcServer::onMessageSendRequested(
     else
     {
     if (shouldSendHelixChat())
-    {
-        sendHelixMessage(channel, message);
+        {
+            sendHelixMessage(channel, message);
+        }
+        else if (channel->getName().startsWith("$"))
+        {
+            this->sendRawMessage("PRIVMSG " +
+                             channel->getName().mid(1) + " :" +
+                                         message);
+        } 
+        else
+        {
+            this->sendMessage(channel->getName(), message);
+        }
     }
-    else
-    {
-        this->sendMessage(channel->getName(), message);
-    }
-
     sent = true;
-}
 }
 
 void TwitchIrcServer::onReplySendRequested(
@@ -849,7 +872,7 @@ if (getSettings()->rainbowMessages)
                     break;
 
                     case HelixUpdateUserChatColorError::Forwarded: {
-                        errorMessage += helixErrorMessage + ".";
+                        errorMessage += helixErrorMessage + ".";privmsg
                     }
                     break;
 
@@ -884,8 +907,8 @@ if (getSettings()->rainbowMessages)
         this->sendRawMessage("@reply-parent-msg-id=" + replyId + " PRIVMSG #" +
                              channel->getName() + " :" + message);
     }
-    sent = true;
     }
+    sent = true;
 }
 
 const IndirectChannel &TwitchIrcServer::getWatchingChannel() const
