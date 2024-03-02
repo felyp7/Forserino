@@ -647,16 +647,14 @@ void TwitchIrcServer::onMessageSendRequested(
         }
 
         if (getSettings()->rainbowMethod) {
-         if (channel->getName().startsWith("$"))
-                {
-                    this->sendRawMessage("PRIVMSG " +
-                                         channel->getName().mid(1) + " :" +
-                                         message);
-                }
-                else
-                {
-                    this->sendMessage(channel->getName(), message);
-                }
+                if (shouldSendHelixChat())
+                  {
+                  sendHelixMessage(channel, message);
+                  }
+                  else
+                  {
+                  this->sendMessage(channel->getName(), message);
+                  }
 
         getHelix()->updateUserChatColor(
             getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
@@ -690,32 +688,28 @@ void TwitchIrcServer::onMessageSendRequested(
 
                 channel->addMessage(makeSystemMessage(errorMessage));
 
-                if (channel->getName().startsWith("$"))
-                {
-                    this->sendRawMessage("PRIVMSG " +
-                                         channel->getName().mid(1) + " :" +
-                                         message);
-                }
-                else
-                {
+                    if (shouldSendHelixChat())
+                    {
+                    sendHelixMessage(channel, message);
+                    }
+                    else
+                    {
                     this->sendMessage(channel->getName(), message);
-                }
+                    }
             });
         }
         else if (!getSettings()->rainbowMethod) {
             getHelix()->updateUserChatColor(
             getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message] {
-                if (channel->getName().startsWith("$"))
-                {
-                    this->sendRawMessage("PRIVMSG " +
-                                         channel->getName().mid(1) + " :" +
-                                         message);
-                }
-                else
-                {
+                    if (shouldSendHelixChat())
+                    {
+                    sendHelixMessage(channel, message);
+                    }
+                    else
+                    {
                     this->sendMessage(channel->getName(), message);
-                }
+                    }
             },
             [color, channel, this, &sent, message](auto error,
                                                    auto helixErrorMessage) {
@@ -745,15 +739,13 @@ void TwitchIrcServer::onMessageSendRequested(
 
                 channel->addMessage(makeSystemMessage(errorMessage));
 
-                if (channel->getName().startsWith("$"))
+                if (shouldSendHelixChat())
                 {
-                    this->sendRawMessage("PRIVMSG " +
-                                         channel->getName().mid(1) + " :" +
-                                         message);
+                sendHelixMessage(channel, message);
                 }
                 else
                 {
-                    this->sendMessage(channel->getName(), message);
+                this->sendMessage(channel->getName(), message);
                 }
             });
         }
@@ -832,8 +824,15 @@ if (getSettings()->rainbowMessages)
         getHelix()->updateUserChatColor(
             getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message, replyId] {
-                    this->sendRawMessage("@reply-parent-msg-id=" + replyId + " PRIVMSG #" +
-                         channel->getName() + " :" + message);
+                  if (shouldSendHelixChat())
+                  {
+                  sendHelixMessage(channel, message, replyId);
+                  }
+                  else
+                  {
+                  this->sendRawMessage("@reply-parent-msg-id=" + replyId + " PRIVMSG #" +
+                             channel->getName() + " :" + message);
+                  }
             },
             [color, channel, this, &sent, message, replyId](auto error,
                                                    auto helixErrorMessage) {
@@ -863,8 +862,15 @@ if (getSettings()->rainbowMessages)
 
                 channel->addMessage(makeSystemMessage(errorMessage));
 
+                    if (shouldSendHelixChat())
+                    {
+                    sendHelixMessage(channel, message, replyId);
+                    }
+                    else
+                    {
                     this->sendRawMessage("@reply-parent-msg-id=" + replyId + " PRIVMSG #" +
-                         channel->getName() + " :" + message);
+                                                       channel->getName() + " :" + message);
+                    }
             });
     }
     else
