@@ -872,7 +872,7 @@ if (getSettings()->rainbowMessages)
                     break;
 
                     case HelixUpdateUserChatColorError::Forwarded: {
-                        errorMessage += helixErrorMessage + ".";privmsg
+                        errorMessage += helixErrorMessage + ".";
                     }
                     break;
 
