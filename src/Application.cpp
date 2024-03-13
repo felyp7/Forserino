@@ -51,6 +51,7 @@
 #include "singletons/Logging.hpp"
 #include "singletons/Paths.hpp"
 #include "singletons/Settings.hpp"
+#include "singletons/StreamerMode.hpp"
 #include "singletons/Theme.hpp"
 #include "singletons/Toasts.hpp"
 #include "singletons/Updates.hpp"
@@ -117,7 +118,7 @@ Application::Application(Settings &_settings, const Paths &paths,
     : paths_(paths)
     , args_(_args)
     , themes(&this->emplace<Theme>())
-    , fonts(&this->emplace<Fonts>())
+    , fonts(new Fonts(_settings))
     , emotes(&this->emplace<Emotes>())
     , accounts(&this->emplace<AccountController>())
     , hotkeys(&this->emplace<HotkeyController>())
@@ -144,6 +145,7 @@ Application::Application(Settings &_settings, const Paths &paths,
     , seventvEmotes(new SeventvEmotes)
     , logging(new Logging(_settings))
     , linkResolver(new LinkResolver)
+    , streamerMode(new StreamerMode)
 #ifdef CHATTERINO_HAVE_PLUGINS
     , plugins(&this->emplace(new PluginController(paths)))
 #endif
@@ -168,6 +170,7 @@ void Application::fakeDtor()
     this->bttvEmotes.reset();
     this->ffzEmotes.reset();
     this->seventvEmotes.reset();
+    this->fonts.reset();
 }
 
 void Application::initialize(Settings &settings, const Paths &paths)
@@ -333,8 +336,9 @@ Theme *Application::getThemes()
 Fonts *Application::getFonts()
 {
     assertInGuiThread();
+    assert(this->fonts);
 
-    return this->fonts;
+    return this->fonts.get();
 }
 
 IEmotes *Application::getEmotes()
@@ -501,6 +505,11 @@ ILinkResolver *Application::getLinkResolver()
     assertInGuiThread();
 
     return this->linkResolver.get();
+}
+
+IStreamerMode *Application::getStreamerMode()
+{
+    return this->streamerMode.get();
 }
 
 BttvEmotes *Application::getBttvEmotes()
@@ -707,7 +716,7 @@ void Application::initPubSub()
                 }
 
                 if (getSettings()->streamerModeHideModActions &&
-                    isInStreamerMode())
+                    this->getStreamerMode()->isEnabled())
                 {
                     return;
                 }
@@ -756,7 +765,7 @@ void Application::initPubSub()
                 }
 
                 if (getSettings()->streamerModeHideModActions &&
-                    isInStreamerMode())
+                    this->getStreamerMode()->isEnabled())
                 {
                     return;
                 }
@@ -860,6 +869,14 @@ void Application::initPubSub()
                                 p.first);
                             getApp()->twitch->automodChannel->addMessage(
                                 p.second);
+
+                            if (getSettings()->showAutomodInMentions)
+                            {
+                                getApp()->twitch->mentionsChannel->addMessage(
+                                    p.first);
+                                getApp()->twitch->mentionsChannel->addMessage(
+                                    p.second);
+                            }
                         });
                     }
                     // "ALLOWED" and "DENIED" statuses remain unimplemented
@@ -892,9 +909,8 @@ void Application::initPubSub()
 
     std::ignore = this->twitchPubSub->moderation.automodUserMessage.connect(
         [&](const auto &action) {
-            // This condition has been set up to execute isInStreamerMode() as the last thing
-            // as it could end up being expensive.
-            if (getSettings()->streamerModeHideModActions && isInStreamerMode())
+            if (getSettings()->streamerModeHideModActions &&
+                this->getStreamerMode()->isEnabled())
             {
                 return;
             }

@@ -15,7 +15,6 @@
 #include "controllers/sound/ISoundController.hpp"
 #include "singletons/Toasts.hpp"
 #include "util/RapidJsonSerializeQString.hpp"
-#include "util/StreamerMode.hpp"
 #include "widgets/Notebook.hpp"
 
 #include <pajlada/settings/setting.hpp>
@@ -25,6 +24,19 @@
 using TimeoutButton = std::pair<QString, int>;
 
 namespace chatterino {
+
+#ifdef Q_OS_WIN32
+#    define DEFAULT_FONT_FAMILY "Segoe UI"
+#    define DEFAULT_FONT_SIZE 10
+#else
+#    ifdef Q_OS_MACOS
+#        define DEFAULT_FONT_FAMILY "Helvetica Neue"
+#        define DEFAULT_FONT_SIZE 12
+#    else
+#        define DEFAULT_FONT_FAMILY "Arial"
+#        define DEFAULT_FONT_SIZE 11
+#    endif
+#endif
 
 void _actuallyRegisterSetting(
     std::weak_ptr<pajlada::Settings::SettingData> setting);
@@ -66,6 +78,12 @@ enum class ChatSendProtocol : int {
     Default = 0,
     IRC = 1,
     Helix = 2,
+};
+
+enum StreamerModeSetting {
+    Disabled = 0,
+    Enabled = 1,
+    DetectStreamingSoftware = 2,
 };
 
 /// Settings which are availlable for reading and writing on the gui thread.
@@ -133,6 +151,14 @@ public:
 
     //    BoolSetting collapseLongMessages =
     //    {"/appearance/messages/collapseLongMessages", false};
+    QStringSetting chatFontFamily{
+        "/appearance/currentFontFamily",
+        DEFAULT_FONT_FAMILY,
+    };
+    IntSetting chatFontSize{
+        "/appearance/currentFontSize",
+        DEFAULT_FONT_SIZE,
+    };
     BoolSetting hideReplyContext = {"/appearance/hideReplyContext", false};
     BoolSetting showReplyButton = {"/appearance/showReplyButton", false};
     BoolSetting stripReplyMention = {"/appearance/stripReplyMention", true};
@@ -397,6 +423,10 @@ public:
         "/highlighting/automod/enabled",
         true,
     };
+    BoolSetting showAutomodInMentions = {
+        "/highlighting/automod/showInMentions",
+        false,
+    };
     BoolSetting enableAutomodHighlightSound = {
         "/highlighting/automod/enableSound",
         false,
@@ -409,6 +439,7 @@ public:
         "/highlighting/automod/soundUrl",
         "",
     };
+    QStringSetting automodHighlightColor = {"/highlighting/automod/color", ""};
 
     BoolSetting enableThreadHighlight = {
         "/highlighting/thread/nameIsHighlightKeyword", true};
