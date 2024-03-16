@@ -5,6 +5,8 @@
 #include "singletons/Paths.hpp"
 #include "singletons/Updates.hpp"
 
+#include <QTemporaryDir>
+
 namespace chatterino::mock {
 
 class EmptyApplication : public IApplication
@@ -228,7 +230,15 @@ public:
         return nullptr;
     }
 
-private:
+    IStreamerMode *getStreamerMode() override
+    {
+        assert(false && "EmptyApplication::getStreamerMode was called without "
+                        "being initialized");
+        return nullptr;
+    }
+
+protected:
+    QTemporaryDir settingsDir;
     Paths paths_;
     Args args_;
     Updates updates_;

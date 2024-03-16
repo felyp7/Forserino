@@ -223,8 +223,12 @@ set(SOURCE_FILES
 
         controllers/plugins/api/ChannelRef.cpp
         controllers/plugins/api/ChannelRef.hpp
+        controllers/plugins/api/IOWrapper.cpp
+        controllers/plugins/api/IOWrapper.hpp
         controllers/plugins/LuaAPI.cpp
         controllers/plugins/LuaAPI.hpp
+        controllers/plugins/PluginPermission.cpp
+        controllers/plugins/PluginPermission.hpp
         controllers/plugins/Plugin.cpp
         controllers/plugins/Plugin.hpp
         controllers/plugins/PluginController.hpp
@@ -457,6 +461,8 @@ set(SOURCE_FILES
         singletons/Resources.hpp
         singletons/Settings.cpp
         singletons/Settings.hpp
+        singletons/StreamerMode.cpp
+        singletons/StreamerMode.hpp
         singletons/Theme.cpp
         singletons/Theme.hpp
         singletons/Toasts.cpp
@@ -510,8 +516,6 @@ set(SOURCE_FILES
         util/SplitCommand.hpp
         util/StreamLink.cpp
         util/StreamLink.hpp
-        util/StreamerMode.cpp
-        util/StreamerMode.hpp
         util/ThreadGuard.hpp
         util/Twitch.cpp
         util/Twitch.hpp
@@ -779,6 +783,7 @@ target_link_libraries(${LIBRARY_PROJECT}
         RapidJSON::RapidJSON
         LRUCache
         MagicEnum
+        $<$<BOOL:${WIN32}>:Wtsapi32>
         )
 if (CHATTERINO_PLUGINS)
     target_link_libraries(${LIBRARY_PROJECT} PUBLIC lua)
