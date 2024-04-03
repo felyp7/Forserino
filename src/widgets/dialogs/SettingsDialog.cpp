@@ -254,7 +254,7 @@ void SettingsDialog::addTabs()
     this->addTab([]{return new PluginsPage;},          "Plugins",        ":/settings/plugins.svg");
 #endif
     this->ui_.tabContainer->addStretch(1);
-    this->addTab([]{return new AboutPage;},            "About",          ":/settings/about.svg", SettingsTabId(), Qt::AlignBottom);
+    this->addTab([]{return new AboutPage;},            "About",          ":/settings/about.svg", SettingsTabId::About, Qt::AlignBottom);
     // clang-format on
 }
 
@@ -368,6 +368,11 @@ void SettingsDialog::showDialog(QWidget *parent,
 
         case SettingsDialogPreference::StreamerMode: {
             instance->selectTab(SettingsTabId::General);
+        }
+        break;
+
+        case SettingsDialogPreference::About: {
+            instance->selectTab(SettingsTabId::About);
         }
         break;
 
