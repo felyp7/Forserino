@@ -1,6 +1,6 @@
 #include "util/Helpers.hpp"
 
-#include <gtest/gtest.h>
+#include "Test.hpp"
 
 using namespace chatterino;
 using namespace _helpers_internal;
@@ -279,8 +279,8 @@ TEST(Helpers, skipSpace)
         const auto actual = skipSpace(makeView(c.input), c.startIdx);
 
         EXPECT_EQ(actual, c.expected)
-            << actual << " (" << qUtf8Printable(c.input)
-            << ") did not match expected value " << c.expected;
+            << actual << " (" << c.input << ") did not match expected value "
+            << c.expected;
     }
 }
 
@@ -422,14 +422,13 @@ TEST(Helpers, findUnitMultiplierToSec)
 
         if (c.expectedMultiplier == bad)
         {
-            EXPECT_FALSE(actual.second) << qUtf8Printable(c.input);
+            EXPECT_FALSE(actual.second) << c.input;
         }
         else
         {
             EXPECT_TRUE(pos == c.expectedEndPos && actual.second &&
                         actual.first == c.expectedMultiplier)
-                << qUtf8Printable(c.input)
-                << ": Expected(end: " << c.expectedEndPos
+                << c.input << ": Expected(end: " << c.expectedEndPos
                 << ", mult: " << c.expectedMultiplier << ") Actual(end: " << pos
                 << ", mult: " << actual.first << ")";
         }
@@ -507,7 +506,7 @@ TEST(Helpers, parseDurationToSeconds)
         const auto actual = parseDurationToSeconds(c.input, c.noUnitMultiplier);
 
         EXPECT_EQ(actual, c.output)
-            << actual << " (" << qUtf8Printable(c.input)
-            << ") did not match expected value " << c.output;
+            << actual << " (" << c.input << ") did not match expected value "
+            << c.output;
     }
 }

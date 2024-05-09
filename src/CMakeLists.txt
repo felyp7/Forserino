@@ -998,7 +998,6 @@ if (APPLE AND BUILD_APP)
         PROPERTIES
         MACOSX_BUNDLE_BUNDLE_NAME "Chatterino"
         MACOSX_BUNDLE_GUI_IDENTIFIER "com.chatterino"
-        MACOSX_BUNDLE_INFO_STRING "Chat client for Twitch"
         MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
@@ -1154,3 +1153,14 @@ if(NOT CHATTERINO_UPDATER)
     message(STATUS "Disabling the updater.")
     target_compile_definitions(${LIBRARY_PROJECT} PUBLIC CHATTERINO_DISABLE_UPDATER)
 endif()
+
+if (DOXYGEN_FOUND)
+    message(STATUS "Doxygen found, adding doxygen target")
+    # output will be in docs/html
+    set(DOXYGEN_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/docs")
+
+    doxygen_add_docs(
+        doxygen
+        ${CMAKE_CURRENT_LIST_DIR}
+    )
+endif ()
