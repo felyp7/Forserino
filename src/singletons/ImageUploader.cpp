@@ -310,31 +310,18 @@ std::pair<std::queue<RawImageData>, QString> ImageUploader::getImages(
                 file.close();
                 // file.readAll() => might be a bit big but it /should/ work
             }
-            else
-            {
-                return {
-                        {},
-                        QString("Uploading file: %1.")
-                            .arg(localPath),
-                    };
-                QFile file(localPath);
+           else{
+				QFile file(localPath);
                 bool isOkay = file.open(QIODevice::ReadOnly);
                 if (!isOkay)
                 {
-                    return {
-                        {},
-                        QString("Cannot upload file: %1.")
-                            .arg(localPath),
-                    };
-                    this->uploadMutex_.unlock();
-                    return false;
+                    return {{}, "Failed to open file :("};
                 }
-                //TODO Change this to a buffered approach in the future
-                RawImageData data = {file.readAll(), mime.preferredSuffix(),localPath};
-
-                this->uploadQueue_.push(data);
+                // file.readAll() => might be a bit big but it /should/ work
+                images.push({file.readAll(), mime.preferredSuffix(),localPath});
                 file.close();
-            }
+				}
+        }
         }
 
         return {images, {}};
