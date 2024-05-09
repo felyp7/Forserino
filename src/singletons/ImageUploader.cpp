@@ -312,14 +312,20 @@ std::pair<std::queue<RawImageData>, QString> ImageUploader::getImages(
             }
             else
             {
-                channel->addMessage(makeSystemMessage(
-                    QString("Uploading file: %1").arg(localPath)));
+                return {
+                        {},
+                        QString("Uploading file: %1.")
+                            .arg(localPath),
+                    };
                 QFile file(localPath);
                 bool isOkay = file.open(QIODevice::ReadOnly);
                 if (!isOkay)
                 {
-                    channel->addMessage(
-                        makeSystemMessage(QString("Failed to open file. :(")));
+                    return {
+                        {},
+                        QString("Cannot upload file: %1.")
+                            .arg(localPath),
+                    };
                     this->uploadMutex_.unlock();
                     return false;
                 }
