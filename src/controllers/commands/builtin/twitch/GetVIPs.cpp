@@ -1,4 +1,5 @@
 #include "controllers/commands/builtin/twitch/GetVIPs.hpp"
+
 #include "Application.hpp"
 #include "controllers/accounts/AccountController.hpp"
 #include "controllers/commands/CommandContext.hpp"
@@ -9,23 +10,30 @@
 #include "providers/twitch/TwitchChannel.hpp"
 #include "providers/twitch/TwitchMessageBuilder.hpp"
 #include "util/Twitch.hpp"
+
 namespace {
+
 using namespace chatterino;
+
 QString formatGetVIPsError(HelixListVIPsError error, const QString &message)
 {
     using Error = HelixListVIPsError;
+
     QString errorMessage = QString("Failed to list VIPs - ");
+
     switch (error)
     {
         case Error::Forwarded: {
             errorMessage += message;
         }
         break;
+
         case Error::Ratelimited: {
             errorMessage += "You are being ratelimited by Twitch. Try "
                             "again in a few seconds.";
         }
         break;
+
         case Error::UserMissingScope: {
             // TODO(pajlada): Phrase MISSING_REQUIRED_SCOPE
             errorMessage += "Missing required scope. "
@@ -33,12 +41,14 @@ QString formatGetVIPsError(HelixListVIPsError error, const QString &message)
                             "account and try again.";
         }
         break;
+
         case Error::UserNotAuthorized: {
             // TODO(pajlada): Phrase MISSING_PERMISSION
             errorMessage += "You don't have permission to "
                             "perform that action.";
         }
         break;
+
         case Error::UserNotBroadcaster: {
             errorMessage +=
                 "Due to Twitch restrictions, "
@@ -46,6 +56,7 @@ QString formatGetVIPsError(HelixListVIPsError error, const QString &message)
                 "To see the list of VIPs you must use the Twitch website.";
         }
         break;
+
         case Error::Unknown: {
             errorMessage += "An unknown error has occurred.";
         }
@@ -53,22 +64,27 @@ QString formatGetVIPsError(HelixListVIPsError error, const QString &message)
     }
     return errorMessage;
 }
+
 }  // namespace
+
 namespace chatterino::commands {
+
 QString getVIPs(const CommandContext &ctx)
 {
     if (ctx.channel == nullptr)
     {
         return "";
     }
+
     if (ctx.twitchChannel == nullptr)
     {
         ctx.channel->addMessage(makeSystemMessage(
-            "The /vips command only works in Twitch channels"));
+            "The /vips command only works in Twitch channels."));
         return "";
     }
-    auto currentUser = getApp()->accounts->twitch.getCurrent();
-    if (ctx.twitchChannel->isBroadcaster() && currentUser->isAnon())
+
+    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
+    if (currentUser->isAnon())
     {
         getHelix()->getChannelVIPs(
             ctx.twitchChannel->roomId(),
@@ -80,11 +96,14 @@ QString getVIPs(const CommandContext &ctx)
                         "This channel does not have any VIPs."));
                     return;
                 }
+
                 auto messagePrefix = QString("The VIPs of this channel are");
+
                 // TODO: sort results?
                 MessageBuilder builder;
                 TwitchMessageBuilder::listOfUsersSystemMessage(
                     messagePrefix, vipList, twitchChannel, &builder);
+
                 channel->addMessage(builder.release());
             },
             [channel{ctx.channel}](auto error, auto message) {
@@ -109,7 +128,6 @@ QString getVIPs(const CommandContext &ctx)
                 std::vector<HelixVip> vips;
                 for (int i = 0; i < result.size(); i++)
                 {
-
                     QJsonObject vipJson;
 
                     vipJson.insert("user_id",
@@ -135,6 +153,8 @@ QString getVIPs(const CommandContext &ctx)
                     makeSystemMessage("Could not get VIPs list!"));
             });
     }
+
     return "";
 }
+
 }  // namespace chatterino::commands
