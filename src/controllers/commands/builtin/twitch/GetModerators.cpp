@@ -91,14 +91,10 @@ QString getModerators(const CommandContext &ctx)
                     return;
                 }
 
-                QStringList mods;
                 std::vector<HelixModerator> mods;
                 for (int i = 0; i < result.size(); i++)
                 {
-                    mods.append(result.at(i)
-                                    .toObject()
-                                    .value("displayName")
-                                    .toString());
+
                     QJsonObject modJson;
 
                     modJson.insert("user_id",

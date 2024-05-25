@@ -106,12 +106,10 @@ QString getVIPs(const CommandContext &ctx)
                     return;
                 }
 
-                QStringList vips;
                 std::vector<HelixVip> vips;
                 for (int i = 0; i < result.size(); i++)
                 {
-                    vips.append(
-                        result.at(i).toObject().value("login").toString());
+
                     QJsonObject vipJson;
 
                     vipJson.insert("user_id",
