@@ -21,7 +21,6 @@ void IvrApi::getSubage(QString userName, QString channelName,
             auto root = result.parseJson();
 
             successCallback(root);
-
         })
         .onError([failureCallback](auto result) {
             qCWarning(chatterinoIvr)
@@ -64,7 +63,48 @@ void IvrApi::getModVip(QString channelName,
             auto root = result.parseJson();
 
             successCallback(root);
+        })
+        .onError([failureCallback](auto result) {
+            qCWarning(chatterinoIvr)
+                << "Failed IVR API Call!" << result.formatError()
+                << QString(result.getData());
+            failureCallback();
+        })
+        .execute();
+}
 
+void IvrApi::getMods2807Tools(QString channelName,
+                              ResultCallback<QJsonArray> resultCallback,
+                              IvrFailureCallback failureCallback)
+{
+    assert(!channelName.isEmpty());
+
+    this->makeRequest2807Tools(QString("getmods/%1").arg(channelName), {})
+        .onSuccess([resultCallback, failureCallback](auto result) {
+            auto root = result.parseJsonArray();
+
+            resultCallback(root);
+        })
+        .onError([failureCallback](auto result) {
+            qCWarning(chatterinoIvr)
+                << "Failed IVR API Call!" << result.formatError()
+                << QString(result.getData());
+            failureCallback();
+        })
+        .execute();
+}
+
+void IvrApi::getVips2807Tools(QString channelName,
+                              ResultCallback<QJsonArray> resultCallback,
+                              IvrFailureCallback failureCallback)
+{
+    assert(!channelName.isEmpty());
+
+    this->makeRequest2807Tools(QString("getvips/%1").arg(channelName), {})
+        .onSuccess([resultCallback, failureCallback](auto result) {
+            auto root = result.parseJsonArray();
+
+            resultCallback(root);
         })
         .onError([failureCallback](auto result) {
             qCWarning(chatterinoIvr)
@@ -87,7 +127,6 @@ void IvrApi::getBulkEmoteSets(QString emoteSetList,
             auto root = result.parseJsonArray();
 
             successCallback(root);
-
         })
         .onError([failureCallback](auto result) {
             qCWarning(chatterinoIvr)
@@ -125,6 +164,18 @@ NetworkRequest IvrApi::makeRequest(QString url, QUrlQuery urlQuery)
     assert(!url.startsWith("/"));
 
     const QString baseUrl("https://api.ivr.fi/v2/");
+    QUrl fullUrl(baseUrl + url);
+    fullUrl.setQuery(urlQuery);
+
+    return NetworkRequest(fullUrl).timeout(5 * 1000).header("Accept",
+                                                            "application/json");
+}
+
+NetworkRequest IvrApi::makeRequest2807Tools(QString url, QUrlQuery urlQuery)
+{
+    assert(!url.startsWith("/"));
+
+    const QString baseUrl("https://tools.2807.eu/api/");
     QUrl fullUrl(baseUrl + url);
     fullUrl.setQuery(urlQuery);
 
