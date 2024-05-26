@@ -1,4 +1,5 @@
 #include "controllers/commands/builtin/twitch/GetModerators.hpp"
+
 #include "common/Channel.hpp"
 #include "controllers/commands/CommandContext.hpp"
 #include "messages/MessageBuilder.hpp"
@@ -6,24 +7,31 @@
 #include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
 #include "providers/twitch/TwitchMessageBuilder.hpp"
+
 namespace {
+
 using namespace chatterino;
+
 QString formatModsError(HelixGetModeratorsError error, const QString &message)
 {
     using Error = HelixGetModeratorsError;
+
     QString errorMessage = QString("Failed to get moderators - ");
+
     switch (error)
     {
         case Error::Forwarded: {
             errorMessage += message;
         }
         break;
+
         case Error::UserMissingScope: {
             errorMessage += "Missing required scope. "
                             "Re-login with your "
                             "account and try again.";
         }
         break;
+
         case Error::UserNotAuthorized: {
             errorMessage +=
                 "Due to Twitch restrictions, "
@@ -31,6 +39,7 @@ QString formatModsError(HelixGetModeratorsError error, const QString &message)
                 "To see the list of mods you must use the Twitch website.";
         }
         break;
+
         case Error::Unknown: {
             errorMessage += "An unknown error has occurred.";
         }
@@ -38,20 +47,25 @@ QString formatModsError(HelixGetModeratorsError error, const QString &message)
     }
     return errorMessage;
 }
+
 }  // namespace
+
 namespace chatterino::commands {
+
 QString getModerators(const CommandContext &ctx)
 {
     if (ctx.channel == nullptr)
     {
         return "";
     }
+
     if (ctx.twitchChannel == nullptr)
     {
         ctx.channel->addMessage(makeSystemMessage(
-            "The /mods command only works in Twitch Channels"));
+            "The /mods command only works in Twitch Channels."));
         return "";
     }
+
     if (ctx.twitchChannel->isBroadcaster())
     {
         getHelix()->getModerators(
@@ -65,6 +79,7 @@ QString getModerators(const CommandContext &ctx)
                     return;
                 }
                 // TODO: sort results?
+
                 MessageBuilder builder;
                 TwitchMessageBuilder::listOfUsersSystemMessage(
                     "The moderators of this channel are", result, twitchChannel,
@@ -94,7 +109,6 @@ QString getModerators(const CommandContext &ctx)
                 std::vector<HelixModerator> mods;
                 for (int i = 0; i < result.size(); i++)
                 {
-
                     QJsonObject modJson;
 
                     modJson.insert("user_id",
@@ -122,4 +136,5 @@ QString getModerators(const CommandContext &ctx)
     }
     return "";
 }
+
 }  // namespace chatterino::commands
