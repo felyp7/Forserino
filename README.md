@@ -6,8 +6,8 @@ Forserino is a fork of Dankerino
 
 ### Features of Forserino
 
-- `/mods` and `/vips` working in all channels [origin](https://github.com/2547techno/technorino).
-- Added `/founders` and user roles in user info popup [origin](https://github.com/2547techno/technorino).
+- `/mods` and `/vips` working in all channels. [source](https://github.com/2547techno/technorino)
+- Added `/founders` and user roles in user info popup. [source](https://github.com/2547techno/technorino)
 - Feature to disable 20 messages/30sec rate limit.
 - Bot limits for JOINs.
 - Possibility to upload any file via uploader.
