@@ -13,6 +13,10 @@ Forserino is a fork of Dankerino
 - Possibility to upload any file via uploader.
 - Option to enable rainbow colors for username.
 
+### Screenshots
+
+![Rainbow settings](./images_forserino/rainbow.png)
+
 ## Dankerino
 
 Dankerino is a fork of Chatterino 2.
