@@ -1,6 +1,17 @@
 ![chatterinoLogo](https://user-images.githubusercontent.com/41973452/272541622-52457e89-5f16-4c83-93e7-91866c25b606.png)
 Chatterino 2 [![GitHub Actions Build (Windows, Ubuntu, MacOS)](https://github.com/Chatterino/chatterino2/workflows/Build/badge.svg?branch=master)](https://github.com/Chatterino/chatterino2/actions?query=workflow%3ABuild+branch%3Amaster) [![Cirrus CI Build (FreeBSD only)](https://api.cirrus-ci.com/github/Chatterino/chatterino2.svg?branch=master)](https://cirrus-ci.com/github/Chatterino/chatterino2/master) [![Chocolatey Package](https://img.shields.io/chocolatey/v/chatterino?include_prereleases)](https://chocolatey.org/packages/chatterino) [![Flatpak Package](https://img.shields.io/flathub/v/com.chatterino.chatterino)](https://flathub.org/apps/details/com.chatterino.chatterino)
 ============
+## Forserino
+Forserino is a fork of Dankerino
+
+### Features of Forserino
+
+- `/mods` and `/vips` working in all channels [origin](https://github.com/2547techno/technorino).
+- Added `/founders` and user roles in user info popup [origin](https://github.com/2547techno/technorino).
+- Feature to disable 20 messages/30sec rate limit.
+- Bot limits for JOINs.
+- Possibility to upload any file via uploader.
+- Option to enable rainbow colors for username.
 
 ## Dankerino
 
