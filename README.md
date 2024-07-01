@@ -11,7 +11,7 @@ Forserino is a fork of Dankerino
 - Feature to disable 20 messages/30sec rate limit.
 - Bot limits for JOINs.
 - Possibility to upload any file via uploader.
-- Option to enable rainbow colors for username.
+- Option to enable rainbow colors for username. [based on](https://github.com/LosFarmosCTL/chatterino2)
 
 ### Screenshots
 
