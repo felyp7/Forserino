@@ -3,6 +3,7 @@
 #include "Application.hpp"
 #include "common/network/NetworkResult.hpp"
 #include "common/QLogging.hpp"
+#include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
 #include "singletons/WindowManager.hpp"
 #include "ui_StreamSettingsDialog.h"
@@ -91,7 +92,7 @@ void StreamSettingsDialog::accept()
             [](NetworkResult result) {
                 qCDebug(chatterinoCommon) << "OK!" << *result.status();
             },
-            [] {
+            [](HelixUpdateChannelError err, auto message) {
                 QMessageBox::warning(
                     getApp()->getWindows()->getMainWindow().window(),
                     "Failed to submit changes.",

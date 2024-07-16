@@ -88,6 +88,7 @@ public:
         QString uptime;
         int uptimeSeconds = 0;
         QString streamType;
+        QString streamId;
     };
 
     struct RoomModes {
@@ -134,6 +135,7 @@ public:
     bool hasHighRateLimit() const override;
     bool canReconnect() const override;
     void reconnect() override;
+    QString getCurrentStreamID() const override;
     void createClip();
 
     // Data
@@ -464,6 +466,7 @@ private:
     friend class TwitchIrcServer;
     friend class TwitchMessageBuilder;
     friend class IrcMessageHandler;
+    friend class Commands_E2E_Test;
 };
 
 }  // namespace chatterino

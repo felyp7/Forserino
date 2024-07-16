@@ -26,6 +26,7 @@
 #include "controllers/commands/builtin/twitch/Unban.hpp"
 #include "controllers/commands/builtin/twitch/UpdateChannel.hpp"
 #include "controllers/commands/builtin/twitch/UpdateColor.hpp"
+#include "controllers/commands/builtin/twitch/Warn.hpp"
 #include "controllers/commands/Command.hpp"
 #include "controllers/commands/CommandContext.hpp"
 #include "controllers/commands/CommandModel.hpp"
@@ -39,7 +40,6 @@
 #include "singletons/Paths.hpp"
 #include "util/CombinePath.hpp"
 #include "util/QStringHash.hpp"
-#include "util/Qt.hpp"
 
 #include <QString>
 
@@ -439,6 +439,8 @@ void CommandController::initialize(Settings &, const Paths &paths)
     this->registerCommand("/ban", &commands::sendBan);
     this->registerCommand("/banid", &commands::sendBanById);
 
+    this->registerCommand("/warn", &commands::sendWarn);
+
     for (const auto &cmd : TWITCH_WHISPER_COMMANDS)
     {
         this->registerCommand(cmd, &commands::sendWhisper);
@@ -552,8 +554,7 @@ QString CommandController::execCommand(const QString &textNoEmoji,
 
     if (!dryRun && channel->getType() == Channel::Type::TwitchWhispers)
     {
-        channel->addMessage(
-            makeSystemMessage("Use /w <username> <message> to whisper"));
+        channel->addSystemMessage("Use /w <username> <message> to whisper");
         return "";
     }
 

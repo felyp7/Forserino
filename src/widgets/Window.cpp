@@ -43,6 +43,7 @@
 #include <QDesktopServices>
 #include <QHeaderView>
 #include <QMenuBar>
+#include <QObject>
 #include <QPalette>
 #include <QStandardItemModel>
 #include <QVBoxLayout>
@@ -112,6 +113,12 @@ bool Window::event(QEvent *event)
         }
 
         case QEvent::WindowDeactivate: {
+            for (const auto &split :
+                 this->notebook_->getSelectedPage()->getSplits())
+            {
+                split->unpause();
+            }
+
             auto *page = this->notebook_->getSelectedPage();
 
             if (page != nullptr)
@@ -254,7 +261,7 @@ void Window::addDebugStuff(HotkeyController::HotkeyMap &actions)
         const auto &messages = getSampleMiscMessages();
         static int index = 0;
         const auto &msg = messages[index++ % messages.size()];
-        getApp()->twitch->addFakeMessage(msg);
+        getIApp()->getTwitchAbstract()->addFakeMessage(msg);
         return "";
     });
 
@@ -262,7 +269,7 @@ void Window::addDebugStuff(HotkeyController::HotkeyMap &actions)
         const auto &messages = getSampleCheerMessages();
         static int index = 0;
         const auto &msg = messages[index++ % messages.size()];
-        getApp()->twitch->addFakeMessage(msg);
+        getIApp()->getTwitchAbstract()->addFakeMessage(msg);
         return "";
     });
 
@@ -270,7 +277,7 @@ void Window::addDebugStuff(HotkeyController::HotkeyMap &actions)
         const auto &messages = getSampleLinkMessages();
         static int index = 0;
         const auto &msg = messages[index++ % messages.size()];
-        getApp()->twitch->addFakeMessage(msg);
+        getIApp()->getTwitchAbstract()->addFakeMessage(msg);
         return "";
     });
 
@@ -286,7 +293,8 @@ void Window::addDebugStuff(HotkeyController::HotkeyMap &actions)
                 oMessage->toInner<PubSubMessageMessage>()
                     ->toInner<PubSubCommunityPointsChannelV1Message>();
 
-            app->twitch->addFakeMessage(getSampleChannelRewardIRCMessage());
+            getIApp()->getTwitchAbstract()->addFakeMessage(
+                getSampleChannelRewardIRCMessage());
             getIApp()->getTwitchPubSub()->pointReward.redeemed.invoke(
                 oInnerMessage->data.value("redemption").toObject());
             alt = !alt;
@@ -309,7 +317,7 @@ void Window::addDebugStuff(HotkeyController::HotkeyMap &actions)
         const auto &messages = getSampleEmoteTestMessages();
         static int index = 0;
         const auto &msg = messages[index++ % messages.size()];
-        getApp()->twitch->addFakeMessage(msg);
+        getIApp()->getTwitchAbstract()->addFakeMessage(msg);
         return "";
     });
 
@@ -317,7 +325,7 @@ void Window::addDebugStuff(HotkeyController::HotkeyMap &actions)
         const auto &messages = getSampleSubMessages();
         static int index = 0;
         const auto &msg = messages[index++ % messages.size()];
-        getApp()->twitch->addFakeMessage(msg);
+        getIApp()->getTwitchAbstract()->addFakeMessage(msg);
         return "";
     });
 #endif
@@ -480,8 +488,8 @@ void Window::addShortcuts()
                  splitContainer = this->notebook_->getOrAddSelectedPage();
              }
              Split *split = new Split(splitContainer);
-             split->setChannel(
-                 getApp()->twitch->getOrAddChannel(si.channelName));
+             split->setChannel(getIApp()->getTwitchAbstract()->getOrAddChannel(
+                 si.channelName));
              split->setFilters(si.filters);
              splitContainer->insertSplit(split);
              splitContainer->setSelected(split);

@@ -113,12 +113,9 @@ namespace {
         {
             MessagePtr message = snapshot[i];
 
-            auto overrideFlags = std::optional<MessageFlags>(message->flags);
-            overrideFlags->set(MessageFlag::DoNotLog);
-
             if (checkMessageUserName(userName, message))
             {
-                channelPtr->addMessage(message, overrideFlags);
+                channelPtr->addMessage(message, MessageContext::Repost);
             }
         }
 
@@ -165,11 +162,11 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
              auto &scrollbar = this->ui_.latestMessages->getScrollBar();
              if (direction == "up")
              {
-                 scrollbar.offset(-scrollbar.getLargeChange());
+                 scrollbar.offset(-scrollbar.getPageSize());
              }
              else if (direction == "down")
              {
-                 scrollbar.offset(scrollbar.getLargeChange());
+                 scrollbar.offset(scrollbar.getPageSize());
              }
              else
              {
@@ -299,21 +296,23 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                         menu->addAction(
                             "Open channel in a new popup window", this,
                             [loginName] {
-                                auto *app = getApp();
+                                auto *app = getIApp();
                                 auto &window = app->getWindows()->createWindow(
                                     WindowType::Popup, true);
                                 auto *split = window.getNotebook()
                                                   .getOrAddSelectedPage()
                                                   ->appendNewSplit(false);
-                                split->setChannel(app->twitch->getOrAddChannel(
-                                    loginName.toLower()));
+                                split->setChannel(
+                                    app->getTwitchAbstract()->getOrAddChannel(
+                                        loginName.toLower()));
                             });
 
                         menu->addAction(
                             "Open channel in a new tab", this, [loginName] {
                                 ChannelPtr channel =
-                                    getApp()->twitch->getOrAddChannel(
-                                        loginName);
+                                    getIApp()
+                                        ->getTwitchAbstract()
+                                        ->getOrAddChannel(loginName);
                                 auto &nb = getApp()
                                                ->getWindows()
                                                ->getMainWindow()
@@ -470,7 +469,8 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                         builder.message().loginName = this->userName_;
                         builder.message().displayName = this->userName_;
 
-                        this->channel_->addMessage(builder.release());
+                        this->channel_->addMessage(builder.release(),
+                                                   MessageContext::Original);
                     }
                     else
                     {
@@ -489,7 +489,8 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                             builder.message().loginName = this->userName_;
                             builder.message().displayName = this->userName_;
 
-                            this->channel_->addMessage(builder.release());
+                            this->channel_->addMessage(
+                                builder.release(), MessageContext::Original);
                             return;
                         }
                         auto builder = MessageBuilder(
@@ -502,7 +503,8 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                         builder.message().loginName = this->userName_;
                         builder.message().displayName = this->userName_;
 
-                        this->channel_->addMessage(builder.release());
+                        this->channel_->addMessage(builder.release(),
+                                                   MessageContext::Original);
                     }
                 })
                 .onError([this](NetworkResult result) {
@@ -512,7 +514,8 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                         QString("Failed to check AFK status for user %1: %2")
                             .arg(this->userName_)
                             .arg(result.error()));
-                    this->channel_->addMessage(builder.release());
+                    this->channel_->addMessage(builder.release(),
+                                               MessageContext::Original);
                 })
                 .execute();
         });
@@ -697,17 +700,17 @@ void UserInfoPopup::installEvents()
                     getIApp()->getAccounts()->twitch.getCurrent()->unblockUser(
                         this->userId_, this,
                         [this, reenableBlockCheckbox, currentUser] {
-                            this->channel_->addMessage(makeSystemMessage(
+                            this->channel_->addSystemMessage(
                                 QString("You successfully unblocked user %1")
-                                    .arg(this->userName_)));
+                                    .arg(this->userName_));
                             reenableBlockCheckbox();
                         },
                         [this, reenableBlockCheckbox] {
-                            this->channel_->addMessage(makeSystemMessage(
+                            this->channel_->addSystemMessage(
                                 QString(
                                     "User %1 couldn't be unblocked, an unknown "
                                     "error occurred!")
-                                    .arg(this->userName_)));
+                                    .arg(this->userName_));
                             reenableBlockCheckbox();
                         });
                 }
@@ -724,17 +727,17 @@ void UserInfoPopup::installEvents()
                     getIApp()->getAccounts()->twitch.getCurrent()->blockUser(
                         this->userId_, this,
                         [this, reenableBlockCheckbox, currentUser] {
-                            this->channel_->addMessage(makeSystemMessage(
+                            this->channel_->addSystemMessage(
                                 QString("You successfully blocked user %1")
-                                    .arg(this->userName_)));
+                                    .arg(this->userName_));
                             reenableBlockCheckbox();
                         },
                         [this, reenableBlockCheckbox] {
-                            this->channel_->addMessage(makeSystemMessage(
+                            this->channel_->addSystemMessage(
                                 QString(
                                     "User %1 couldn't be blocked, an unknown "
                                     "error occurred!")
-                                    .arg(this->userName_)));
+                                    .arg(this->userName_));
                             reenableBlockCheckbox();
                         });
                 }
@@ -864,7 +867,7 @@ void UserInfoPopup::updateLatestMessages()
                     {
                         // display message in ChannelView
                         this->ui_.latestMessages->channel()->addMessage(
-                            message);
+                            message, MessageContext::Repost);
                     }
                     else
                     {

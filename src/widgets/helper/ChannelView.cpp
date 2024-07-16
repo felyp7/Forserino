@@ -618,7 +618,7 @@ void ChannelView::scaleChangedEvent(float scale)
 
     if (this->goToBottom_)
     {
-        auto factor = this->qtFontScale();
+        auto factor = this->scale();
 #ifdef Q_OS_MACOS
         factor = scale * 80.F /
                  std::max<float>(
@@ -706,8 +706,10 @@ void ChannelView::layoutVisibleMessages(
         {
             const auto &message = messages[i];
 
-            redrawRequired |= message->layout(layoutWidth, this->scale(), flags,
-                                              this->bufferInvalidationQueued_);
+            redrawRequired |= message->layout(
+                layoutWidth, this->scale(),
+                this->scale() * static_cast<float>(this->devicePixelRatio()),
+                flags, this->bufferInvalidationQueued_);
 
             y += message->getHeight();
         }
@@ -741,13 +743,16 @@ void ChannelView::updateScrollbar(
     {
         auto *message = messages[i].get();
 
-        message->layout(layoutWidth, this->scale(), flags, false);
+        message->layout(
+            layoutWidth, this->scale(),
+            this->scale() * static_cast<float>(this->devicePixelRatio()), flags,
+            false);
 
         h -= message->getHeight();
 
         if (h < 0)  // break condition
         {
-            this->scrollBar_->setLargeChange(
+            this->scrollBar_->setPageSize(
                 (messages.size() - i) +
                 qreal(h) / std::max<int>(1, message->getHeight()));
 
@@ -781,7 +786,7 @@ void ChannelView::clearMessages()
     // Clear all stored messages in this chat widget
     this->messages_.clear();
     this->scrollBar_->clearHighlights();
-    this->scrollBar_->resetMaximum();
+    this->scrollBar_->resetBounds();
     this->scrollBar_->setMaximum(0);
     this->scrollBar_->setMinimum(0);
     this->queueLayout();
@@ -923,26 +928,17 @@ void ChannelView::setChannel(const ChannelPtr &underlyingChannel)
             {
                 if (this->channel_->lastDate_ != QDate::currentDate())
                 {
+                    // Day change message
                     this->channel_->lastDate_ = QDate::currentDate();
                     auto msg = makeSystemMessage(
                         QLocale().toString(QDate::currentDate(),
                                            QLocale::LongFormat),
                         QTime(0, 0));
-                    this->channel_->addMessage(msg);
+                    msg->flags.set(MessageFlag::DoNotLog);
+                    this->channel_->addMessage(msg, MessageContext::Original);
                 }
-                // When the message was received in the underlyingChannel,
-                // logging will be handled. Prevent duplications.
-                if (overridingFlags)
-                {
-                    overridingFlags->set(MessageFlag::DoNotLog);
-                }
-                else
-                {
-                    overridingFlags = MessageFlags(message->flags);
-                    overridingFlags->set(MessageFlag::DoNotLog);
-                }
-
-                this->channel_->addMessage(message, overridingFlags);
+                this->channel_->addMessage(message, MessageContext::Repost,
+                                           overridingFlags);
             }
         });
 
@@ -1008,7 +1004,9 @@ void ChannelView::setChannel(const ChannelPtr &underlyingChannel)
         }
 
         this->messages_.pushBack(messageLayout);
-        this->channel_->addMessage(msg);
+
+        this->channel_->addMessage(msg, MessageContext::Repost);
+
         nMessagesAdded++;
         if (this->showScrollbarHighlights())
         {
@@ -1280,7 +1278,7 @@ void ChannelView::messagesUpdated()
 
     this->messages_.clear();
     this->scrollBar_->clearHighlights();
-    this->scrollBar_->resetMaximum();
+    this->scrollBar_->resetBounds();
     this->scrollBar_->setMaximum(qreal(snapshot.size()));
     this->scrollBar_->setMinimum(0);
     this->lastMessageHasAlternateBackground_ = false;
@@ -1381,17 +1379,20 @@ MessageElementFlags ChannelView::getFlags() const
         {
             flags.set(MessageElementFlag::ModeratorTools);
         }
-        if (this->underlyingChannel_ == app->twitch->mentionsChannel ||
-            this->underlyingChannel_ == app->twitch->liveChannel ||
-            this->underlyingChannel_ == app->twitch->automodChannel)
+        if (this->underlyingChannel_ ==
+                getIApp()->getTwitch()->getMentionsChannel() ||
+            this->underlyingChannel_ ==
+                getIApp()->getTwitch()->getLiveChannel() ||
+            this->underlyingChannel_ ==
+                getIApp()->getTwitch()->getAutomodChannel())
         {
             flags.set(MessageElementFlag::ChannelName);
             flags.unset(MessageElementFlag::ChannelPointReward);
         }
     }
 
-    if (this->sourceChannel_ == app->twitch->mentionsChannel ||
-        this->sourceChannel_ == app->twitch->automodChannel)
+    if (this->sourceChannel_ == getIApp()->getTwitch()->getMentionsChannel() ||
+        this->sourceChannel_ == getIApp()->getTwitch()->getAutomodChannel())
     {
         flags.set(MessageElementFlag::ChannelName);
     }
@@ -1544,8 +1545,8 @@ void ChannelView::drawMessages(QPainter &painter, const QRect &area)
 
         .canvasWidth = this->width(),
         .isWindowFocused = this->window() == QApplication::activeWindow(),
-        .isMentions =
-            this->underlyingChannel_ == getApp()->twitch->mentionsChannel,
+        .isMentions = this->underlyingChannel_ ==
+                      getIApp()->getTwitch()->getMentionsChannel(),
 
         .y = int(-(messagesSnapshot[start]->getHeight() *
                    (fmod(this->scrollBar_->getRelativeCurrentValue(), 1)))),
@@ -1723,9 +1724,11 @@ void ChannelView::wheelEvent(QWheelEvent *event)
                 }
                 else
                 {
-                    snapshot[i - 1]->layout(this->getLayoutWidth(),
-                                            this->scale(), this->getFlags(),
-                                            false);
+                    snapshot[i - 1]->layout(
+                        this->getLayoutWidth(), this->scale(),
+                        this->scale() *
+                            static_cast<float>(this->devicePixelRatio()),
+                        this->getFlags(), false);
                     scrollFactor = 1;
                     currentScrollLeft = snapshot[i - 1]->getHeight();
                 }
@@ -1758,9 +1761,11 @@ void ChannelView::wheelEvent(QWheelEvent *event)
                 }
                 else
                 {
-                    snapshot[i + 1]->layout(this->getLayoutWidth(),
-                                            this->scale(), this->getFlags(),
-                                            false);
+                    snapshot[i + 1]->layout(
+                        this->getLayoutWidth(), this->scale(),
+                        this->scale() *
+                            static_cast<float>(this->devicePixelRatio()),
+                        this->getFlags(), false);
 
                     scrollFactor = 1;
                     currentScrollLeft = snapshot[i + 1]->getHeight();
@@ -2702,8 +2707,8 @@ void ChannelView::showUserInfoPopup(const QString &userName,
     auto *userPopup =
         new UserInfoPopup(getSettings()->autoCloseUserPopup, this->split_);
 
-    auto contextChannel =
-        getApp()->twitch->getChannelOrEmpty(alternativePopoutChannel);
+    auto contextChannel = getIApp()->getTwitchAbstract()->getChannelOrEmpty(
+        alternativePopoutChannel);
     auto openingChannel = this->hasSourceChannel() ? this->sourceChannel_
                                                    : this->underlyingChannel_;
     userPopup->setData(userName, contextChannel, openingChannel);
