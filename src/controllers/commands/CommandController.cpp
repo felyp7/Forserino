@@ -527,7 +527,7 @@ void CommandController::initialize(Settings &, const Paths &paths)
             if (twitchChannel == nullptr)
             {
                 channel->addMessage(makeSystemMessage(
-                    "The /founders command only works in Twitch Channels"));
+                    "The /founders command only works in Twitch Channels"), MessageContext::Original);
                 return "";
             }
 
@@ -562,11 +562,11 @@ void CommandController::initialize(Settings &, const Paths &paths)
                     TwitchMessageBuilder::listOfUsersSystemMessage(
                         QString("The founders of %1 are").arg(target), founders,
                         twitchChannel, &builder);
-                    channel->addMessage(builder.release());
+                    channel->addMessage(builder.release(), MessageContext::Original);
                 },
                 [channel]() {
                     channel->addMessage(
-                        makeSystemMessage("Could not get founders list!"));
+                        makeSystemMessage("Could not get founders list!"), MessageContext::Original);
                 });
             return "";
         });
