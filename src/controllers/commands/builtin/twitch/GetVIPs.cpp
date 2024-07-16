@@ -92,7 +92,7 @@ QString getVIPs(const CommandContext &ctx)
                 if (vipList.empty())
                 {
                     channel->addMessage(makeSystemMessage(
-                        "This channel does not have any VIPs."));
+                        "This channel does not have any VIPs."), MessageContext::Original);
                     return;
                 }
 
@@ -103,11 +103,11 @@ QString getVIPs(const CommandContext &ctx)
                 TwitchMessageBuilder::listOfUsersSystemMessage(
                     messagePrefix, vipList, twitchChannel, &builder);
 
-                channel->addMessage(builder.release());
+                channel->addMessage(builder.release(), MessageContext::Original);
             },
             [channel{ctx.channel}](auto error, auto message) {
                 auto errorMessage = formatGetVIPsError(error, message);
-                channel->addMessage(makeSystemMessage(errorMessage));
+                channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
             });
     }
     else
@@ -120,7 +120,7 @@ QString getVIPs(const CommandContext &ctx)
                 if (result.isEmpty())
                 {
                     channel->addMessage(makeSystemMessage(
-                        "This channel does not have any VIPs."));
+                        "This channel does not have any VIPs."), MessageContext::Original);
                     return;
                 }
 
@@ -145,11 +145,11 @@ QString getVIPs(const CommandContext &ctx)
                 TwitchMessageBuilder::listOfUsersSystemMessage(
                     "The VIPs of this channel are", vips, twitchChannel,
                     &builder);
-                channel->addMessage(builder.release());
+                channel->addMessage(builder.release(), MessageContext::Original);
             },
             [channel{ctx.channel}]() {
                 channel->addMessage(
-                    makeSystemMessage("Could not get VIPs list!"));
+                    makeSystemMessage("Could not get VIPs list!"), MessageContext::Original);
             });
     }
 

@@ -75,7 +75,7 @@ QString getModerators(const CommandContext &ctx)
                 if (result.empty())
                 {
                     channel->addMessage(makeSystemMessage(
-                        "This channel does not have any moderators."));
+                        "This channel does not have any moderators."), MessageContext::Original);
                     return;
                 }
                 // TODO: sort results?
@@ -84,12 +84,12 @@ QString getModerators(const CommandContext &ctx)
                 TwitchMessageBuilder::listOfUsersSystemMessage(
                     "The moderators of this channel are", result, twitchChannel,
                     &builder);
-                channel->addMessage(builder.release());
+                channel->addMessage(builder.release(), MessageContext::Original);
             },
             [channel{ctx.channel}, formatModsError{formatModsError}](
                 auto error, auto message) {
                 auto errorMessage = formatModsError(error, message);
-                channel->addMessage(makeSystemMessage(errorMessage));
+                channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
             });
     }
     else
@@ -102,7 +102,7 @@ QString getModerators(const CommandContext &ctx)
                 if (result.isEmpty())
                 {
                     channel->addMessage(makeSystemMessage(
-                        "This channel does not have any moderators."));
+                        "This channel does not have any moderators."), MessageContext::Original);
                     return;
                 }
 
@@ -127,11 +127,11 @@ QString getModerators(const CommandContext &ctx)
                 TwitchMessageBuilder::listOfUsersSystemMessage(
                     "The moderators of this channel are", mods, twitchChannel,
                     &builder);
-                channel->addMessage(builder.release());
+                channel->addMessage(builder.release(), MessageContext::Original);
             },
             [channel{ctx.channel}]() {
                 channel->addMessage(
-                    makeSystemMessage("Could not get moderators list!"));
+                    makeSystemMessage("Could not get moderators list!"), MessageContext::Original);
             });
     }
     return "";
