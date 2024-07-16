@@ -698,7 +698,7 @@ void TwitchIrcServer::onMessageSendRequested(
                     break;
                 }
 
-                channel->addMessage(makeSystemMessage(errorMessage));
+                channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
 
                 if (shouldSendHelixChat())
                   {
@@ -755,7 +755,7 @@ void TwitchIrcServer::onMessageSendRequested(
                     break;
                 }
 
-                channel->addMessage(makeSystemMessage(errorMessage));
+                channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
 
                 if (shouldSendHelixChat())
                   {
@@ -889,7 +889,7 @@ if (getSettings()->rainbowMessages)
                     break;
                 }
 
-                channel->addMessage(makeSystemMessage(errorMessage));
+                channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
 
                     if (shouldSendHelixChat())
                     {
