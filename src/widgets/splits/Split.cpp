@@ -273,7 +273,7 @@ Split::Split(QWidget *parent)
     std::ignore = this->view_->openChannelIn.connect(
         [this](QString twitchChannel, FromTwitchLinkOpenChannelIn openIn) {
             ChannelPtr channel =
-                getApp()->twitch->getOrAddChannel(twitchChannel);
+                getIApp()->getTwitchAbstract()->getOrAddChannel(twitchChannel);
             switch (openIn)
             {
                 case FromTwitchLinkOpenChannelIn::Split:
@@ -399,10 +399,10 @@ Split::Split(QWidget *parent)
                 imageUploader->getImages(original);
             if (images.empty())
             {
-                channel->addMessage(makeSystemMessage(
+                channel->addSystemMessage(
                     QString(
                         "An error occurred trying to process your image: %1")
-                        .arg(imageProcessError)));
+                        .arg(imageProcessError));
                 return;
             }
 
@@ -559,11 +559,11 @@ void Split::addShortcuts()
              auto &scrollbar = this->getChannelView().getScrollBar();
              if (direction == "up")
              {
-                 scrollbar.offset(-scrollbar.getLargeChange());
+                 scrollbar.offset(-scrollbar.getPageSize());
              }
              else if (direction == "down")
              {
-                 scrollbar.offset(scrollbar.getLargeChange());
+                 scrollbar.offset(scrollbar.getPageSize());
              }
              else
              {
@@ -1616,6 +1616,13 @@ void Split::drag()
 void Split::setInputReply(const MessagePtr &reply)
 {
     this->input_->setReply(reply);
+}
+
+void Split::unpause()
+{
+    this->view_->unpause(PauseReason::KeyboardModifier);
+    this->view_->unpause(PauseReason::DoubleClick);
+    // Mouse intentionally left out, we may still have the mouse over the split
 }
 
 }  // namespace chatterino

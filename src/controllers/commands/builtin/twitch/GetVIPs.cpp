@@ -9,7 +9,6 @@
 #include "providers/twitch/TwitchAccount.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
 #include "providers/twitch/TwitchMessageBuilder.hpp"
-#include "util/Twitch.hpp"
 
 namespace {
 
@@ -78,8 +77,8 @@ QString getVIPs(const CommandContext &ctx)
 
     if (ctx.twitchChannel == nullptr)
     {
-        ctx.channel->addMessage(makeSystemMessage(
-            "The /vips command only works in Twitch channels."));
+        ctx.channel->addSystemMessage(
+            "The /vips command only works in Twitch channels.");
         return "";
     }
 

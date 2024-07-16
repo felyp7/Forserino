@@ -61,8 +61,8 @@ QString getModerators(const CommandContext &ctx)
 
     if (ctx.twitchChannel == nullptr)
     {
-        ctx.channel->addMessage(makeSystemMessage(
-            "The /mods command only works in Twitch Channels."));
+        ctx.channel->addSystemMessage(
+            "The /mods command only works in Twitch Channels.");
         return "";
     }
 
