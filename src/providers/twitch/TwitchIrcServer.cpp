@@ -636,6 +636,10 @@ void TwitchIrcServer::onMessageSendRequested(
                         {
                             sendHelixMessage(channel, message);
                         }
+                        else if (channel->getName().startsWith("$"))
+                        {
+                            this->sendRawMessage("PRIVMSG " + channel->getName().mid(1) + " :" + message);
+                        }
                         else
                         {
                             this->sendMessage(channel->getName(), message);
