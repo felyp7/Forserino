@@ -841,6 +841,9 @@ void TwitchIrcServer::onReplySendRequested(
         return;
     }
 
+    QString channelName = channel->getName();
+
+
 if (getSettings()->rainbowMessages)
     {
         QString color;
