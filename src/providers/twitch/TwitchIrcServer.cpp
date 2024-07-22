@@ -600,7 +600,9 @@ bool TwitchIrcServer::prepareToSend(
 
 QStringList splitCommaSeparatedString(const QString &str)
 {
-    return str.split(',', QString::SkipEmptyParts);
+    QStringList list = str.split(',');
+    list.removeAll(""); // Remove empty parts
+    return list;
 }
 
 
