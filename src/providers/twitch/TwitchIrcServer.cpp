@@ -623,9 +623,61 @@ void TwitchIrcServer::onMessageSendRequested(
 
     if (getSettings()->rainbowMessages)
     {
+        QString color;
 
+        if(getSettings()->allowRainbowChannels) {
         if (!splitCommaSeparatedString(getSettings()->rainbowChannels).contains(channelName, Qt::CaseInsensitive))
         {
+            if(getSettings()->defaultColor) {
+                getHelix()->updateUserChatColor(
+            getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), getSettings()->defaultColor,
+            [channel, this, &sent, message] {
+            },
+            [color, channel, this, &sent, message](auto error,
+                                                   auto helixErrorMessage) {
+                QString errorMessage =
+                    QString("Failed to change color to %1 - ").arg(getSettings()->defaultColor);
+
+                switch (error)
+                {
+                    case HelixUpdateUserChatColorError::UserMissingScope: {
+                        errorMessage +=
+                            "Missing required scope. Re-login with your "
+                            "account and try again.";
+                    }
+                    break;
+
+                    case HelixUpdateUserChatColorError::Forwarded: {
+                        errorMessage += helixErrorMessage + ".";
+                    }
+                    break;
+
+                    case HelixUpdateUserChatColorError::Unknown:
+                    default: {
+                        errorMessage += "An unknown error has occurred.";
+                    }
+                    break;
+                }
+
+                channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
+
+                if (shouldSendHelixChat())
+                  {
+                  sendHelixMessage(channel, message);
+                  }
+                else if (channel->getName().startsWith("$"))
+                {
+                    this->sendRawMessage("PRIVMSG " +
+                                         channel->getName().mid(1) + " :" +
+                                         message);
+                } 
+                else
+                {
+                  this->sendMessage(channel->getName(), message);
+                }
+            });
+            } else {
+
             if (shouldSendHelixChat())
                   {
                   sendHelixMessage(channel, message);
@@ -642,9 +694,9 @@ void TwitchIrcServer::onMessageSendRequested(
                 }
             sent = true;
             return;
+            }
         }
-
-        QString color;
+    }
 
         if (getSettings()->rainbowMessagesPrime)
         {

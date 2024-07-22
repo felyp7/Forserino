@@ -485,6 +485,12 @@ void GeneralPage::initLayout(GeneralPageView &layout)
         lineEdit->setPlaceholderText("forsen");
         groupLayout->addRow("Channels where to use rainbow: ", lineEdit);
         layout.addLayout(groupLayout);
+    auto *groupLayout2 = new QFormLayout();
+    auto *lineEdit2 = this->createLineEdit(s.defaultColor);
+        lineEdit2->setPlaceholderText("#000000");
+        groupLayout2->addRow("Default color: ", lineEdit2);
+        layout.addLayout(groupLayout2);
+
 
     layout.addTitle("Messages");
     layout.addCheckbox(
