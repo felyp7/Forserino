@@ -212,6 +212,7 @@ public:
 
     BoolSetting allowRainbowChannels = {"/misc/allowRainbowChannels", false};
     QStringSetting rainbowChannels = {"/misc/rainbowChannels", "forsen"};
+    BoolSetting enableDefaultColor = {"/misc/enableDefaultColor", false};
     QStringSetting defaultColor = {"/misc/defaultColor", "#000000"};
 
     BoolSetting mentionUsersWithAt = {"/behaviour/mentionUsersWithAt", false};

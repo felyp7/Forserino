@@ -487,6 +487,9 @@ void GeneralPage::initLayout(GeneralPageView &layout)
         layout.addLayout(groupLayout);
     auto *groupLayout2 = new QFormLayout();
     auto *lineEdit2 = this->createLineEdit(s.defaultColor);
+    groupLayout->addRow(
+            this->createCheckBox("Enable default color",
+                                 s.enableDefaultColor));
         lineEdit2->setPlaceholderText("#000000");
         groupLayout2->addRow("Default color: ", lineEdit2);
         layout.addLayout(groupLayout2);

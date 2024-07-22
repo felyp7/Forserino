@@ -628,7 +628,7 @@ void TwitchIrcServer::onMessageSendRequested(
         if(getSettings()->allowRainbowChannels) {
         if (!splitCommaSeparatedString(getSettings()->rainbowChannels).contains(channelName, Qt::CaseInsensitive))
         {
-            if(getSettings()->defaultColor) {
+            if(getSettings()->enableDefaultColor) {
                 getHelix()->updateUserChatColor(
             getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), getSettings()->defaultColor,
             [channel, this, &sent, message] {
