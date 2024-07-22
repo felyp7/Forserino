@@ -644,7 +644,6 @@ void TwitchIrcServer::onMessageSendRequested(
                         {
                             this->sendMessage(channel->getName(), message);
                         }
-                        sent = true;
                     },
                     [defaultColor, channel, this, &sent, message](auto error, auto helixErrorMessage) {
                         QString errorMessage = QString("Failed to change color to %1 - ").arg(defaultColor);
