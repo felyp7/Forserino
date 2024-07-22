@@ -684,6 +684,7 @@ void TwitchIrcServer::onMessageSendRequested(
                 {
                   this->sendMessage(channel->getName(), message);
                 }
+                return;
             });
             } else {
 
