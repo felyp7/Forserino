@@ -628,57 +628,7 @@ void TwitchIrcServer::onMessageSendRequested(
         if(getSettings()->allowRainbowChannels) {
         if (!splitCommaSeparatedString(getSettings()->rainbowChannels).contains(channelName, Qt::CaseInsensitive))
         {
-            if(getSettings()->enableDefaultColor) {
-                getHelix()->updateUserChatColor(
-        user->getUserId(), getSettings()->defaultColor,
-        [colorString, channel{ctx.channel}] {
-                    if (shouldSendHelixChat())
-                    {
-                    sendHelixMessage(channel, message);
-                    }
-                    else
-                    {
-                    this->sendMessage(channel->getName(), message);
-                    }
-        },
-        [colorString, channel{ctx.channel}](auto error, auto message) {
-            QString errorMessage =
-                QString("Failed to change color to %1 - ").arg(getSettings()->defaultColor);
-
-            switch (error)
-            {
-                case HelixUpdateUserChatColorError::UserMissingScope: {
-                    errorMessage +=
-                        "Missing required scope. Re-login with your "
-                        "account and try again.";
-                }
-                break;
-
-                case HelixUpdateUserChatColorError::InvalidColor: {
-                    errorMessage += QString("Color must be one of Twitch's "
-                                            "supported colors (%1) or a "
-                                            "hex code (#000000) if you "
-                                            "have Turbo or Prime.")
-                                        .arg(VALID_HELIX_COLORS.join(", "));
-                }
-                break;
-
-                case HelixUpdateUserChatColorError::Forwarded: {
-                    errorMessage += message + ".";
-                }
-                break;
-
-                case HelixUpdateUserChatColorError::Unknown:
-                default: {
-                    errorMessage += "An unknown error has occurred.";
-                }
-                break;
-            }
-
-            channel->addSystemMessage(errorMessage);
-            });
-            } else {
-
+           
             if (shouldSendHelixChat())
                   {
                   sendHelixMessage(channel, message);
@@ -695,7 +645,6 @@ void TwitchIrcServer::onMessageSendRequested(
                 }
             sent = true;
             return;
-            }
         }
     }
 
