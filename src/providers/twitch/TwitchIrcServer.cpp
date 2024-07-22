@@ -618,14 +618,13 @@ void TwitchIrcServer::onMessageSendRequested(
         return;
     }
 
-
     QString channelName = channel->getName();
 
 
     if (getSettings()->rainbowMessages)
     {
 
-        if (!splitCommaSeparatedString(getSettings()->rainbowChannels().getValue()).contains(channelName, Qt::CaseInsensitive))
+        if (!splitCommaSeparatedString(getSettings()->rainbowChannels).contains(channelName, Qt::CaseInsensitive))
         {
             if (shouldSendHelixChat())
                   {
