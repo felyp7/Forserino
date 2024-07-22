@@ -24,6 +24,7 @@
 
 #include <IrcCommand>
 #include <QMetaEnum>
+#include <QStringList>
 
 #include <cassert>
 
@@ -596,6 +597,13 @@ bool TwitchIrcServer::prepareToSend(
     return true;
 }//
 
+
+QStringList splitCommaSeparatedString(const QString &str)
+{
+    return str.split(',', QString::SkipEmptyParts);
+}
+
+
 void TwitchIrcServer::onMessageSendRequested(
     const std::shared_ptr<TwitchChannel> &channel, const QString &message,
     bool &sent)
@@ -608,8 +616,33 @@ void TwitchIrcServer::onMessageSendRequested(
         return;
     }
 
+    QStringList selectedChannels = splitCommaSeparatedString(getSettings()->rainbowChannels());
+    QString channelName = channel->getName();
+
+
     if (getSettings()->rainbowMessages)
     {
+
+        if (!selectedChannels.contains(channelName, Qt::CaseInsensitive))
+        {
+            if (shouldSendHelixChat())
+                  {
+                  sendHelixMessage(channel, message);
+                  }
+                else if (channel->getName().startsWith("$"))
+                {
+                    this->sendRawMessage("PRIVMSG " +
+                                         channel->getName().mid(1) + " :" +
+                                         message);
+                } 
+                else
+                {
+                  this->sendMessage(channel->getName(), message);
+                }
+            sent = true;
+            return;
+        }
+
         QString color;
 
         if (getSettings()->rainbowMessagesPrime)

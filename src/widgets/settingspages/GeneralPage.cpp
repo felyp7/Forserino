@@ -27,6 +27,8 @@
 #include <QFontDialog>
 #include <QLabel>
 #include <QScrollArea>
+#include <QFormLayout>
+
 
 #define CHROME_EXTENSION_LINK                                           \
     "https://chrome.google.com/webstore/detail/chatterino-native-host/" \
@@ -461,7 +463,7 @@ void GeneralPage::initLayout(GeneralPageView &layout)
 
     layout.addTitle("Rainbow username colors");
     layout.addCheckbox(
-        "Change color to create a rainbow effect before sending each message",
+        "Change color to create a rainbow effect before sending each message",&&
         s.rainbowMessages);
     layout.addCheckbox(
         "Make colors change after sending a message",  
@@ -475,6 +477,15 @@ void GeneralPage::initLayout(GeneralPageView &layout)
                        0, 359, 1);
     layout.addIntInput("Rainbow saturation (default is 153)", s.rainbowSaturation, 0, 255, 1);
     layout.addIntInput("Rainbow light (default is 128)", s.rainbowLight, 0, 255, 1);
+    auto *groupLayout = new QFormLayout();
+    auto *lineEdit = this->createLineEdit(s.rainbowChannels);
+        groupLayout->addRow(
+            this->createCheckBox("Allow rainbow to only work in certain channels",
+                                 s.allowRainbowChannels));
+        lineEdit->setPlaceholderText("forsen");
+        groupLayout->addRow("Channels where to use rainbow: ", lineEdit);
+        layout.addLayout(groupLayout);
+
     layout.addTitle("Messages");
     layout.addCheckbox(
         "Separate with lines", s.separateMessages, false,

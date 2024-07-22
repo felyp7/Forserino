@@ -209,6 +209,10 @@ public:
     IntSetting rainbowStartingHue = {"/behaviour/rainbow/startingHue", 0};
     IntSetting rainbowSaturation = {"/behaviour/rainbow/saturation", 153};
     IntSetting rainbowLight = {"/behaviour/rainbow/light", 128};
+
+    BoolSetting allowRainbowChannels = {"/misc/allowRainbowChannels", false};
+    QStringSetting rainbowChannels = {"/misc/rainbowChannels", "forsen"};
+
     BoolSetting mentionUsersWithAt = {"/behaviour/mentionUsersWithAt", false};
     BoolSetting showJoins = {"/behaviour/showJoins", false};
     BoolSetting showParts = {"/behaviour/showParts", false};
