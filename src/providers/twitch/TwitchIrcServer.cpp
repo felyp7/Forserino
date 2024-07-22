@@ -630,51 +630,52 @@ void TwitchIrcServer::onMessageSendRequested(
         {
             if(getSettings()->enableDefaultColor) {
                 getHelix()->updateUserChatColor(
-            getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), getSettings()->defaultColor,
-            [channel, this, &sent, message] {
-            },
-            [color, channel, this, &sent, message](auto error,
-                                                   auto helixErrorMessage) {
-                QString errorMessage =
-                    QString("Failed to change color to %1 - ").arg(getSettings()->defaultColor);
-
-                switch (error)
-                {
-                    case HelixUpdateUserChatColorError::UserMissingScope: {
-                        errorMessage +=
-                            "Missing required scope. Re-login with your "
-                            "account and try again.";
+        user->getUserId(), getSettings()->defaultColor,
+        [colorString, channel{ctx.channel}] {
+                    if (shouldSendHelixChat())
+                    {
+                    sendHelixMessage(channel, message);
                     }
-                    break;
-
-                    case HelixUpdateUserChatColorError::Forwarded: {
-                        errorMessage += helixErrorMessage + ".";
+                    else
+                    {
+                    this->sendMessage(channel->getName(), message);
                     }
-                    break;
+        },
+        [colorString, channel{ctx.channel}](auto error, auto message) {
+            QString errorMessage =
+                QString("Failed to change color to %1 - ").arg(getSettings()->defaultColor);
 
-                    case HelixUpdateUserChatColorError::Unknown:
-                    default: {
-                        errorMessage += "An unknown error has occurred.";
-                    }
-                    break;
+            switch (error)
+            {
+                case HelixUpdateUserChatColorError::UserMissingScope: {
+                    errorMessage +=
+                        "Missing required scope. Re-login with your "
+                        "account and try again.";
                 }
+                break;
 
-                channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
-
-                if (shouldSendHelixChat())
-                  {
-                  sendHelixMessage(channel, message);
-                  }
-                else if (channel->getName().startsWith("$"))
-                {
-                    this->sendRawMessage("PRIVMSG " +
-                                         channel->getName().mid(1) + " :" +
-                                         message);
-                } 
-                else
-                {
-                  this->sendMessage(channel->getName(), message);
+                case HelixUpdateUserChatColorError::InvalidColor: {
+                    errorMessage += QString("Color must be one of Twitch's "
+                                            "supported colors (%1) or a "
+                                            "hex code (#000000) if you "
+                                            "have Turbo or Prime.")
+                                        .arg(VALID_HELIX_COLORS.join(", "));
                 }
+                break;
+
+                case HelixUpdateUserChatColorError::Forwarded: {
+                    errorMessage += message + ".";
+                }
+                break;
+
+                case HelixUpdateUserChatColorError::Unknown:
+                default: {
+                    errorMessage += "An unknown error has occurred.";
+                }
+                break;
+            }
+
+            channel->addSystemMessage(errorMessage);
             });
             } else {
 
