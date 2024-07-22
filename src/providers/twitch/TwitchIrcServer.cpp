@@ -624,13 +624,14 @@ void TwitchIrcServer::onMessageSendRequested(
     if (getSettings()->rainbowMessages)
     {
         QString color;
+        QString defaultColor = getSettings()->defaultColor;
 
         if(getSettings()->allowRainbowChannels) {
         if (!splitCommaSeparatedString(getSettings()->rainbowChannels).contains(channelName, Qt::CaseInsensitive))
         {
             if(getSettings()->enableDefaultColor) {
                 getHelix()->updateUserChatColor(
-            getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), getSettings()->defaultColor,
+            getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), defaultColor,
             [channel, this, &sent, message] {
                     if (shouldSendHelixChat())
                     {
@@ -644,7 +645,7 @@ void TwitchIrcServer::onMessageSendRequested(
             [defaultColor, channel, this, &sent, message](auto error,
                                                    auto helixErrorMessage) {
                 QString errorMessage =
-                    QString("Failed to change color to %1 - ").arg(getSettings()->defaultColor);
+                    QString("Failed to change color to %1 - ").arg(defaultColor);
 
                 switch (error)
                 {
