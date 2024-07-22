@@ -625,8 +625,8 @@ void TwitchIrcServer::onMessageSendRequested(
     {
         QString color;
 
-        if(getSettings()->allowRainbowChannels) {
-        if (!splitCommaSeparatedString(getSettings()->rainbowChannels).contains(channelName, Qt::CaseInsensitive))
+        if (getSettings()->allowRainbowChannels &&
+            !splitCommaSeparatedString(getSettings()->rainbowChannels).contains(channelName, Qt::CaseInsensitive))
         {
            
             if (shouldSendHelixChat())
@@ -646,7 +646,6 @@ void TwitchIrcServer::onMessageSendRequested(
             sent = true;
             return;
         }
-    }
 
         if (getSettings()->rainbowMessagesPrime)
         {
@@ -845,7 +844,22 @@ void TwitchIrcServer::onReplySendRequested(
 if (getSettings()->rainbowMessages)
     {
         QString color;
-
+        if (getSettings()->allowRainbowChannels &&
+            !splitCommaSeparatedString(getSettings()->rainbowChannels).contains(channelName, Qt::CaseInsensitive))
+            {
+           
+                if (shouldSendHelixChat())
+                  {
+                  sendHelixMessage(channel, message, replyId);
+                  }
+                  else
+                  {
+                  this->sendRawMessage("@reply-parent-msg-id=" + replyId + " PRIVMSG #" +
+                             channel->getName() + " :" + message);
+                  }
+            sent = true;
+            return;
+        }
         if (getSettings()->rainbowMessagesPrime)
         {
             if (!rainbowHue.contains(channel->getName()))
