@@ -463,7 +463,7 @@ void GeneralPage::initLayout(GeneralPageView &layout)
 
     layout.addTitle("Rainbow username colors");
     layout.addCheckbox(
-        "Change color to create a rainbow effect before sending each message",&&
+        "Change color to create a rainbow effect before sending each message",
         s.rainbowMessages);
     layout.addCheckbox(
         "Make colors change after sending a message",  
