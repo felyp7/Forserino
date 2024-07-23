@@ -704,7 +704,6 @@ void TwitchIrcServer::onMessageSendRequested(
                 {
                     this->sendMessage(channel->getName(), message);
                 }
-                sent = true;
             },
             [color, channel, this, &sent, message](auto error, auto helixErrorMessage) {
                 QString errorMessage = QString("Failed to change color to %1 - ").arg(color);
@@ -735,7 +734,6 @@ void TwitchIrcServer::onMessageSendRequested(
                 {
                     this->sendMessage(channel->getName(), message);
                 }
-                sent = true;
             });
         return;
     }
