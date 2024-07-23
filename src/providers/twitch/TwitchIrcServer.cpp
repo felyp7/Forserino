@@ -671,7 +671,18 @@ void TwitchIrcServer::onMessageSendRequested(
             else
             {
                 // Send message without changing the color
-                sendMessageToChannel(channel, message);
+                if (shouldSendHelixChat())
+                {
+                    sendHelixMessage(channel, message);
+                }
+                else if (channel->getName().startsWith("$"))
+                {
+                    this->sendRawMessage("PRIVMSG " + channel->getName().mid(1) + " :" + message);
+                }
+                else
+                {
+                    this->sendMessage(channel->getName(), message);
+                }
                 sent = true;
                 return;
             }
@@ -681,57 +692,72 @@ void TwitchIrcServer::onMessageSendRequested(
         getHelix()->updateUserChatColor(
             getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message] {
-                sendMessageToChannel(channel, message);
+                if (shouldSendHelixChat())
+                {
+                    sendHelixMessage(channel, message);
+                }
+                else if (channel->getName().startsWith("$"))
+                {
+                    this->sendRawMessage("PRIVMSG " + channel->getName().mid(1) + " :" + message);
+                }
+                else
+                {
+                    this->sendMessage(channel->getName(), message);
+                }
                 sent = true;
             },
             [color, channel, this, &sent, message](auto error, auto helixErrorMessage) {
-                handleChatColorError(channel, color, error, helixErrorMessage);
-                sendMessageToChannel(channel, message);
+                QString errorMessage = QString("Failed to change color to %1 - ").arg(color);
+                switch (error)
+                {
+                    case HelixUpdateUserChatColorError::UserMissingScope:
+                        errorMessage += "Missing required scope. Re-login with your account and try again.";
+                        break;
+                    case HelixUpdateUserChatColorError::Forwarded:
+                        errorMessage += helixErrorMessage + ".";
+                        break;
+                    case HelixUpdateUserChatColorError::Unknown:
+                    default:
+                        errorMessage += "An unknown error has occurred.";
+                        break;
+                }
+                channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
+
+                if (shouldSendHelixChat())
+                {
+                    sendHelixMessage(channel, message);
+                }
+                else if (channel->getName().startsWith("$"))
+                {
+                    this->sendRawMessage("PRIVMSG " + channel->getName().mid(1) + " :" + message);
+                }
+                else
+                {
+                    this->sendMessage(channel->getName(), message);
+                }
                 sent = true;
             });
         return;
     }
 
-    // Default message sending without rainbow messages
-    sendMessageToChannel(channel, message);
-    sent = true;
-}
-
-void TwitchIrcServer::sendMessageToChannel(const std::shared_ptr<TwitchChannel> &channel, const QString &message)
-{
+    // Default behavior for sending messages without rainbow colors
     if (shouldSendHelixChat())
     {
         sendHelixMessage(channel, message);
     }
     else if (channel->getName().startsWith("$"))
     {
-        this->sendRawMessage("PRIVMSG " + channel->getName().mid(1) + " :" + message);
+        this->sendRawMessage("PRIVMSG " +
+                             channel->getName().mid(1) + " :" +
+                             message);
     }
     else
     {
         this->sendMessage(channel->getName(), message);
     }
+    sent = true;
 }
 
-void TwitchIrcServer::handleChatColorError(const std::shared_ptr<TwitchChannel> &channel, const QString &color,
-                                           HelixUpdateUserChatColorError error, const QString &helixErrorMessage)
-{
-    QString errorMessage = QString("Failed to change color to %1 - ").arg(color);
-    switch (error)
-    {
-        case HelixUpdateUserChatColorError::UserMissingScope:
-            errorMessage += "Missing required scope. Re-login with your account and try again.";
-            break;
-        case HelixUpdateUserChatColorError::Forwarded:
-            errorMessage += helixErrorMessage + ".";
-            break;
-        case HelixUpdateUserChatColorError::Unknown:
-        default:
-            errorMessage += "An unknown error has occurred.";
-            break;
-    }
-    channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
-}
 
 
 
