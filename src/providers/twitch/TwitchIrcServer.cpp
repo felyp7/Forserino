@@ -667,7 +667,7 @@ void TwitchIrcServer::onMessageSendRequested(
         {
             if (getSettings()->enableDefaultColor)
             {
-                QString color = getSettings()->defaultColor
+                QString color = getSettings()->defaultColor;
             }
             else
             {
