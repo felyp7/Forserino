@@ -626,32 +626,6 @@ void TwitchIrcServer::onMessageSendRequested(
     {
         QString color;
 
-        if (getSettings()->allowRainbowChannels &&
-            !splitCommaSeparatedString(getSettings()->rainbowChannels).contains(channelName, Qt::CaseInsensitive))
-        {
-            if (getSettings()->enableDefaultColor)
-            {
-                QString color = getSettings()->defaultColor
-            }
-            else
-            {
-                if (shouldSendHelixChat())
-                {
-                    sendHelixMessage(channel, message);
-                }
-                else if (channel->getName().startsWith("$"))
-                {
-                    this->sendRawMessage("PRIVMSG " + channel->getName().mid(1) + " :" + message);
-                }
-                else
-                {
-                    this->sendMessage(channel->getName(), message);
-                }
-                sent = true;
-                return;
-            }
-        }
-
         if (getSettings()->rainbowMessagesPrime)
         {
             if (!rainbowHue.contains(channel->getName()))
