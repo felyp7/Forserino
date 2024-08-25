@@ -887,8 +887,8 @@ void UserInfoPopup::updateUserData()
     std::weak_ptr<bool> hack = this->lifetimeHack_;
     auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
-    const auto onUserFetchFailed = [this, hack,
-                                    currentUser](const HelixUser &user) {
+    const auto onUserFetchFailed = [this, hack]
+                                   (const HelixUser &user) {
         if (!hack.lock())
         {
             return;
