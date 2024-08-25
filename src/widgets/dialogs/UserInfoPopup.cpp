@@ -373,8 +373,7 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                 .assign(&this->ui_.followerCountLabel);
             vbox.emplace<Label>(TEXT_CREATED.arg(""))
                 .assign(&this->ui_.createdDateLabel);
-            vbox.emplace<Label>(TEXT_BANNED.arg(""))
-                .assign(&this->ui_.bannedReasonLabel);
+            vbox.emplace<Label>("").assign(&this->ui_.bannedReasonLabel);
             vbox.emplace<Label>("").assign(&this->ui_.followageLabel);
             vbox.emplace<Label>("").assign(&this->ui_.subageLabel);
             vbox.emplace<Label>("").assign(&this->ui_.rolesLabel);
