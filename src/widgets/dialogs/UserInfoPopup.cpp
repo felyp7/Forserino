@@ -887,8 +887,7 @@ void UserInfoPopup::updateUserData()
     std::weak_ptr<bool> hack = this->lifetimeHack_;
     auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
-    const auto onUserFetchFailed = [this, hack]
-                                   (const HelixUser &user) {
+    const auto onUserFetchFailed = [this, hack] {
         if (!hack.lock())
         {
             return;
@@ -899,7 +898,7 @@ void UserInfoPopup::updateUserData()
             TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
         this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
 
-        this->ui_.bannedReasonLabel->setText(TEXT_BANNED.arg(user.banReason));
+        this->ui_.bannedReasonLabel->setText(TEXT_BANNED.arg(this->bannedReason_));
 
         this->ui_.nameLabel->setText(this->userName_);
 
@@ -914,6 +913,8 @@ void UserInfoPopup::updateUserData()
         {
             return;
         }
+
+        this->bannedReason_ = user.banReason;
 
         // Correct for when being opened with ID
         if (this->userName_.isEmpty())
