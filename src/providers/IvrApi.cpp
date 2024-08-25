@@ -168,7 +168,7 @@ void IvrApi::getUserBanReason(QString userName,
     this->makeRequest(QString("twitch/user"),
                       QUrlQuery(QString("login=%1").arg(userName)))
         .onSuccess([successCallback, failureCallback](auto result) {
-            auto root = result.parseJsonArray();
+            auto root = result.parseJson();
 
             successCallback(root);
         })
