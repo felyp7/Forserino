@@ -34,7 +34,6 @@ struct HelixUser {
     QString createdAt;
     QString description;
     QString profileImageUrl;
-    QString banReason;
 
     explicit HelixUser(QJsonObject jsonObject)
         : id(jsonObject.value("id").toString())
@@ -43,8 +42,6 @@ struct HelixUser {
         , createdAt(jsonObject.value("created_at").toString())
         , description(jsonObject.value("description").toString())
         , profileImageUrl(jsonObject.value("profile_image_url").toString())
-        , banReason(jsonObject.value("banReason").toString().isEmpty() ? "Does not exist" : jsonObject.value("banReason").toString())
-
     {
     }
 };

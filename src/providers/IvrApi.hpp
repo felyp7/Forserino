@@ -80,6 +80,15 @@ struct IvrResolve {
     }
 };
 
+struct IvrBanReason {
+    const QString banReason;
+
+    IvrBanReason(const QJsonObject &root)
+        : banReason(jsonObject.value("banReason").toString().isEmpty() ? "Does not exist" : jsonObject.value("banReason").toString())
+    {
+    }
+};
+
 struct IvrEmoteSet {
     const QString setId;
     const QString displayName;
@@ -143,6 +152,11 @@ public:
     // https://api.ivr.fi/v2/docs/static/index.html#/Twitch/get_twitch_user
     void getUserRoles(QString userName,
                       ResultCallback<IvrResolve> resultCallback,
+                      IvrFailureCallback failureCallback);
+
+    // https://api.ivr.fi/v2/docs/static/index.html#/Twitch/get_twitch_user
+    void getUserBanReason(QString userName,
+                      ResultCallback<IvrBanReason> resultCallback,
                       IvrFailureCallback failureCallback);
 
     // https://api.ivr.fi/v2/docs/static/index.html#/Twitch/get_twitch_emotes_sets

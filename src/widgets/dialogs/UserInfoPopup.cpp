@@ -886,26 +886,37 @@ void UserInfoPopup::updateUserData()
     std::weak_ptr<bool> hack = this->lifetimeHack_;
     auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
-    const auto onUserFetchFailed = [this, hack, errorMessage] {
+    const auto onUserFetchFailed = [this, hack] {
         if (!hack.lock())
         {
             return;
         }
 
-            // Parse the error message to determine if the user is banned
-    if (errorMessage.contains("banned", Qt::CaseInsensitive)) {
-        // Assume that we can extract banReason from the error message if available
-        this->bannedReason_ = errorMessage;
-    } else {
-        this->bannedReason_.clear(); // No ban reason if not banned
-    }
+            getIvr()->getUserBanReason(
+            this->userName_,
+            [this, hack](const IvrBanReason &userInfo) {
+                if (!hack.lock())
+                {
+                    return;
+                }
+
+                QString banReason = "";
+
+                if (userInfo.banReason)
+                {
+                    banReason = userInfo.banReason;
+                } else {
+                    banReason = "Does not exist";
+                }
+            },
+            [] {});
 
         // this can occur when the account doesn't exist.
         this->ui_.followerCountLabel->setText(
             TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
         this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
 
-        this->ui_.bannedReasonLabel->setText(QString("User not found: ") + this->bannedReason_);
+        this->ui_.bannedReasonLabel->setText(QString("User not found: ") + banReason);
 
         this->ui_.nameLabel->setText(this->userName_);
 
