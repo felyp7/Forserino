@@ -892,7 +892,6 @@ void UserInfoPopup::updateUserData()
             return;
     }
 
-    // This operation is asynchronous
     getIvr()->getUserBanReason(
         this->userName_,
         [this, hack](const IvrBanReason &userInfo) {
@@ -900,8 +899,7 @@ void UserInfoPopup::updateUserData()
             {
                 return;
             }
-
-            // Initialize banReason
+            
             QString banReason = "";
 
             if (!userInfo.banReason.isNull())
@@ -913,7 +911,6 @@ void UserInfoPopup::updateUserData()
                 banReason = "Does not exist";
             }
 
-            // Update other UI elements as needed
             this->ui_.followerCountLabel->setText(
                 TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
             this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
