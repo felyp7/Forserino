@@ -917,7 +917,7 @@ void UserInfoPopup::updateUserData()
             this->ui_.followerCountLabel->setText(
                 TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
             this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
-            this->ui_.bannedReasonLabel->setText(QString("User not found: ") + banReason);
+            this->ui_.bannedReasonLabel->setText(banReason);
             this->ui_.nameLabel->setText(this->userName_);
             this->ui_.userIDLabel->setText(QString("ID ") +
                                            QString(TEXT_UNAVAILABLE));
