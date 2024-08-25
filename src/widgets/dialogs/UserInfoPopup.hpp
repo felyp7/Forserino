@@ -55,6 +55,7 @@ private:
     QString userName_;
     QString userId_;
     QString avatarUrl_;
+    QString bannedReason_;
 
     // The channel the popup was opened from (e.g. /mentions or #forsen). Can be a special channel.
     ChannelPtr channel_;
