@@ -886,42 +886,27 @@ void UserInfoPopup::updateUserData()
     std::weak_ptr<bool> hack = this->lifetimeHack_;
     auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
-    // Function to fetch additional user information by name
-    auto fetchAdditionalInfoByName = [this, hack](const QString &userName) {
-        getHelix()->getUserByName(userName,
-            [this, hack](const HelixUser &user) {
-                if (!hack.lock()) {
-                    return;
-                }
-                
-                // Update the banned reason if the user is banned
-                if (!user.banReason.isEmpty()) {
-                    this->bannedReason_ = user.banReason;
-                    this->ui_.bannedReasonLabel->setText(TEXT_BANNED.arg(this->bannedReason_));
-                } else {
-                    // If not banned, ensure the banned reason label is hidden or set to default text
-                    this->bannedReason_.clear();
-                    this->ui_.bannedReasonLabel->clear(); // Clear the text if not banned
-                }
-            },
-            [](const QString &errorMessage) {
-                qCWarning(chatterinoTwitch) << "Error getting additional user info by name:" << errorMessage;
-            });
-    };
-
-    const auto onUserFetchFailed = [this, hack, fetchAdditionalInfoByName] {
+    const auto onUserFetchFailed = [this, hack, errorMessage] {
         if (!hack.lock())
         {
             return;
         }
+
+            // Parse the error message to determine if the user is banned
+    if (errorMessage.contains("banned", Qt::CaseInsensitive)) {
+        // Assume that we can extract banReason from the error message if available
+        this->bannedReason_ = errorMessage;
+    } else {
+        this->bannedReason_.clear(); // No ban reason if not banned
+    }
 
         // this can occur when the account doesn't exist.
         this->ui_.followerCountLabel->setText(
             TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
         this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
 
-        fetchAdditionalInfoByName(this->userName_);
-        
+        this->ui_.bannedReasonLabel->setText(QString("User not found: ") + this->bannedReason_);
+
         this->ui_.nameLabel->setText(this->userName_);
 
         this->ui_.userIDLabel->setText(QString("ID ") +
