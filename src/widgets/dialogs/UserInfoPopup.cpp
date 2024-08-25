@@ -42,6 +42,7 @@
 
 const QString TEXT_FOLLOWERS("Followers: %1");
 const QString TEXT_CREATED("Created: %1");
+const QString TEXT_BANNED("User not found: %1");
 const QString TEXT_TITLE("%1's Usercard - #%2");
 #define TEXT_USER_ID "ID: "
 #define TEXT_UNAVAILABLE "(not available)"
@@ -372,6 +373,8 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                 .assign(&this->ui_.followerCountLabel);
             vbox.emplace<Label>(TEXT_CREATED.arg(""))
                 .assign(&this->ui_.createdDateLabel);
+            vbox.emplace<Label>(TEXT_BANNED.arg(""))
+                .assign(&this->ui_.bannedReasonLabel);
             vbox.emplace<Label>("").assign(&this->ui_.followageLabel);
             vbox.emplace<Label>("").assign(&this->ui_.subageLabel);
             vbox.emplace<Label>("").assign(&this->ui_.rolesLabel);
@@ -884,7 +887,8 @@ void UserInfoPopup::updateUserData()
     std::weak_ptr<bool> hack = this->lifetimeHack_;
     auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
-    const auto onUserFetchFailed = [this, hack] {
+    const auto onUserFetchFailed = [this, hack,
+                                    currentUser](const HelixUser &user) {
         if (!hack.lock())
         {
             return;
@@ -894,6 +898,8 @@ void UserInfoPopup::updateUserData()
         this->ui_.followerCountLabel->setText(
             TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
         this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
+
+        this->ui_.bannedReasonLabel->setText(TEXT_BANNED.arg(user.banReason));
 
         this->ui_.nameLabel->setText(this->userName_);
 

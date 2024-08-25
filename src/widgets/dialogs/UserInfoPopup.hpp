@@ -81,6 +81,7 @@ private:
         Label *localizedNameLabel = nullptr;
         Label *followerCountLabel = nullptr;
         Label *createdDateLabel = nullptr;
+        Label *bannedReasonLabel = nullptr;
         Label *userIDLabel = nullptr;
         Label *followageLabel = nullptr;
         Label *subageLabel = nullptr;
