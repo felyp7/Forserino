@@ -84,7 +84,7 @@ struct IvrBanReason {
     const QString banReason;
 
     IvrBanReason(const QJsonObject &root)
-        : banReason(jsonObject.value("banReason").toString().isEmpty() ? "Does not exist" : jsonObject.value("banReason").toString())
+        : banReason(root.value("banReason").toString().isEmpty() ? "Does not exist" : root.value("banReason").toString())
     {
     }
 };
