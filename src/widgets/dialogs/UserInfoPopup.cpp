@@ -892,24 +892,44 @@ void UserInfoPopup::updateUserData()
             return;
         }
 
-            getIvr()->getUserBanReason(
-            this->userName_,
-            [this, hack](const IvrBanReason &userInfo) {
-                if (!hack.lock())
-                {
-                    return;
-                }
+    // This operation is asynchronous
+    getIvr()->getUserBanReason(
+        this->userName_,
+        [this, hack](const IvrBanReason &userInfo) {
+            if (!hack.lock())
+            {
+                return;
+            }
 
-                QString banReason = "";
+            // Initialize banReason
+            QString banReason = "";
 
-                if (userInfo.banReason)
-                {
-                    banReason = userInfo.banReason;
-                } else {
-                    banReason = "Does not exist";
-                }
-            },
-            [] {});
+            if (!userInfo.banReason.isNull())
+            {
+                banReason = userInfo.banReason;
+            }
+            else
+            {
+                banReason = "Does not exist";
+            }
+
+            // This part depends on the ban reason, so it goes here
+            this->ui_.bannedReasonLabel->setText(QString("Ban reason: ") + banReason);
+
+            // Update other UI elements as needed
+            this->ui_.followerCountLabel->setText(
+                TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
+            this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
+            this->ui_.nameLabel->setText(this->userName_);
+            this->ui_.userIDLabel->setText(QString("ID ") +
+                                           QString(TEXT_UNAVAILABLE));
+            this->ui_.userIDLabel->setProperty("copy-text",
+                                               QString(TEXT_UNAVAILABLE));
+        },
+        [] {
+            // Handle errors if needed
+        });
+    };
 
         // this can occur when the account doesn't exist.
         this->ui_.followerCountLabel->setText(
