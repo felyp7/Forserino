@@ -20,6 +20,8 @@ struct IvrSubage {
     const QString subTier;
     const int totalSubMonths;
     const QString followingSince;
+    const bool isGifted;
+    const QString giftedBy;
 
     IvrSubage(const QJsonObject &root)
         : isSubHidden(root.value("statusHidden").toBool())
