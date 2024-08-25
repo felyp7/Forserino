@@ -28,6 +28,9 @@ struct IvrSubage {
         , totalSubMonths(
               root.value("cumulative").toObject().value("months").toInt())
         , followingSince(root.value("followedAt").toString())
+        , isGifted(!root.value("meta").toObject().value("giftMeta").isNull())
+        , giftedBy(root.value("meta").toObject().value("giftMeta").toObject().value("gifter").isNull() ? "anonymous" : root.value("meta").toObject().value("giftMeta").toObject().value("gifter").toObject().value("login").toString());
+
     {
     }
 };

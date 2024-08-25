@@ -1017,12 +1017,20 @@ void UserInfoPopup::updateUserData()
                     this->ui_.subageLabel->setText(
                         "Subscription status hidden");
                 }
-                else if (subageInfo.isSubbed)
+                else if (subageInfo.isSubbed && !subageInfo.isGifted)
                 {
                     this->ui_.subageLabel->setText(
                         QString("★ Tier %1 - Subscribed for %2 months")
                             .arg(subageInfo.subTier)
                             .arg(subageInfo.totalSubMonths));
+                }
+                else if (subageInfo.isSubbed && subageinfo.isGifted)
+                {
+                    this->ui_.subageLabel->setText(
+                        QString("★ Tier %1 - Subscribed for %2 months gifted by %3")
+                            .arg(subageInfo.subTier)
+                            .arg(subageInfo.totalSubMonths)
+                            .arg(subageInfo.giftedBy));
                 }
                 else if (subageInfo.totalSubMonths)
                 {
