@@ -71,7 +71,8 @@ namespace {
 Env::Env()
     : recentMessagesApiUrl(
           qEnvironmentVariable("CHATTERINO2_RECENT_MESSAGES_URL",
-                               "https://logs.zonian.dev/rm/%1"))
+                               "https://recent-messages.robotty.de/api/v2/"
+                               "recent-messages/%1"))
     , linkResolverUrl(qEnvironmentVariable(
           "CHATTERINO2_LINK_RESOLVER_URL",
           "https://braize.pajlada.com/chatterino/link_resolver/%1"))
