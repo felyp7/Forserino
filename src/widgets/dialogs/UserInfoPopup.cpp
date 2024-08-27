@@ -912,7 +912,7 @@ void UserInfoPopup::updateUserData()
                                            QString(TEXT_UNAVAILABLE));
             this->ui_.userIDLabel->setProperty("copy-text",
                                                QString(TEXT_UNAVAILABLE));
-            this->ui_.userColorLabel->setText((userColor));
+            this->ui_.userColorLabel->setText(userColor);
             this->ui_.userColorLabel->setProperty("copy-text", userColor);
         },
         [] {
@@ -973,7 +973,7 @@ void UserInfoPopup::updateUserData()
 
                 QString userColor = userInfo.userColor;
 
-                this->ui_.userColorLabel->setText((userColor));
+                this->ui_.userColorLabel->setText(userColor);
                 this->ui_.userColorLabel->setProperty("copy-text", userColor);
             },
             [] {});
