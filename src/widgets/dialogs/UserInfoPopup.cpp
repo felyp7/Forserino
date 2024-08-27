@@ -927,6 +927,11 @@ void UserInfoPopup::updateUserData()
 
     const auto onUserFetched = [this, hack,
                                 currentUser](const HelixUser &user) {
+
+
+        TwitchChannel *twitchChannel = dynamic_cast<TwitchChannel *>(
+            this->underlyingChannel_.get());
+            
         if (!hack.lock())
         {
             return;
