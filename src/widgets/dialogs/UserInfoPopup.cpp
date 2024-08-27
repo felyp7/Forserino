@@ -358,6 +358,9 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                 this->ui_.userIDLabel = addCopyableLabel(box, "Copy ID");
                 this->ui_.userIDLabel->setPalette(palette);
 
+                this->ui_.userColorLabel = addCopyableLabel(box, "Copy Color");
+                this->ui_.userColorLabel->setPalette(palette);
+
                 this->ui_.localizedNameLabel->setVisible(false);
                 this->ui_.localizedNameCopyButton->setVisible(false);
 
@@ -892,24 +895,16 @@ void UserInfoPopup::updateUserData()
             return;
     }
 
-    getIvr()->getUserBanReason(
+    getIvr()->getUserRoles(
         this->userName_,
-        [this, hack](const IvrBanReason &userInfo) {
+        [this, hack](const IvrResolve &userInfo) {
             if (!hack.lock())
             {
                 return;
             }
             
-            QString banReason = "";
-
-            if (!userInfo.banReason.isNull())
-            {
-                banReason = userInfo.banReason;
-            }
-            else
-            {
-                banReason = "Does not exist";
-            }
+            QString banReason = userInfo.banReason;
+            QString userColor = userInfo.userColor;
 
             this->ui_.followerCountLabel->setText(
                 TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
@@ -920,6 +915,8 @@ void UserInfoPopup::updateUserData()
                                            QString(TEXT_UNAVAILABLE));
             this->ui_.userIDLabel->setProperty("copy-text",
                                                QString(TEXT_UNAVAILABLE));
+            this->ui_.userColorLabel->setText(QString("Color: ") + userColor);
+            this->ui_.userColorLabel->setProperty("copy-text", userColor);
         },
         [] {
         });
@@ -927,6 +924,7 @@ void UserInfoPopup::updateUserData()
 
     const auto onUserFetched = [this, hack,
                                 currentUser](const HelixUser &user) {
+
         if (!hack.lock())
         {
             return;
@@ -964,7 +962,20 @@ void UserInfoPopup::updateUserData()
             TEXT_CREATED.arg(user.createdAt.section("T", 0, 0)));
         this->ui_.userIDLabel->setText(TEXT_USER_ID + user.id);
         this->ui_.userIDLabel->setProperty("copy-text", user.id);
+        getIvr()->getUserRoles(
+            this->userName_,
+            [this, hack](const IvrResolve &userInfo) {
+                if (!hack.lock())
+                {
+                    return;
+                }
 
+                QString userColor = userInfo.userColor;
+
+                this->ui_.userColorLabel->setText(QString("Color: ") + userColor);
+                this->ui_.userColorLabel->setProperty("copy-text", userColor);
+            },
+            [] {});
         if (getIApp()->getStreamerMode()->isEnabled() &&
             getSettings()->streamerModeHideUsercardAvatars)
         {
