@@ -892,24 +892,16 @@ void UserInfoPopup::updateUserData()
             return;
     }
 
-    getIvr()->getUserBanReason(
+    getIvr()->getUserRoles(
         this->userName_,
-        [this, hack](const IvrBanReason &userInfo) {
+        [this, hack](const IvrResolve &userInfo) {
             if (!hack.lock())
             {
                 return;
             }
             
-            QString banReason = "";
-
-            if (!userInfo.banReason.isNull())
-            {
-                banReason = userInfo.banReason;
-            }
-            else
-            {
-                banReason = "Does not exist";
-            }
+            QString banReason = userInfo.banReason;
+            QString userColor = userInfo.userColor;
 
             this->ui_.followerCountLabel->setText(
                 TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
@@ -920,6 +912,8 @@ void UserInfoPopup::updateUserData()
                                            QString(TEXT_UNAVAILABLE));
             this->ui_.userIDLabel->setProperty("copy-text",
                                                QString(TEXT_UNAVAILABLE));
+            this->ui_.userColorLabel->setText((userColor));
+            this->ui_.userColorLabel->setProperty("copy-text", userColor);
         },
         [] {
         });
@@ -969,8 +963,20 @@ void UserInfoPopup::updateUserData()
             TEXT_CREATED.arg(user.createdAt.section("T", 0, 0)));
         this->ui_.userIDLabel->setText(TEXT_USER_ID + user.id);
         this->ui_.userIDLabel->setProperty("copy-text", user.id);
-        this->ui_.userColorLabel->setText("Color: " + twitchChannel->getUserColor(user.login).name());
+        getIvr()->getUserRoles(
+            this->userName_,
+            [this, hack](const IvrResolve &userInfo) {
+                if (!hack.lock())
+                {
+                    return;
+                }
 
+                QString userColor = userInfo.userColor;
+
+                this->ui_.userColorLabel->setText((userColor));
+                this->ui_.userColorLabel->setProperty("copy-text", userColor);
+            },
+            [] {});
         if (getIApp()->getStreamerMode()->isEnabled() &&
             getSettings()->streamerModeHideUsercardAvatars)
         {

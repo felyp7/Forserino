@@ -42,6 +42,8 @@ struct IvrResolve {
     const bool isBot;
     const bool isStaff;
     const bool isExStaff;
+    const QString banReason;
+    const QString userColor;
 
     IvrResolve(QJsonArray arr)
         : isPartner(arr.at(0)
@@ -76,16 +78,8 @@ struct IvrResolve {
                          .value("isStaff")
                          .toBool() &&
                     !arr.at(0).isUndefined())
-    {
-    }
-};
-
-struct IvrBanReason {
-    const QString banReason;
-
-    //Should do this better later xd
-    IvrBanReason(QJsonArray &root)
-        : banReason(root.at(0).toObject().value("banReason").toString().isEmpty() ? "User does not exist" : root.at(0).toObject().value("banReason").toString())
+        , banReason(arr.at(0).toObject().value("banReason").toString().isEmpty() ? "User does not exist" : arr.at(0).toObject().value("banReason").toString())
+        , userColor(root.at(0).toObject().value("chatColor").toString().isEmpty() ? "None" : root.at(0).toObject().value("chatColor").toString())
     {
     }
 };
@@ -153,11 +147,6 @@ public:
     // https://api.ivr.fi/v2/docs/static/index.html#/Twitch/get_twitch_user
     void getUserRoles(QString userName,
                       ResultCallback<IvrResolve> resultCallback,
-                      IvrFailureCallback failureCallback);
-
-    // https://api.ivr.fi/v2/docs/static/index.html#/Twitch/get_twitch_user
-    void getUserBanReason(QString userName,
-                      ResultCallback<IvrBanReason> resultCallback,
                       IvrFailureCallback failureCallback);
 
     // https://api.ivr.fi/v2/docs/static/index.html#/Twitch/get_twitch_emotes_sets
