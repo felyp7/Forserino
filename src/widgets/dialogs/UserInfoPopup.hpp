@@ -84,6 +84,7 @@ private:
         Label *createdDateLabel = nullptr;
         Label *bannedReasonLabel = nullptr;
         Label *userIDLabel = nullptr;
+        Label *userColorLabel = nullptr;
         Label *followageLabel = nullptr;
         Label *subageLabel = nullptr;
         Label *rolesLabel = nullptr;

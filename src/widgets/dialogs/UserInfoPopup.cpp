@@ -964,6 +964,7 @@ void UserInfoPopup::updateUserData()
             TEXT_CREATED.arg(user.createdAt.section("T", 0, 0)));
         this->ui_.userIDLabel->setText(TEXT_USER_ID + user.id);
         this->ui_.userIDLabel->setProperty("copy-text", user.id);
+        this->ui_.userColorLabel->setText("Color: " + twitchChannel->getUserColor(user.login));
 
         if (getIApp()->getStreamerMode()->isEnabled() &&
             getSettings()->streamerModeHideUsercardAvatars)
