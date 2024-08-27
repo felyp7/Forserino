@@ -931,7 +931,7 @@ void UserInfoPopup::updateUserData()
 
         TwitchChannel *twitchChannel = dynamic_cast<TwitchChannel *>(
             this->underlyingChannel_.get());
-            
+
         if (!hack.lock())
         {
             return;
@@ -969,7 +969,7 @@ void UserInfoPopup::updateUserData()
             TEXT_CREATED.arg(user.createdAt.section("T", 0, 0)));
         this->ui_.userIDLabel->setText(TEXT_USER_ID + user.id);
         this->ui_.userIDLabel->setProperty("copy-text", user.id);
-        this->ui_.userColorLabel->setText("Color: " + twitchChannel->getUserColor(user.login));
+        this->ui_.userColorLabel->setText("Color: " + twitchChannel->getUserColor(user.login).name());
 
         if (getIApp()->getStreamerMode()->isEnabled() &&
             getSettings()->streamerModeHideUsercardAvatars)
