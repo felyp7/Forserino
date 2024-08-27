@@ -358,6 +358,9 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                 this->ui_.userIDLabel = addCopyableLabel(box, "Copy ID");
                 this->ui_.userIDLabel->setPalette(palette);
 
+                this->ui_.userColorLabel = addCopyableLabel(box, "Copy Color");
+                this->ui_.userColorLabel->setPalette(palette);
+
                 this->ui_.localizedNameLabel->setVisible(false);
                 this->ui_.localizedNameCopyButton->setVisible(false);
 
@@ -921,10 +924,6 @@ void UserInfoPopup::updateUserData()
 
     const auto onUserFetched = [this, hack,
                                 currentUser](const HelixUser &user) {
-
-
-        TwitchChannel *twitchChannel = dynamic_cast<TwitchChannel *>(
-            this->underlyingChannel_.get());
 
         if (!hack.lock())
         {

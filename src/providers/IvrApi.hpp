@@ -79,7 +79,7 @@ struct IvrResolve {
                          .toBool() &&
                     !arr.at(0).isUndefined())
         , banReason(arr.at(0).toObject().value("banReason").toString().isEmpty() ? "User does not exist" : arr.at(0).toObject().value("banReason").toString())
-        , userColor(arr.at(0).toObject().value("chatColor").toString().isEmpty() ? "None" : arr.at(0).toObject().value("chatColor").toString())
+        , userColor(arr.at(0).toObject().value("chatColor").toString().isEmpty() ? "Default" : arr.at(0).toObject().value("chatColor").toString())
     {
     }
 };
