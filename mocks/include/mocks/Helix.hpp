@@ -30,6 +30,10 @@ public:
                 (QString userId, ResultCallback<HelixUser> successCallback,
                  HelixFailureCallback failureCallback),
                 (override));
+     MOCK_METHOD(void, getUserColor,
+                (QString userId, ResultCallback<HelixColor> successCallback,
+                 HelixFailureCallback failureCallback),
+                (override));
 
     MOCK_METHOD(
         void, getChannelFollowers,
