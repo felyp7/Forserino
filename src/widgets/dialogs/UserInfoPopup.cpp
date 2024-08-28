@@ -889,19 +889,6 @@ void UserInfoPopup::updateUserData()
     std::weak_ptr<bool> hack = this->lifetimeHack_;
     auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
-    const auto userColorSuccess = [this, hack,
-                                currentUser](const HelixColor &color) {
-
-                this->ui_.userColorLabel->setText(QString("Color: ") + userColor);
-                this->ui_.userColorLabel->setProperty("copy-text", userColor);
-    }
-
-    const auto userColorFailure = [this, hack,
-                                currentUser](const HelixColor &color) {
-                                    
-                this->ui_.userColorLabel->setText(QString("Color: None"));
-
-    }
 
     const auto onUserFetchFailed = [this, hack] {
         if (!hack.lock())
@@ -917,6 +904,16 @@ void UserInfoPopup::updateUserData()
                 return;
             }
             
+    const auto userColorSuccess = [this](const HelixColor &color) {
+        this->ui_.userColorLabel->setText(QString("Color: ") + color.userColor);
+        this->ui_.userColorLabel->setProperty("copy-text", color.userColor);
+    };
+
+
+    const auto userColorFailure = [this]() {
+        this->ui_.userColorLabel->setText(QString("Color: None"));
+    };
+
             QString banReason = userInfo.banReason;
             QString userColor = userInfo.userColor;
 
@@ -984,11 +981,21 @@ void UserInfoPopup::updateUserData()
                     return;
                 }
 
+            const auto userColorSuccess = [this](const HelixColor &color) {
+                this->ui_.userColorLabel->setText(QString("Color: ") + color.userColor);
+                this->ui_.userColorLabel->setProperty("copy-text", color.userColor);
+            };
+
+
+            const auto userColorFailure = [this]() {
+                this->ui_.userColorLabel->setText(QString("Color: None"));
+            };
+
                 QString userColor = userInfo.userColor;
 
             getHelix()->getUserColor(this->userId_, userColorSuccess,
                                   userColorFailure);
-
+                                  
             },
             [] {});
         if (getIApp()->getStreamerMode()->isEnabled() &&
