@@ -900,7 +900,7 @@ void UserInfoPopup::updateUserData()
                                 currentUser](const HelixColor &color) {
                                     
                 this->ui_.userColorLabel->setText(QString("Color: None"));
-
+                
     }
 
     const auto onUserFetchFailed = [this, hack] {
@@ -988,7 +988,6 @@ void UserInfoPopup::updateUserData()
 
             getHelix()->getUserColor(this->userName_, userColorSuccess,
                                   userColorFailure);
-                                  
             },
             [] {});
         if (getIApp()->getStreamerMode()->isEnabled() &&
