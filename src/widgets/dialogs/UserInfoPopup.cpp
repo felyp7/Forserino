@@ -915,7 +915,6 @@ void UserInfoPopup::updateUserData()
                 }
 
                 QString banReason = userInfo.banReason;
-                QString userColor = userInfo.userColor;
 
                 this->ui_.followerCountLabel->setText(
                     TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
@@ -972,20 +971,9 @@ void UserInfoPopup::updateUserData()
             TEXT_CREATED.arg(user.createdAt.section("T", 0, 0)));
         this->ui_.userIDLabel->setText(TEXT_USER_ID + user.id);
         this->ui_.userIDLabel->setProperty("copy-text", user.id);
-
-        getIvr()->getUserRoles(
-            this->userName_,
-            [this, hack, userColorSuccess, userColorFailure](const IvrResolve &userInfo) {
-                if (!hack.lock())
-                {
-                    return;
-                }
-
-                QString userColor = userInfo.userColor;
-                getHelix()->getUserColor(this->userId_, userColorSuccess,
+        getHelix()->getUserColor(this->userId_, userColorSuccess,
                                       userColorFailure);
-            },
-            [] {});
+
         if (getIApp()->getStreamerMode()->isEnabled() &&
             getSettings()->streamerModeHideUsercardAvatars)
         {
