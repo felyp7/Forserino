@@ -889,56 +889,52 @@ void UserInfoPopup::updateUserData()
     std::weak_ptr<bool> hack = this->lifetimeHack_;
     auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
-    const auto userColorSuccess = [this, hack,
-                                currentUser](const HelixColor &color) {
+    // Define success and failure handlers for fetching user color
+    auto userColorSuccess = [this](const HelixColor &color) {
+        this->ui_.userColorLabel->setText(QString("Color: ") + color.userColor);
+        this->ui_.userColorLabel->setProperty("copy-text", color.userColor);
+    };
 
-                this->ui_.userColorLabel->setText(QString("Color: ") + userColor);
-                this->ui_.userColorLabel->setProperty("copy-text", userColor);
-    }
+    auto userColorFailure = [this]() {
+        this->ui_.userColorLabel->setText(QString("Color: None"));
+    };
 
-    const auto userColorFailure = [this, hack,
-                                currentUser](const HelixColor &color) {
-                                    
-                this->ui_.userColorLabel->setText(QString("Color: None"));
-                
-    }
-
-    const auto onUserFetchFailed = [this, hack] {
+    // Handler for user fetch failure
+    const auto onUserFetchFailed = [this, hack, userColorSuccess, userColorFailure] {
         if (!hack.lock())
         {
             return;
-    }
+        }
 
-    getIvr()->getUserRoles(
-        this->userName_,
-        [this, hack](const IvrResolve &userInfo) {
-            if (!hack.lock())
-            {
-                return;
-            }
-            
-            QString banReason = userInfo.banReason;
-            QString userColor = userInfo.userColor;
+        getIvr()->getUserRoles(
+            this->userName_,
+            [this, hack, userColorSuccess, userColorFailure](const IvrResolve &userInfo) {
+                if (!hack.lock())
+                {
+                    return;
+                }
 
-            this->ui_.followerCountLabel->setText(
-                TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
-            this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
-            this->ui_.bannedReasonLabel->setText(banReason);
-            this->ui_.nameLabel->setText(this->userName_);
-            this->ui_.userIDLabel->setText(QString("ID ") +
-                                           QString(TEXT_UNAVAILABLE));
-            this->ui_.userIDLabel->setProperty("copy-text",
+                QString banReason = userInfo.banReason;
+                QString userColor = userInfo.userColor;
+
+                this->ui_.followerCountLabel->setText(
+                    TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
+                this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
+                this->ui_.bannedReasonLabel->setText(banReason);
+                this->ui_.nameLabel->setText(this->userName_);
+                this->ui_.userIDLabel->setText(QString("ID ") +
                                                QString(TEXT_UNAVAILABLE));
-            getHelix()->getUserColor(this->userName_, userColorSuccess,
-                                  userColorFailure);
-        },
-        [] {
-        });
+                this->ui_.userIDLabel->setProperty("copy-text",
+                                                   QString(TEXT_UNAVAILABLE));
+                getHelix()->getUserColor(this->userId_, userColorSuccess,
+                                      userColorFailure);
+            },
+            [] {
+            });
     };
 
-    const auto onUserFetched = [this, hack,
-                                currentUser](const HelixUser &user) {
-
+    // Handler for successful user fetch
+    const auto onUserFetched = [this, hack, currentUser, userColorSuccess, userColorFailure](const HelixUser &user) {
         if (!hack.lock())
         {
             return;
@@ -955,7 +951,7 @@ void UserInfoPopup::updateUserData()
         this->userId_ = user.id;
         this->avatarUrl_ = user.profileImageUrl;
 
-        // copyable button for login name of users with a localized username
+        // Copyable button for login name of users with a localized username
         if (user.displayName.toLower() != user.login)
         {
             this->ui_.localizedNameLabel->setText(user.displayName);
@@ -976,18 +972,18 @@ void UserInfoPopup::updateUserData()
             TEXT_CREATED.arg(user.createdAt.section("T", 0, 0)));
         this->ui_.userIDLabel->setText(TEXT_USER_ID + user.id);
         this->ui_.userIDLabel->setProperty("copy-text", user.id);
+
         getIvr()->getUserRoles(
             this->userName_,
-            [this, hack](const IvrResolve &userInfo) {
+            [this, hack, userColorSuccess, userColorFailure](const IvrResolve &userInfo) {
                 if (!hack.lock())
                 {
                     return;
                 }
 
                 QString userColor = userInfo.userColor;
-
-            getHelix()->getUserColor(this->userName_, userColorSuccess,
-                                  userColorFailure);
+                getHelix()->getUserColor(this->userId_, userColorSuccess,
+                                      userColorFailure);
             },
             [] {});
         if (getIApp()->getStreamerMode()->isEnabled() &&
