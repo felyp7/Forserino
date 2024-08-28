@@ -929,8 +929,13 @@ void UserInfoPopup::updateUserData()
                                            QString(TEXT_UNAVAILABLE));
             this->ui_.userIDLabel->setProperty("copy-text",
                                                QString(TEXT_UNAVAILABLE));
+<<<<<<< HEAD
             getHelix()->getUserColor(this->userName_, userColorSuccess,
                                   userColorFailure);
+=======
+            this->ui_.userColorLabel->setText(QString("Color: ") + userColor);
+            this->ui_.userColorLabel->setProperty("copy-text", userColor);
+>>>>>>> 63328e309f3672f6d3381a99a352c0ae432759ac
         },
         [] {
         });
@@ -986,8 +991,13 @@ void UserInfoPopup::updateUserData()
 
                 QString userColor = userInfo.userColor;
 
+<<<<<<< HEAD
             getHelix()->getUserColor(this->userName_, userColorSuccess,
                                   userColorFailure);
+=======
+                this->ui_.userColorLabel->setText(QString("Color: ") + userColor);
+                this->ui_.userColorLabel->setProperty("copy-text", userColor);
+>>>>>>> 63328e309f3672f6d3381a99a352c0ae432759ac
             },
             [] {});
         if (getIApp()->getStreamerMode()->isEnabled() &&
