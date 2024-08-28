@@ -900,6 +900,7 @@ void UserInfoPopup::updateUserData()
                                 currentUser](const HelixColor &color) {
                                     
                 this->ui_.userColorLabel->setText(QString("Color: None"));
+                
     }
 
     const auto onUserFetchFailed = [this, hack] {
