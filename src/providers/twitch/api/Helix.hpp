@@ -49,6 +49,8 @@ struct HelixUser {
 struct HelixColor {
     QString userColor;
 
+    explicit HelixColor(const QString &color) : userColor(color) {}
+
     explicit HelixColor(QJsonObject jsonObject)
         : userColor(jsonObject.value("color").toString())
     {
