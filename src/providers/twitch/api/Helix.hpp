@@ -1191,7 +1191,7 @@ public:
     // https://dev.twitch.tv/docs/api/reference/#get-user-chat-color
     void getUserColor(QString userId,
                                ResultCallback<HelixColor> successCallback,
-                               HelixFailureCallback failureCallback) = 0;
+                               HelixFailureCallback failureCallback) final;
 
     // https://dev.twitch.tv/docs/api/reference/#get-channel-followers
     void getChannelFollowers(
