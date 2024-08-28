@@ -889,6 +889,19 @@ void UserInfoPopup::updateUserData()
     std::weak_ptr<bool> hack = this->lifetimeHack_;
     auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
+    const auto userColorSuccess = [this, hack,
+                                currentUser](const HelixColor &color) {
+
+                this->ui_.userColorLabel->setText(QString("Color: ") + userColor);
+                this->ui_.userColorLabel->setProperty("copy-text", userColor);
+    }
+
+    const auto userColorFailure = [this, hack,
+                                currentUser](const HelixColor &color) {
+                                    
+                this->ui_.userColorLabel->setText(QString("Color: None"));
+    }
+
     const auto onUserFetchFailed = [this, hack] {
         if (!hack.lock())
         {
@@ -915,8 +928,8 @@ void UserInfoPopup::updateUserData()
                                            QString(TEXT_UNAVAILABLE));
             this->ui_.userIDLabel->setProperty("copy-text",
                                                QString(TEXT_UNAVAILABLE));
-            this->ui_.userColorLabel->setText(QString("Color: ") + userColor);
-            this->ui_.userColorLabel->setProperty("copy-text", userColor);
+            getHelix()->getUserColor(this->userName_, userColorSuccess,
+                                  userColorFailure);
         },
         [] {
         });
@@ -972,8 +985,8 @@ void UserInfoPopup::updateUserData()
 
                 QString userColor = userInfo.userColor;
 
-                this->ui_.userColorLabel->setText(QString("Color: ") + userColor);
-                this->ui_.userColorLabel->setProperty("copy-text", userColor);
+            getHelix()->getUserColor(this->userName_, userColorSuccess,
+                                  userColorFailure);
             },
             [] {});
         if (getIApp()->getStreamerMode()->isEnabled() &&
