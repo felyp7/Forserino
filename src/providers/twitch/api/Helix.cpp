@@ -124,6 +124,35 @@ void Helix::getUserById(QString userId,
         failureCallback);
 }
 
+void Helix::getUserColor(QString userId,
+                         ResultCallback<HelixColor> successCallback,
+                         HelixFailureCallback failureCallback) {
+    // Create a URL query for the request
+    QUrlQuery urlQuery;
+    urlQuery.addQueryItem("user_id", userId); // Ensure this matches the API's expected query parameter
+
+    // Make the GET request
+    this->makeGet("chat/color", urlQuery)
+        .onSuccess([successCallback, failureCallback](auto result) {
+            auto root = result.parseJson();
+            auto data = root.value("data");
+
+            if (!data.isArray() || data.toArray().isEmpty()) {
+                failureCallback();
+                return;
+            }
+
+            auto userObject = data.toArray().first().toObject();
+            QString color = userObject.value("color").toString();
+
+            successCallback(HelixColor(color));
+        })
+        .onError([failureCallback](auto /*result*/) {
+            failureCallback();
+        })
+        .execute();
+}
+
 void Helix::getChannelFollowers(
     QString broadcasterID,
     ResultCallback<HelixGetChannelFollowersResponse> successCallback,

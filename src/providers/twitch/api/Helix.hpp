@@ -836,7 +836,7 @@ public:
                              HelixFailureCallback failureCallback) = 0;
 
     // https://dev.twitch.tv/docs/api/reference/#get-user-chat-color
-    virtual void getUserColor(QString userName,
+    virtual void getUserColor(QString userId,
                                ResultCallback<HelixColor> successCallback,
                                HelixFailureCallback failureCallback) = 0;
 
@@ -1187,7 +1187,7 @@ public:
                      HelixFailureCallback failureCallback) final;
 
     // https://dev.twitch.tv/docs/api/reference/#get-user-chat-color
-    void getUserColor(QString userName,
+    void getUserColor(QString userId,
                                ResultCallback<HelixColor> successCallback,
                                HelixFailureCallback failureCallback) = 0;
 

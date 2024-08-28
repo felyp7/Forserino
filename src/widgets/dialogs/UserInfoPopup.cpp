@@ -929,7 +929,7 @@ void UserInfoPopup::updateUserData()
                                            QString(TEXT_UNAVAILABLE));
             this->ui_.userIDLabel->setProperty("copy-text",
                                                QString(TEXT_UNAVAILABLE));
-            getHelix()->getUserColor(this->userName_, userColorSuccess,
+            getHelix()->getUserColor(this->userId_, userColorSuccess,
                                   userColorFailure);
         },
         [] {
@@ -986,9 +986,9 @@ void UserInfoPopup::updateUserData()
 
                 QString userColor = userInfo.userColor;
 
-            getHelix()->getUserColor(this->userName_, userColorSuccess,
+            getHelix()->getUserColor(this->userId_, userColorSuccess,
                                   userColorFailure);
-                                  
+
             },
             [] {});
         if (getIApp()->getStreamerMode()->isEnabled() &&
