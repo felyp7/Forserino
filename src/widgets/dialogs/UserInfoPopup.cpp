@@ -896,7 +896,7 @@ void UserInfoPopup::updateUserData()
     };
 
     auto userColorFailure = [this]() {
-        this->ui_.userColorLabel->setText(QString("Color: None"));
+        this->ui_.userColorLabel->setText(QString("Color: Default/None"));
     };
 
     // Handler for user fetch failure
