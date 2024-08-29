@@ -66,11 +66,7 @@ void DankerinoPage::initLayout(GeneralPageView &layout)
     //layout.addCheckbox("Enable loading 7TV emotes", s.enableLoadingSevenTV);
     layout.addTitle("Miscellaneous");
     layout.addIntInput("High rate limit spam delay in milliseconds (mod/vip)",
-<<<<<<< HEAD
-                       s.twitchHighRateLimitDelay, 50, 2000, 100);
-=======
                        s.twitchHighRateLimitDelay, 1, 2000, 100);
->>>>>>> 3cac8a7ee38eb59332968f88ab9443a5638d175e
     layout.addIntInput(
         "Low rate limit spam delay in milliseconds (non mod/vip)",
         s.twitchLowRateLimitDelay, 500, 3000, 1100);
