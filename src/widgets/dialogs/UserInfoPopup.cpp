@@ -378,6 +378,7 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                 .assign(&this->ui_.createdDateLabel);
             vbox.emplace<Label>("").assign(&this->ui_.followageLabel);
             vbox.emplace<Label>("").assign(&this->ui_.subageLabel);
+            vbox.emplace<Label>("").assign(&this->ui_.userBiolabel);
             vbox.emplace<Label>("").assign(&this->ui_.bannedReasonLabel);
             vbox.emplace<Label>("").assign(&this->ui_.rolesLabel);
         }
@@ -915,11 +916,21 @@ void UserInfoPopup::updateUserData()
                 }
 
                 QString banReason = userInfo.banReason;
+                QString fullUserBio = userInfo.userBio;
+
+
+                int maxLength = 50;  
+
+                QString truncatedBio = fullUserBio.length() > maxLength
+                                   ? fullUserBio.left(maxLength - 3) + "..."
+                                   : fullUserBio;
 
                 this->ui_.followerCountLabel->setText(
                     TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
                 this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
                 this->ui_.bannedReasonLabel->setText(banReason);
+                this->ui_.userBiolabel->setToolTip(fullUserBio);
+                this->ui_.userBiolabel->setText(QString("Bio: ") + truncatedBio);  
                 this->ui_.nameLabel->setText(this->userName_);
                 this->ui_.userIDLabel->setText(QString("ID ") +
                                                QString(TEXT_UNAVAILABLE));
