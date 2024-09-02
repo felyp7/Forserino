@@ -39,6 +39,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QPointer>
+#include <QToolTip>
 
 const QString TEXT_FOLLOWERS("Followers: %1");
 const QString TEXT_CREATED("Created: %1");
@@ -918,7 +919,6 @@ void UserInfoPopup::updateUserData()
                 QString banReason = userInfo.banReason;
                 QString fullUserBio = userInfo.userBio;
 
-
                 int maxLength = 50;  
 
                 QString truncatedBio = fullUserBio.length() > maxLength
@@ -929,6 +929,7 @@ void UserInfoPopup::updateUserData()
                     TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
                 this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
                 this->ui_.bannedReasonLabel->setText(banReason);
+                this->ui_.userBiolabel->setMouseTracking(true);
                 this->ui_.userBiolabel->setToolTip(fullUserBio);
                 this->ui_.userBiolabel->setText(QString("Bio: ") + truncatedBio);  
                 this->ui_.nameLabel->setText(this->userName_);
@@ -1083,7 +1084,31 @@ void UserInfoPopup::updateUserData()
                 }
             },
             [] {});
-             // get roles
+
+
+        getIvr()->getUserRoles(
+            this->userName_,
+            [this, hack, userColorSuccess, userColorFailure](const IvrResolve &userInfo) {
+                if (!hack.lock())
+                {
+                    return;
+                }
+                QString fullUserBio = userInfo.userBio;
+
+                int maxLength = 50;  
+
+                QString truncatedBio = fullUserBio.length() > maxLength
+                                   ? fullUserBio.left(maxLength - 3) + "..."
+                                   : fullUserBio;
+
+                this->ui_.userBiolabel->setMouseTracking(true);
+                this->ui_.userBiolabel->setToolTip(fullUserBio);
+                this->ui_.userBiolabel->setText(QString("Bio: ") + truncatedBio); 
+            },
+            [] {
+        });
+
+        // get roles         
         getIvr()->getUserRoles(
             this->userName_,
             [this, hack](const IvrResolve &userInfo) {
