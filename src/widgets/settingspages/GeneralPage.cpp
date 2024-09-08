@@ -462,12 +462,25 @@ void GeneralPage::initLayout(GeneralPageView &layout)
         false);
 
     layout.addTitle("Rainbow username colors");
-    layout.addCheckbox(
+     // First checkbox: Main setting
+    QCheckBox *rainbowMessagesCheckBox = layout.addCheckbox(
         "Change color to create a rainbow effect before sending each message",
         s.rainbowMessages);
-    layout.addCheckbox(
+
+    // Second checkbox: Subsetting, initially disabled
+    QCheckBox *rainbowMethodCheckBox = layout.addCheckbox(
         "Make colors change after sending a message",  
-        s.rainbowMethod, false, "by default colors change before the message is sent (for slower internets Enabled is better)");
+        s.rainbowMethod, false, 
+        "By default, colors change before the message is sent (for slower internet, Enabled is better)");
+
+    // Disable the second checkbox initially if the first one is not checked
+    rainbowMethodCheckBox->setEnabled(s.rainbowMessages.getValue());
+
+    QObject::connect(rainbowMessagesCheckBox, &QCheckBox::stateChanged, 
+    [rainbowMethodCheckBox](int state) {
+        rainbowMethodCheckBox->setEnabled(state == Qt::Checked);
+    });
+    
     layout.addCheckbox(
         "Use true rainbow colors (requires Twitch Prime or Turbo)",
         s.rainbowMessagesPrime);
