@@ -44,7 +44,6 @@ struct IvrResolve {
     const bool isExStaff;
     const QString banReason;
     const QString userColor;
-    const QString userBio;
 
     IvrResolve(QJsonArray arr)
         : isPartner(arr.at(0)
@@ -81,8 +80,6 @@ struct IvrResolve {
                     !arr.at(0).isUndefined())
         , banReason(arr.at(0).toObject().value("banReason").toString().isEmpty() ? "User does not exist" : arr.at(0).toObject().value("banReason").toString())
         , userColor(arr.at(0).toObject().value("chatColor").toString().isEmpty() ? "Default" : arr.at(0).toObject().value("chatColor").toString())
-        , userBio(arr.at(0).toObject().value("bio").toString().isEmpty() ? "None" : arr.at(0).toObject().value("bio").toString())
-
     {
     }
 };
