@@ -382,7 +382,9 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
             if (getSettings()->showBannedReason){
                 vbox.emplace<Label>("").assign(&this->ui_.bannedReasonLabel);
             }
-            vbox.emplace<Label>("").assign(&this->ui_.rolesLabel);
+            if (getSettings()->showUserRoles) {
+                vbox.emplace<Label>("").assign(&this->ui_.rolesLabel);
+            }
         }
     }
 
@@ -925,6 +927,9 @@ void UserInfoPopup::updateUserData()
                 if (getSettings()->showBannedReason){
                     this->ui_.bannedReasonLabel->setText(banReason);
                 }
+                if (getSettings()->showUserRoles) {
+                    this->ui_.rolesLabel->setVisible(false);
+                }
                 this->ui_.nameLabel->setText(this->userName_);
                 this->ui_.userIDLabel->setText(QString("ID ") +
                                                QString(TEXT_UNAVAILABLE));
@@ -1089,31 +1094,30 @@ void UserInfoPopup::updateUserData()
                 {
                     return;
                 }
-
+            if (getSettings()->showUserRoles){
                 QString rolesString = "";
 
                 if (userInfo.isBot)
                 {
                     rolesString += "Bot ";
-                }
-                if (userInfo.isPartner)
+                } else if (userInfo.isPartner)
                 {
                     rolesString += "Partner ";
-                }
-                if (userInfo.isAffiliate)
+                } else if (userInfo.isAffiliate)
                 {
                     rolesString += "Affiliate ";
-                }
-                if (userInfo.isStaff)
+                } else if (userInfo.isStaff)
                 {
                     rolesString += "Staff ";
-                }
-                if (userInfo.isExStaff)
+                } else if (userInfo.isExStaff)
                 {
                     rolesString += "Ex-Staff ";
+                } else {
+                    this->ui_.rolesLabel->setVisible(false);
                 }
 
-                this->ui_.rolesLabel->setText((rolesString));
+                    this->ui_.rolesLabel->setText((rolesString));
+            }
             },
             [] {});
     };
