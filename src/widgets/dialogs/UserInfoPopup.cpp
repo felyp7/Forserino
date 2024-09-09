@@ -1116,7 +1116,7 @@ void UserInfoPopup::updateUserData()
                     this->ui_.rolesLabel->setVisible(false);
                 }
 
-                    this->ui_.rolesLabel->setText((rolesString));
+                    this->ui_.rolesLabel->setText(QString("Roles: ") + rolesString);
             }
             },
             [] {});
