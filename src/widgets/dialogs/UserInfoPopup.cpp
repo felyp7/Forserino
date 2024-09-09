@@ -379,7 +379,9 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                 .assign(&this->ui_.createdDateLabel);
             vbox.emplace<Label>("").assign(&this->ui_.followageLabel);
             vbox.emplace<Label>("").assign(&this->ui_.subageLabel);
-            vbox.emplace<Label>("").assign(&this->ui_.bannedReasonLabel);
+            if (getSettings()->showBannedReason){
+                vbox.emplace<Label>("").assign(&this->ui_.bannedReasonLabel);
+            }
             vbox.emplace<Label>("").assign(&this->ui_.rolesLabel);
         }
     }
@@ -920,7 +922,9 @@ void UserInfoPopup::updateUserData()
                 this->ui_.followerCountLabel->setText(
                     TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
                 this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
-                this->ui_.bannedReasonLabel->setText(banReason);
+                if (getSettings()->showBannedReason){
+                    this->ui_.bannedReasonLabel->setText(banReason);
+                }
                 this->ui_.nameLabel->setText(this->userName_);
                 this->ui_.userIDLabel->setText(QString("ID ") +
                                                QString(TEXT_UNAVAILABLE));
@@ -970,6 +974,9 @@ void UserInfoPopup::updateUserData()
             user.displayName, this->underlyingChannel_->getName()));
         this->ui_.createdDateLabel->setText(
             TEXT_CREATED.arg(user.createdAt.section("T", 0, 0)));
+        if (getSettings()->showBannedReason){
+            this->ui_.bannedReasonLabel->setVisible(false);
+        }
         this->ui_.userIDLabel->setText(TEXT_USER_ID + user.id);
         this->ui_.userIDLabel->setProperty("copy-text", user.id);
         getHelix()->getUserColor(this->userId_, userColorSuccess,

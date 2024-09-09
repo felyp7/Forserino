@@ -698,6 +698,8 @@ set(SOURCE_FILES
         widgets/settingspages/ExternalToolsPage.cpp
         widgets/settingspages/DankerinoPage.cpp
         widgets/settingspages/DankerinoPage.hpp
+        widgets/settingspages/ForserinoPage.cpp
+        widgets/settingspages/ForserinoPage.hpp
         widgets/settingspages/ExternalToolsPage.hpp
         widgets/settingspages/FiltersPage.cpp
         widgets/settingspages/FiltersPage.hpp
