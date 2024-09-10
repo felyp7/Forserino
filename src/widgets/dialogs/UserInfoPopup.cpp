@@ -898,8 +898,16 @@ void UserInfoPopup::updateUserData()
     auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
     // Define success and failure handlers for fetching user color
-    auto userColorSuccess = [this](const HelixColor &color) {
-        this->ui_.userColorLabel->setText(QString("Color: ") + color.userColor);
+    auto userColorSuccess = [this, hack](const HelixColor &color) {
+        if (!hack.lock())
+            {
+                return;
+            }
+        if (!color.userColor.isEmpty()){
+            this->ui_.userColorLabel->setText(QString("Color: ") + color.userColor);
+        } else {
+            this->ui_.userColorLabel->setText(QString("Color: Default/None"));
+        }
         this->ui_.userColorLabel->setProperty("copy-text", color.userColor);
     };
 
