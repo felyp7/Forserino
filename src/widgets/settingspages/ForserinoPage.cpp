@@ -97,6 +97,7 @@ void ForserinoPage::initLayout(GeneralPageView &layout)
     layout.addCheckbox("Use bot limits for JOINs", s.useBotLimitsJoin);
     layout.addCheckbox("Show banned reason in usercard", s.showBannedReason);
     layout.addCheckbox("Show user roles in usercard", s.showUserRoles);
+    layout.addCheckbox("Show user bio in usercard", s.showUserBio);
 
     layout.addStretch();
     // invisible element for width

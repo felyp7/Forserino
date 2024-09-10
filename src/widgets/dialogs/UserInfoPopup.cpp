@@ -379,6 +379,9 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                 .assign(&this->ui_.createdDateLabel);
             vbox.emplace<Label>("").assign(&this->ui_.followageLabel);
             vbox.emplace<Label>("").assign(&this->ui_.subageLabel);
+            if (getSettings()->showUserBio){
+                vbox.emplace<Label>("").assign(&this->ui_.userBioLabel);
+            }
             if (getSettings()->showBannedReason){
                 vbox.emplace<Label>("").assign(&this->ui_.bannedReasonLabel);
             }
@@ -920,12 +923,24 @@ void UserInfoPopup::updateUserData()
                 }
 
                 QString banReason = userInfo.banReason;
+                QString fullUserBio = userInfo.userBio;
+
+                int maxLength = 50;  
+
+                QString truncatedBio = fullUserBio.length() > maxLength
+                                   ? fullUserBio.left(maxLength - 3) + "..."
+                                   : fullUserBio;
 
                 this->ui_.followerCountLabel->setText(
                     TEXT_FOLLOWERS.arg(TEXT_UNAVAILABLE));
                 this->ui_.createdDateLabel->setText(TEXT_CREATED.arg(TEXT_UNAVAILABLE));
                 if (getSettings()->showBannedReason){
                     this->ui_.bannedReasonLabel->setText(banReason);
+                }
+                if (getSettings()->showUserBio){
+                    this->ui_.userBioLabel->setMouseTracking(true);
+                    this->ui_.userBioLabel->setToolTip(fullUserBio);
+                    this->ui_.userBioLabel->setText(QString("Bio: ") + truncatedBio);  
                 }
                 if (getSettings()->showUserRoles) {
                     this->ui_.rolesLabel->setVisible(false);
@@ -1085,6 +1100,31 @@ void UserInfoPopup::updateUserData()
                 }
             },
             [] {});
+
+
+        getIvr()->getUserRoles(
+            this->userName_,
+            [this, hack, userColorSuccess, userColorFailure](const IvrResolve &userInfo) {
+                if (!hack.lock())
+                {
+                    return;
+                }
+                QString fullUserBio = userInfo.userBio;
+
+                int maxLength = 50;  
+
+                QString truncatedBio = fullUserBio.length() > maxLength
+                                   ? fullUserBio.left(maxLength - 3) + "..."
+                                   : fullUserBio;
+
+                if (getSettings()->showUserBio){
+                    this->ui_.userBioLabel->setMouseTracking(true);
+                    this->ui_.userBioLabel->setToolTip(fullUserBio);
+                    this->ui_.userBioLabel->setText(QString("Bio: ") + truncatedBio);  
+                }
+            },
+            [] {
+        });
 
         // get roles         
         getIvr()->getUserRoles(

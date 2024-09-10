@@ -625,7 +625,8 @@ public:
       "/misc/twitch/ignoreMaxMessageRateLimit", false};
     BoolSetting useBotLimitsJoin = {"/misc/botLimitsJoin", false};
     BoolSetting showBannedReason = {"/misc/bannedReason", false};    
-    BoolSetting showUserRoles = {"/misc/userRoles", false};    
+    BoolSetting showUserRoles = {"/misc/userRoles", false};
+    BoolSetting showUserBio = {"/misc/userBio", false};    
     BoolSetting abnormalNonceDetection = {"/misc/abnormalNonceDetection",
                                           false};
     BoolSetting normalNonceDetection = {"/misc/normalNonceDetection", false};
