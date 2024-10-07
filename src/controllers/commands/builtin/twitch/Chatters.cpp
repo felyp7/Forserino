@@ -11,7 +11,6 @@
 #include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/TwitchAccount.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
-#include "providers/twitch/TwitchMessageBuilder.hpp"
 #include "singletons/Theme.hpp"
 
 #include <QApplication>
@@ -77,7 +76,7 @@ QString chatters(const CommandContext &ctx)
     // Refresh chatter list via helix api for mods
     getHelix()->getChatters(
         ctx.twitchChannel->roomId(),
-        getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), 1,
+        getApp()->getAccounts()->twitch.getCurrent()->getUserId(), 1,
         [channel{ctx.channel}](auto result) {
             channel->addSystemMessage(QString("Chatter count: %1.")
                                           .arg(localizeNumbers(result.total)));
@@ -106,7 +105,7 @@ QString testChatters(const CommandContext &ctx)
 
     getHelix()->getChatters(
         ctx.twitchChannel->roomId(),
-        getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), 5000,
+        getApp()->getAccounts()->twitch.getCurrent()->getUserId(), 5000,
         [channel{ctx.channel}, twitchChannel{ctx.twitchChannel}](auto result) {
             QStringList entries;
             for (const auto &username : result.chatters)
@@ -125,11 +124,9 @@ QString testChatters(const CommandContext &ctx)
                 prefix += QString("(%1):").arg(result.total);
             }
 
-            MessageBuilder builder;
-            TwitchMessageBuilder::listOfUsersSystemMessage(
-                prefix, entries, twitchChannel, &builder);
-
-            channel->addMessage(builder.release(), MessageContext::Original);
+            channel->addMessage(MessageBuilder::makeListOfUsersMessage(
+                                    prefix, entries, twitchChannel),
+                                MessageContext::Original);
         },
         [channel{ctx.channel}](auto error, auto message) {
             auto errorMessage = formatChattersError(error, message);

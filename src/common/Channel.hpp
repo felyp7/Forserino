@@ -1,8 +1,8 @@
 #pragma once
 
-#include "common/FlagsEnum.hpp"
 #include "controllers/completion/TabCompletionModel.hpp"
 #include "messages/LimitedQueue.hpp"
+#include "messages/MessageFlag.hpp"
 
 #include <magic_enum/magic_enum.hpp>
 #include <pajlada/signals/signal.hpp>
@@ -17,8 +17,6 @@ namespace chatterino {
 
 struct Message;
 using MessagePtr = std::shared_ptr<const Message>;
-enum class MessageFlag : int64_t;
-using MessageFlags = FlagsEnum<MessageFlag>;
 
 enum class TimeoutStackStyle : int {
     StackHard = 0,
@@ -53,7 +51,6 @@ public:
         TwitchLive,
         TwitchAutomod,
         TwitchEnd,
-        Irc,
         Misc,
     };
 
@@ -74,6 +71,7 @@ public:
     pajlada::Signals::Signal<const std::vector<MessagePtr> &> filledInMessages;
     pajlada::Signals::NoArgSignal destroyed;
     pajlada::Signals::NoArgSignal displayNameChanged;
+    pajlada::Signals::NoArgSignal messagesCleared;
 
     Type getType() const;
     const QString &getName() const;
@@ -102,6 +100,9 @@ public:
     void replaceMessage(size_t index, MessagePtr replacement);
     void deleteMessage(QString messageID);
 
+    /// Removes all messages from this channel and invokes #messagesCleared
+    void clearMessages();
+
     MessagePtr findMessage(QString messageID);
 
     bool hasMessages() const;
@@ -123,7 +124,7 @@ public:
 
     static std::shared_ptr<Channel> getEmpty();
 
-    TabCompletionModel completionModel;
+    TabCompletionModel *completionModel;
     QDate lastDate_;
 
 protected:
@@ -185,8 +186,6 @@ constexpr magic_enum::customize::customize_t
             return "live";
         case Type::TwitchAutomod:
             return "automod";
-        case Type::Irc:
-            return "irc";
         case Type::Misc:
             return "misc";
         default:

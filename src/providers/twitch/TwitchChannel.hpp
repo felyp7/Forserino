@@ -27,24 +27,6 @@
 
 namespace chatterino {
 
-// This is for compatibility with older Chatterino versions. Twitch didn't use
-// to allow ZERO WIDTH JOINER unicode character, so Chatterino used ESCAPE_TAG
-// instead.
-// See https://github.com/Chatterino/chatterino2/issues/3384 and
-// https://mm2pl.github.io/emoji_rfc.pdf for more details
-const QString ZERO_WIDTH_JOINER = QString(QChar(0x200D));
-
-// Here be MSVC: Do NOT replace with "\U" literal, it will fail silently.
-namespace {
-    const QChar ESCAPE_TAG_CHARS[2] = {QChar::highSurrogate(0xE0002),
-                                       QChar::lowSurrogate(0xE0002)};
-}
-const QString ESCAPE_TAG = QString(ESCAPE_TAG_CHARS, 2);
-
-const static QRegularExpression COMBINED_FIXER(
-    QString("(?<!%1)%1").arg(ESCAPE_TAG),
-    QRegularExpression::UseUnicodePropertiesOption);
-
 enum class HighlightState;
 
 struct Emote;
@@ -160,13 +142,17 @@ public:
     void markConnected();
 
     // Emotes
+    std::optional<EmotePtr> twitchEmote(const EmoteName &name) const;
     std::optional<EmotePtr> bttvEmote(const EmoteName &name) const;
     std::optional<EmotePtr> ffzEmote(const EmoteName &name) const;
     std::optional<EmotePtr> seventvEmote(const EmoteName &name) const;
+
+    std::shared_ptr<const EmoteMap> localTwitchEmotes() const;
     std::shared_ptr<const EmoteMap> bttvEmotes() const;
     std::shared_ptr<const EmoteMap> ffzEmotes() const;
     std::shared_ptr<const EmoteMap> seventvEmotes() const;
 
+    void refreshTwitchChannelEmotes(bool manualRefresh);
     void refreshBTTVChannelEmotes(bool manualRefresh);
     void refreshFFZChannelEmotes(bool manualRefresh);
     void refreshSevenTVChannelEmotes(bool manualRefresh);
@@ -212,7 +198,7 @@ public:
     std::vector<FfzBadges::Badge> ffzChannelBadges(const QString &userID) const;
 
     // Cheers
-    std::optional<CheerEmote> cheerEmote(const QString &string);
+    std::optional<CheerEmote> cheerEmote(const QString &string) const;
 
     // Replies
     /**
@@ -240,14 +226,6 @@ public:
     pajlada::Signals::NoArgSignal userStateChanged;
 
     /**
-     * This signals fires whenever the live status is changed
-     *
-     * Streams are counted as offline by default, so if a stream does not go online
-     * this signal will never fire
-     **/
-    pajlada::Signals::Signal<bool> liveStatusChanged;
-
-    /**
      * This signal fires whenever the stream status is changed
      *
      * This includes when the stream goes from offline to online,
@@ -271,7 +249,8 @@ public:
         const QString &rewardId) const;
 
     // Live status
-    void updateStreamStatus(const std::optional<HelixStream> &helixStream);
+    void updateStreamStatus(const std::optional<HelixStream> &helixStream,
+                            bool isInitialUpdate);
     void updateStreamTitle(const QString &title);
 
     /**
@@ -339,6 +318,8 @@ private:
     void setDisplayName(const QString &name);
     void setLocalizedName(const QString &name);
 
+    void onLiveStatusChanged(bool isLive, bool isInitialUpdate);
+
     /**
      * Returns the localized name of the user
      **/
@@ -397,6 +378,8 @@ private:
 protected:
     void messageRemovedFromStart(const MessagePtr &msg) override;
 
+    Atomic<std::shared_ptr<const EmoteMap>> localTwitchEmotes_;
+    Atomic<QString> localTwitchEmoteSetID_;
     Atomic<std::shared_ptr<const EmoteMap>> bttvEmotes_;
     Atomic<std::shared_ptr<const EmoteMap>> ffzEmotes_;
     Atomic<std::shared_ptr<const EmoteMap>> seventvEmotes_;
@@ -464,7 +447,7 @@ private:
     std::vector<boost::signals2::scoped_connection> bSignals_;
 
     friend class TwitchIrcServer;
-    friend class TwitchMessageBuilder;
+    friend class MessageBuilder;
     friend class IrcMessageHandler;
     friend class Commands_E2E_Test;
 };

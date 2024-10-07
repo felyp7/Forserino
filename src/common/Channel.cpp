@@ -3,8 +3,6 @@
 #include "Application.hpp"
 #include "messages/Message.hpp"
 #include "messages/MessageBuilder.hpp"
-#include "providers/irc/IrcChannel2.hpp"
-#include "providers/irc/IrcServer.hpp"
 #include "providers/twitch/IrcMessageHandler.hpp"
 #include "singletons/Emotes.hpp"
 #include "singletons/Logging.hpp"
@@ -26,7 +24,7 @@ namespace chatterino {
 // Channel
 //
 Channel::Channel(const QString &name, Type type)
-    : completionModel(*this, nullptr)
+    : completionModel(new TabCompletionModel(*this, nullptr))
     , lastDate_(QDate::currentDate())
     , name_(name)
     , messages_(getSettings()->scrollbackSplitLimit)
@@ -36,12 +34,15 @@ Channel::Channel(const QString &name, Type type)
     {
         this->platform_ = "twitch";
     }
-
-    // Irc platform is set through IrcChannel2 ctor
 }
 
 Channel::~Channel()
 {
+    auto *app = tryGetApp();
+    if (app)
+    {
+        app->getChatLogger()->closeChannel(this->name_, this->platform_);
+    }
     this->destroyed.invoke();
 }
 
@@ -100,9 +101,9 @@ void Channel::addMessage(MessagePtr message, MessageContext context,
         if (!isDoNotLogSet)
         {
             // Only log messages where the `DoNotLog` flag is not set
-            getIApp()->getChatLogger()->addMessage(this->name_, message,
-                                                   this->platform_,
-                                                   this->getCurrentStreamID());
+            getApp()->getChatLogger()->addMessage(this->name_, message,
+                                                  this->platform_,
+                                                  this->getCurrentStreamID());
         }
     }
 
@@ -277,6 +278,12 @@ void Channel::deleteMessage(QString messageID)
     {
         msg->flags.set(MessageFlag::Disabled);
     }
+}
+
+void Channel::clearMessages()
+{
+    this->messages_.clear();
+    this->messagesCleared.invoke();
 }
 
 MessagePtr Channel::findMessage(QString messageID)

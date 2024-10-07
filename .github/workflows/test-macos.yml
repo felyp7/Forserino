@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-13]
-        qt-version: [5.15.2, 6.5.0]
+        qt-version: [5.15.2, 6.7.1]
         plugins: [false]
       fail-fast: false
     env:
@@ -94,5 +94,5 @@ jobs:
           cd ../pubsub-server-test
           ./server 127.0.0.1:9050 &
           cd ../build-test
-          ctest --repeat until-pass:4 --output-on-failure --exclude-regex ClassicEmoteNameFiltering
+          ctest --repeat until-pass:4 --output-on-failure
         working-directory: build-test
