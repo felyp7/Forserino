@@ -2,6 +2,7 @@ set(LIBRARY_PROJECT "${PROJECT_NAME}-lib")
 set(VERSION_PROJECT "${LIBRARY_PROJECT}-version")
 set(EXECUTABLE_PROJECT "${PROJECT_NAME}")
 add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
+add_compile_definitions(QT_WARN_DEPRECATED_UP_TO=0x050F00)
 
 # registers the native messageing host
 option(CHATTERINO_DEBUG_NATIVE_MESSAGES "Debug native messages" OFF)
@@ -39,6 +40,7 @@ set(SOURCE_FILES
         common/WindowDescriptors.cpp
         common/WindowDescriptors.hpp
 
+        common/enums/MessageContext.hpp
         common/enums/MessageOverflow.hpp
 
         common/network/NetworkCommon.cpp
@@ -225,24 +227,28 @@ set(SOURCE_FILES
         controllers/pings/MutedChannelModel.cpp
         controllers/pings/MutedChannelModel.hpp
 
+
         controllers/plugins/api/ChannelRef.cpp
         controllers/plugins/api/ChannelRef.hpp
-        controllers/plugins/api/IOWrapper.cpp
-        controllers/plugins/api/IOWrapper.hpp
+        controllers/plugins/api/EventType.hpp
         controllers/plugins/api/HTTPRequest.cpp
         controllers/plugins/api/HTTPRequest.hpp
         controllers/plugins/api/HTTPResponse.cpp
         controllers/plugins/api/HTTPResponse.hpp
+        controllers/plugins/api/IOWrapper.cpp
+        controllers/plugins/api/IOWrapper.hpp
         controllers/plugins/LuaAPI.cpp
         controllers/plugins/LuaAPI.hpp
-        controllers/plugins/PluginPermission.cpp
-        controllers/plugins/PluginPermission.hpp
-        controllers/plugins/Plugin.cpp
-        controllers/plugins/Plugin.hpp
-        controllers/plugins/PluginController.hpp
-        controllers/plugins/PluginController.cpp
         controllers/plugins/LuaUtilities.cpp
         controllers/plugins/LuaUtilities.hpp
+        controllers/plugins/PluginController.cpp
+        controllers/plugins/PluginController.hpp
+        controllers/plugins/Plugin.cpp
+        controllers/plugins/Plugin.hpp
+        controllers/plugins/PluginPermission.cpp
+        controllers/plugins/PluginPermission.hpp
+        controllers/plugins/SolTypes.cpp
+        controllers/plugins/SolTypes.hpp
 
         controllers/sound/ISoundController.hpp
         controllers/sound/MiniaudioBackend.cpp
@@ -277,6 +283,9 @@ set(SOURCE_FILES
         messages/MessageElement.cpp
         messages/MessageElement.hpp
         messages/MessageFlag.hpp
+        messages/MessageSimilarity.cpp
+        messages/MessageSimilarity.hpp
+        messages/MessageSink.hpp
         messages/MessageThread.cpp
         messages/MessageThread.hpp
 
@@ -414,6 +423,8 @@ set(SOURCE_FILES
         providers/twitch/TwitchEmotes.hpp
         providers/twitch/TwitchHelpers.cpp
         providers/twitch/TwitchHelpers.hpp
+        providers/twitch/TwitchIrc.cpp
+        providers/twitch/TwitchIrc.hpp
         providers/twitch/TwitchIrcServer.cpp
         providers/twitch/TwitchIrcServer.hpp
         providers/twitch/TwitchUser.cpp
@@ -502,6 +513,8 @@ set(SOURCE_FILES
         util/InitUpdateButton.hpp
         util/IpcQueue.cpp
         util/IpcQueue.hpp
+        util/IrcHelpers.cpp
+        util/IrcHelpers.hpp
         util/LayoutHelper.cpp
         util/LayoutHelper.hpp
         util/LoadPixmap.cpp
@@ -523,6 +536,8 @@ set(SOURCE_FILES
         util/Twitch.hpp
         util/TypeName.hpp
         util/Variant.hpp
+        util/VectorMessageSink.cpp
+        util/VectorMessageSink.hpp
         util/WidgetHelpers.cpp
         util/WidgetHelpers.hpp
         util/WindowsHelper.cpp
@@ -796,7 +811,7 @@ target_link_libraries(${LIBRARY_PROJECT}
         $<$<BOOL:${WIN32}>:Wtsapi32>
         )
 if (CHATTERINO_PLUGINS)
-    target_link_libraries(${LIBRARY_PROJECT} PUBLIC lua)
+    target_link_libraries(${LIBRARY_PROJECT} PUBLIC lua sol2::sol2)
 endif()
 
 if (BUILD_WITH_QTKEYCHAIN)
@@ -981,6 +996,7 @@ target_compile_definitions(${LIBRARY_PROJECT} PUBLIC
     IRC_STATIC
     IRC_NAMESPACE=Communi
     $<$<BOOL:${WIN32}>:_WIN32_WINNT=0x0A00> # Windows 10
+    $<$<BOOL:${BUILD_TESTS}>:CHATTERINO_WITH_TESTS>
     )
 
 if (USE_SYSTEM_QTKEYCHAIN)
