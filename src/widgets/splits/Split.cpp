@@ -851,7 +851,7 @@ void Split::updateInputPlaceholder()
     {
         placeholderText = "Log in to send messages...";
     }
-    else
+    else if (getSettings()->showTextInputPlaceholder)
     {
         placeholderText = QString("Send message as %1...")
                               .arg(getApp()
