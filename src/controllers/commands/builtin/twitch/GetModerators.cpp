@@ -6,7 +6,6 @@
 #include "providers/IvrApi.hpp"
 #include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
-#include "providers/twitch/TwitchMessageBuilder.hpp"
 
 namespace {
 
@@ -106,10 +105,22 @@ QString getModerators(const CommandContext &ctx)
                     return;
                 }
 
+<<<<<<< HEAD
                 std::vector<HelixModerator> mods;
                 for (int i = 0; i < result.size(); i++)
                 {
                     QJsonObject modJson;
+=======
+            channel->addMessage(MessageBuilder::makeListOfUsersMessage(
+                                    "The moderators of this channel are",
+                                    result, twitchChannel),
+                                MessageContext::Original);
+        },
+        [channel{ctx.channel}](auto error, auto message) {
+            auto errorMessage = formatModsError(error, message);
+            channel->addSystemMessage(errorMessage);
+        });
+>>>>>>> f9c82e0fb0b064e4a639e4aae0f3b5ed3f60bda8
 
                     modJson.insert("user_id",
                                    result.at(i).toObject().value("id"));

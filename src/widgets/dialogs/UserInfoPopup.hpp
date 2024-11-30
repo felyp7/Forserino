@@ -80,6 +80,7 @@ private:
 
         Label *nameLabel = nullptr;
         Label *localizedNameLabel = nullptr;
+        Label *pronounsLabel = nullptr;
         Label *followerCountLabel = nullptr;
         Label *createdDateLabel = nullptr;
         Label *bannedReasonLabel = nullptr;

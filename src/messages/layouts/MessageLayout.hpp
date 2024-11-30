@@ -18,6 +18,7 @@ struct Selection;
 struct MessageLayoutContainer;
 class MessageLayoutElement;
 struct MessagePaintContext;
+struct MessageLayoutContext;
 
 enum class MessageElementFlag : int64_t;
 using MessageElementFlags = FlagsEnum<MessageElementFlag>;
@@ -56,8 +57,7 @@ public:
 
     MessageLayoutFlags flags;
 
-    bool layout(int width, float scale_, float imageScale,
-                MessageElementFlags flags, bool shouldInvalidateBuffer);
+    bool layout(const MessageLayoutContext &ctx, bool shouldInvalidateBuffer);
 
     // Painting
     MessagePaintResult paint(const MessagePaintContext &ctx);
@@ -112,16 +112,16 @@ public:
 
 private:
     // methods
-    void actuallyLayout(int width, MessageElementFlags flags);
+    void actuallyLayout(const MessageLayoutContext &ctx);
     void updateBuffer(QPixmap *buffer, const MessagePaintContext &ctx);
 
     // Create new buffer if required, returning the buffer
-    QPixmap *ensureBuffer(QPainter &painter, int width);
+    QPixmap *ensureBuffer(QPainter &painter, int width, bool clear);
 
     // variables
-    MessagePtr message_;
+    const MessagePtr message_;
     MessageLayoutContainer container_;
-    std::unique_ptr<QPixmap> buffer_{};
+    std::unique_ptr<QPixmap> buffer_;
     bool bufferValid_ = false;
 
     int height_ = 0;

@@ -5,8 +5,8 @@
 #include "controllers/commands/Command.hpp"
 #include "controllers/commands/CommandController.hpp"
 #include "controllers/hotkeys/HotkeyController.hpp"
-#include "mocks/EmptyApplication.hpp"
-#include "singletons/Emotes.hpp"
+#include "mocks/BaseApplication.hpp"
+#include "mocks/Emotes.hpp"
 #include "singletons/Fonts.hpp"
 #include "singletons/Paths.hpp"
 #include "singletons/Settings.hpp"
@@ -24,28 +24,18 @@ using ::testing::Exactly;
 
 namespace {
 
-class MockApplication : mock::EmptyApplication
+class MockApplication : public mock::BaseApplication
 {
 public:
     MockApplication()
-        : settings(this->settingsDir.filePath("settings.json"))
-        , fonts(this->settings)
-        , windowManager(this->paths)
+        : windowManager(this->paths_, this->settings, this->theme, this->fonts)
+        , commands(this->paths_)
     {
-    }
-    Theme *getThemes() override
-    {
-        return &this->theme;
     }
 
     HotkeyController *getHotkeys() override
     {
         return &this->hotkeys;
-    }
-
-    Fonts *getFonts() override
-    {
-        return &this->fonts;
     }
 
     WindowManager *getWindows() override
@@ -68,15 +58,11 @@ public:
         return &this->emotes;
     }
 
-    Settings settings;
-    Theme theme;
     HotkeyController hotkeys;
-    Fonts fonts;
-    Paths paths;
     WindowManager windowManager;
     AccountController accounts;
     CommandController commands;
-    Emotes emotes;
+    mock::Emotes emotes;
 };
 
 class SplitInputTest
