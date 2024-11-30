@@ -2,14 +2,15 @@
 
 #include "mocks/Channel.hpp"
 #include "providers/bttv/BttvEmotes.hpp"
-#include "providers/bttv/BttvLiveUpdates.hpp"
 #include "providers/ffz/FfzEmotes.hpp"
 #include "providers/seventv/eventapi/Client.hpp"
 #include "providers/seventv/eventapi/Dispatch.hpp"
 #include "providers/seventv/eventapi/Message.hpp"
 #include "providers/seventv/SeventvEmotes.hpp"
-#include "providers/seventv/SeventvEventAPI.hpp"
+#include "providers/twitch/TwitchChannel.hpp"
 #include "providers/twitch/TwitchIrcServer.hpp"
+
+#include <unordered_map>
 
 namespace chatterino::mock {
 
@@ -28,6 +29,38 @@ public:
     {
     }
 
+    void connect() override
+    {
+    }
+
+    void sendRawMessage(const QString &rawMessage) override
+    {
+    }
+
+    ChannelPtr getOrAddChannel(const QString &dirtyChannelName) override
+    {
+        assert(false && "unimplemented getOrAddChannel in mock irc server");
+        return {};
+    }
+
+    ChannelPtr getChannelOrEmpty(const QString &dirtyChannelName) override
+    {
+        assert(false && "unimplemented getChannelOrEmpty in mock irc server");
+        return {};
+    }
+
+    void addFakeMessage(const QString &data) override
+    {
+    }
+
+    void addGlobalSystemMessage(const QString &messageText) override
+    {
+    }
+
+    void forEachChannel(std::function<void(ChannelPtr)> func) override
+    {
+    }
+
     void forEachChannelAndSpecialChannels(
         std::function<void(ChannelPtr)> func) override
     {
@@ -37,23 +70,36 @@ public:
     std::shared_ptr<Channel> getChannelOrEmptyByID(
         const QString &channelID) override
     {
-        return {};
+        // XXX: this is the same as in TwitchIrcServer::getChannelOrEmptyByID
+        for (const auto &[name, weakChannel] : this->mockChannels)
+        {
+            auto channel = weakChannel.lock();
+            if (!channel)
+            {
+                continue;
+            }
+
+            auto twitchChannel =
+                std::dynamic_pointer_cast<TwitchChannel>(channel);
+            if (!twitchChannel)
+            {
+                continue;
+            }
+
+            if (twitchChannel->roomId() == channelID &&
+                twitchChannel->getName().count(':') < 2)
+            {
+                return channel;
+            }
+        }
+
+        return Channel::getEmpty();
     }
 
     void dropSeventvChannel(const QString &userID,
                             const QString &emoteSetID) override
     {
         //
-    }
-
-    std::unique_ptr<BttvLiveUpdates> &getBTTVLiveUpdates() override
-    {
-        return this->bttvLiveUpdates;
-    }
-
-    std::unique_ptr<SeventvEventAPI> &getSeventvEventAPI() override
-    {
-        return this->seventvEventAPI;
     }
 
     const IndirectChannel &getWatchingChannel() const override
@@ -104,8 +150,7 @@ public:
     ChannelPtr automodChannel;
     QString lastUserThatWhisperedMe{"forsen"};
 
-    std::unique_ptr<BttvLiveUpdates> bttvLiveUpdates;
-    std::unique_ptr<SeventvEventAPI> seventvEventAPI;
+    std::unordered_map<QString, std::weak_ptr<Channel>> mockChannels;
 };
 
 }  // namespace chatterino::mock

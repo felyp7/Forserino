@@ -42,7 +42,7 @@ namespace {
 using namespace chatterino;
 
 // 5 minutes
-constexpr const uint64_t THUMBNAIL_MAX_AGE_MS = 5ULL * 60 * 1000;
+constexpr const qint64 THUMBNAIL_MAX_AGE_MS = 5LL * 60 * 1000;
 
 auto formatRoomModeUnclean(
     const SharedAccessGuard<const TwitchChannel::RoomModes> &modes) -> QString
@@ -140,7 +140,7 @@ auto formatTooltip(const TwitchChannel::StreamStatus &s, QString thumbnail)
     }();
 
     auto extraStreamData = [&s]() -> QString {
-        if (getIApp()->getStreamerMode()->isEnabled() &&
+        if (getApp()->getStreamerMode()->isEnabled() &&
             getSettings()->streamerModeHideViewerCountAndDuration)
         {
             return QStringLiteral(
@@ -246,7 +246,7 @@ SplitHeader::SplitHeader(Split *split)
     });
 
     this->bSignals_.emplace_back(
-        getIApp()->getAccounts()->twitch.currentUserChanged.connect([this] {
+        getApp()->getAccounts()->twitch.currentUserChanged.connect([this] {
             this->updateIcons();
         }));
 
@@ -311,7 +311,7 @@ void SplitHeader::initializeLayout()
                         case Qt::LeftButton:
                             if (getSettings()->moderationActions.empty())
                             {
-                                getIApp()->getWindows()->showSettingsDialog(
+                                getApp()->getWindows()->showSettingsDialog(
                                     this, SettingsDialogPreference::
                                               ModerationActions);
                                 this->split_->setModerationMode(true);
@@ -329,7 +329,7 @@ void SplitHeader::initializeLayout()
 
                         case Qt::RightButton:
                         case Qt::MiddleButton:
-                            getIApp()->getWindows()->showSettingsDialog(
+                            getApp()->getWindows()->showSettingsDialog(
                                 this,
                                 SettingsDialogPreference::ModerationActions);
                             break;
@@ -379,7 +379,7 @@ void SplitHeader::initializeLayout()
 std::unique_ptr<QMenu> SplitHeader::createMainMenu()
 {
     // top level menu
-    const auto &h = getIApp()->getHotkeys();
+    const auto &h = getApp()->getHotkeys();
     auto menu = std::make_unique<QMenu>();
     menu->addAction(
         "Change channel", this->split_, &Split::changeChannel,
@@ -390,6 +390,9 @@ std::unique_ptr<QMenu> SplitHeader::createMainMenu()
     menu->addAction(
         "Popup", this->split_, &Split::popup,
         h->getDisplaySequence(HotkeyCategory::Window, "popup", {{"split"}}));
+    menu->addAction(
+        "Popup overlay", this->split_, &Split::showOverlayWindow,
+        h->getDisplaySequence(HotkeyCategory::Split, "popupOverlay"));
     menu->addAction(
         "Search", this->split_,
         [this] {
@@ -554,11 +557,11 @@ std::unique_ptr<QMenu> SplitHeader::createMainMenu()
         action->setShortcut(notifySeq);
 
         QObject::connect(moreMenu, &QMenu::aboutToShow, this, [action, this]() {
-            action->setChecked(getIApp()->getNotifications()->isChannelNotified(
+            action->setChecked(getApp()->getNotifications()->isChannelNotified(
                 this->split_->getChannel()->getName(), Platform::Twitch));
         });
         QObject::connect(action, &QAction::triggered, this, [this]() {
-            getIApp()->getNotifications()->updateChannelNotification(
+            getApp()->getNotifications()->updateChannelNotification(
                 this->split_->getChannel()->getName(), Platform::Twitch);
         });
 
@@ -1080,7 +1083,10 @@ void SplitHeader::reloadSubscriberEmotes()
     this->lastReloadedSubEmotes_ = now;
 
     auto channel = this->split_->getChannel();
-    getIApp()->getAccounts()->twitch.getCurrent()->loadEmotes(channel);
+    if (auto *twitchChannel = dynamic_cast<TwitchChannel *>(channel.get()))
+    {
+        twitchChannel->refreshTwitchChannelEmotes(true);
+    }
 }
 
 void SplitHeader::reconnect()

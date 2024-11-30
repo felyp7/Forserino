@@ -1,4 +1,4 @@
-#include "GenericListModel.hpp"
+#include "widgets/listview/GenericListModel.hpp"
 
 namespace chatterino {
 
@@ -19,7 +19,7 @@ QVariant GenericListModel::data(const QModelIndex &index, int /* role */) const
         return {};
     }
 
-    if (index.row() >= this->items_.size())
+    if (index.row() >= static_cast<int>(this->items_.size()))
     {
         return {};
     }
