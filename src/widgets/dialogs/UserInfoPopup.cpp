@@ -45,6 +45,7 @@
 #include <QNetworkReply>
 #include <QPointer>
 #include <QToolTip>
+#include <QStringBuilder>
 
 const QString TEXT_FOLLOWERS("Followers: %1");
 const QString TEXT_CREATED("Created: %1");
@@ -752,11 +753,14 @@ void UserInfoPopup::installEvents()
 
                 bool wasPinned = this->ensurePinned();
                 auto btn = QMessageBox::warning(
-                    this, u"Blocking " % this->userName_,
-                    u"Blocking %1 can cause unintended side-effects like unfollowing.\n\n"_s
-                    "Are you sure you want to block %1?".arg(this->userName_),
+                    this,
+                    QString("Blocking %1").arg(this->userName_),
+                    QStringLiteral("Blocking %1 can cause unintended side-effects like unfollowing.\n\n"
+                                    "Are you sure you want to block %1?")
+                        .arg(this->userName_),
                     QMessageBox::Yes | QMessageBox::Cancel,
                     QMessageBox::Cancel);
+
                 if (wasPinned)
                 {
                     this->togglePinned();
@@ -936,8 +940,11 @@ void UserInfoPopup::updateUserData()
             {
                 return;
             }
+
+            this->ui_.userColorLabel->setText(QString("Color: %1").arg(TEXT_LOADING));
+
         if (!color.userColor.isEmpty()){
-            this->ui_.userColorLabel->setText(QString("Color: ") + color.userColor);
+            this->ui_.userColorLabel->setText(QString("Color: %1").arg(color.userColor));
         } else {
             this->ui_.userColorLabel->setText(QString("Color: Default/None"));
         }
