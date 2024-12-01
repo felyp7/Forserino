@@ -44,7 +44,6 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QPointer>
-<<<<<<< HEAD
 #include <QToolTip>
 
 const QString TEXT_FOLLOWERS("Followers: %1");
@@ -53,22 +52,11 @@ const QString TEXT_BANNED("User not found: %1");
 const QString TEXT_TITLE("%1's Usercard - #%2");
 #define TEXT_USER_ID "ID: "
 #define TEXT_UNAVAILABLE "(not available)"
+const QString TEXT_PRONOUNS("Pronouns: %1");
+const QString TEXT_UNSPECIFIED("unspecified");
+const QString TEXT_LOADING("(loading...)"); 
 
-namespace chatterino {
-=======
-#include <QStringBuilder>
-
->>>>>>> f9c82e0fb0b064e4a639e4aae0f3b5ed3f60bda8
 namespace {
-
-constexpr QStringView TEXT_FOLLOWERS = u"Followers: %1";
-constexpr QStringView TEXT_CREATED = u"Created: %1";
-constexpr QStringView TEXT_TITLE = u"%1's Usercard - #%2";
-constexpr QStringView TEXT_USER_ID = u"ID: ";
-constexpr QStringView TEXT_UNAVAILABLE = u"(not available)";
-constexpr QStringView TEXT_PRONOUNS = u"Pronouns: %1";
-constexpr QStringView TEXT_UNSPECIFIED = u"(unspecified)";
-constexpr QStringView TEXT_LOADING = u"(loading...)";
 
 using namespace chatterino;
 
@@ -978,7 +966,6 @@ void UserInfoPopup::updateUserData()
                 QString banReason = userInfo.banReason;
                 QString fullUserBio = userInfo.userBio;
 
-<<<<<<< HEAD
                 int maxLength = 50;  
 
                 QString truncatedBio = fullUserBio.length() > maxLength
@@ -1009,11 +996,6 @@ void UserInfoPopup::updateUserData()
             },
             [] {
             });
-=======
-        this->ui_.userIDLabel->setText(u"ID " % TEXT_UNAVAILABLE);
-        this->ui_.userIDLabel->setProperty("copy-text",
-                                           TEXT_UNAVAILABLE.toString());
->>>>>>> f9c82e0fb0b064e4a639e4aae0f3b5ed3f60bda8
     };
 
     // Handler for successful user fetch
@@ -1053,14 +1035,10 @@ void UserInfoPopup::updateUserData()
             user.displayName, this->underlyingChannel_->getName()));
         this->ui_.createdDateLabel->setText(
             TEXT_CREATED.arg(user.createdAt.section("T", 0, 0)));
-<<<<<<< HEAD
         if (getSettings()->showBannedReason){
             this->ui_.bannedReasonLabel->setVisible(false);
         }
         this->ui_.userIDLabel->setText(TEXT_USER_ID + user.id);
-=======
-        this->ui_.userIDLabel->setText(TEXT_USER_ID % user.id);
->>>>>>> f9c82e0fb0b064e4a639e4aae0f3b5ed3f60bda8
         this->ui_.userIDLabel->setProperty("copy-text", user.id);
         getHelix()->getUserColor(this->userId_, userColorSuccess,
                                       userColorFailure);

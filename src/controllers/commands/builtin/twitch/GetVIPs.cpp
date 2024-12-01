@@ -98,11 +98,9 @@ QString getVIPs(const CommandContext &ctx)
                 auto messagePrefix = QString("The VIPs of this channel are");
 
                 // TODO: sort results?
-                MessageBuilder builder;
-                TwitchMessageBuilder::listOfUsersSystemMessage(
-                    messagePrefix, vipList, twitchChannel, &builder);
-
-                channel->addMessage(builder.release(), MessageContext::Original);
+                channel->addMessage(MessageBuilder::makeListOfUsersMessage(
+                                    messagePrefix, vipList, twitchChannel),
+                                MessageContext::Original);
             },
             [channel{ctx.channel}](auto error, auto message) {
                 auto errorMessage = formatGetVIPsError(error, message);
@@ -140,11 +138,11 @@ QString getVIPs(const CommandContext &ctx)
                     vips.push_back(vip);
                 }
 
-                MessageBuilder builder;
-                TwitchMessageBuilder::listOfUsersSystemMessage(
-                    "The VIPs of this channel are", vips, twitchChannel,
-                    &builder);
-                channel->addMessage(builder.release(), MessageContext::Original);
+                auto messagePrefix = QString("The VIPs of this channel are");
+
+                channel->addMessage(MessageBuilder::makeListOfUsersMessage(
+                                    messagePrefix, vips, twitchChannel),
+                                MessageContext::Original);
             },
             [channel{ctx.channel}]() {
                 channel->addMessage(

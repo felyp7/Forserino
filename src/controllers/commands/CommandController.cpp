@@ -50,10 +50,7 @@
 #include "messages/Image.hpp"
 #include "messages/MessageElement.hpp"
 #include "messages/MessageThread.hpp"
-#include "providers/irc/IrcChannel2.hpp"
-#include "providers/irc/IrcServer.hpp"
 #include "providers/twitch/TwitchIrcServer.hpp"
-#include "providers/twitch/TwitchMessageBuilder.hpp"
 #include "singletons/Settings.hpp"
 #include "singletons/Theme.hpp"
 #include "singletons/WindowManager.hpp"
@@ -558,11 +555,11 @@ CommandController::CommandController(const Paths &paths)
                         founders.push_back(founder);
                     }
 
-                    MessageBuilder builder;
-                    TwitchMessageBuilder::listOfUsersSystemMessage(
-                        QString("The founders of %1 are").arg(target), founders,
-                        twitchChannel, &builder);
-                    channel->addMessage(builder.release(), MessageContext::Original);
+                    channel->addMessage(MessageBuilder::makeListOfUsersMessage(
+                                    QString("The founders of %1 are").arg(target), founders,
+                                    twitchChannel),
+                                    MessageContext::Original);
+
                 },
                 [channel]() {
                     channel->addMessage(

@@ -1307,7 +1307,7 @@ void TwitchIrcServer::onMessageSendRequested(
                 }
 
         getHelix()->updateUserChatColor(
-            getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
+            getApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message] {
             },
             [color, channel, this, &sent, message](auto error,
@@ -1356,7 +1356,7 @@ void TwitchIrcServer::onMessageSendRequested(
         }
         else if (!getSettings()->rainbowMethod) {
             getHelix()->updateUserChatColor(
-            getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
+            getApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message] {
                     if (shouldSendHelixChat())
                     {
@@ -1508,7 +1508,7 @@ if (getSettings()->rainbowMessages)
         }
 
         getHelix()->updateUserChatColor(
-            getIApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
+            getApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message, replyId] {
                   if (shouldSendHelixChat())
                   {

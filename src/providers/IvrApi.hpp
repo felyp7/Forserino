@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/network/NetworkRequest.hpp"
+#include "providers/twitch/TwitchEmotes.hpp"
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -108,6 +109,7 @@ struct IvrEmoteSet {
 struct IvrEmote {
     const QString code;
     const QString id;
+    const QString scale;
     const QString setId;
     const QString url;
     const QString emoteType;
@@ -117,9 +119,7 @@ struct IvrEmote {
         : code(root.value("code").toString())
         , id(root.value("id").toString())
         , setId(root.value("setID").toString())
-        , url(QString(TWITCH_EMOTE_TEMPLATE)
-                  .replace("{id}", this->id)
-                  .replace("{scale}", "3.0"))
+        , url(TWITCH_EMOTE_TEMPLATE.arg(id, scale))
         , emoteType(root.value("type").toString())
         , imageType(root.value("assetType").toString())
     {

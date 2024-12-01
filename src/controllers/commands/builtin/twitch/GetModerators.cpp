@@ -68,28 +68,26 @@ QString getModerators(const CommandContext &ctx)
     if (ctx.twitchChannel->isBroadcaster())
     {
         getHelix()->getModerators(
-            ctx.twitchChannel->roomId(), 500,
-            [channel{ctx.channel},
-             twitchChannel{ctx.twitchChannel}](auto result) {
-                if (result.empty())
-                {
-                    channel->addMessage(makeSystemMessage(
-                        "This channel does not have any moderators."), MessageContext::Original);
-                    return;
-                }
-                // TODO: sort results?
+        ctx.twitchChannel->roomId(), 500,
+        [channel{ctx.channel}, twitchChannel{ctx.twitchChannel}](auto result) {
+            if (result.empty())
+            {
+                channel->addSystemMessage(
+                    "This channel does not have any moderators.");
+                return;
+            }
 
-                MessageBuilder builder;
-                TwitchMessageBuilder::listOfUsersSystemMessage(
-                    "The moderators of this channel are", result, twitchChannel,
-                    &builder);
-                channel->addMessage(builder.release(), MessageContext::Original);
-            },
-            [channel{ctx.channel}, formatModsError{formatModsError}](
-                auto error, auto message) {
-                auto errorMessage = formatModsError(error, message);
-                channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
-            });
+            // TODO: sort results?
+
+            channel->addMessage(MessageBuilder::makeListOfUsersMessage(
+                                    "The moderators of this channel are",
+                                    result, twitchChannel),
+                                MessageContext::Original);
+        },
+        [channel{ctx.channel}](auto error, auto message) {
+            auto errorMessage = formatModsError(error, message);
+            channel->addSystemMessage(errorMessage);
+        });
     }
     else
     {
@@ -122,11 +120,10 @@ QString getModerators(const CommandContext &ctx)
                     mods.push_back(moderator);
                 }
 
-                MessageBuilder builder;
-                TwitchMessageBuilder::listOfUsersSystemMessage(
-                    "The moderators of this channel are", mods, twitchChannel,
-                    &builder);
-                channel->addMessage(builder.release(), MessageContext::Original);
+                channel->addMessage(MessageBuilder::makeListOfUsersMessage(
+                                    "The moderators of this channel are",
+                                    mods, twitchChannel),
+                                MessageContext::Original);
             },
             [channel{ctx.channel}]() {
                 channel->addMessage(
