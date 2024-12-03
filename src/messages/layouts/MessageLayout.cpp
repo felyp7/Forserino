@@ -6,7 +6,6 @@
 #include "messages/layouts/MessageLayoutElement.hpp"
 #include "messages/Message.hpp"
 #include "messages/MessageElement.hpp"
-#include "messages/MessageFlag.hpp"
 #include "messages/Selection.hpp"
 #include "providers/colors/ColorProvider.hpp"
 #include "singletons/Settings.hpp"
@@ -19,6 +18,12 @@
 #include <QPainter>
 #include <QtGlobal>
 #include <QThread>
+
+#define MARGIN_LEFT (int)(8 * this->scale)
+#define MARGIN_RIGHT (int)(8 * this->scale)
+#define MARGIN_TOP (int)(4 * this->scale)
+#define MARGIN_BOTTOM (int)(4 * this->scale)
+#define COMPACT_EMOTES_OFFSET 6
 
 namespace chatterino {
 
@@ -69,7 +74,8 @@ int MessageLayout::getWidth() const
 
 // Layout
 // return true if redraw is required
-bool MessageLayout::layout(const MessageLayoutContext &ctx,
+bool MessageLayout::layout(int width, float scale, float imageScale,
+                           MessageElementFlags flags,
                            bool shouldInvalidateBuffer)
 {
     //    BenchmarkGuard benchmark("MessageLayout::layout()");
@@ -77,12 +83,12 @@ bool MessageLayout::layout(const MessageLayoutContext &ctx,
     bool layoutRequired = false;
 
     // check if width changed
-    bool widthChanged = ctx.width != this->currentLayoutWidth_;
+    bool widthChanged = width != this->currentLayoutWidth_;
     layoutRequired |= widthChanged;
-    this->currentLayoutWidth_ = ctx.width;
+    this->currentLayoutWidth_ = width;
 
     // check if layout state changed
-    const auto layoutGeneration = getApp()->getWindows()->getGeneration();
+    const auto layoutGeneration = getIApp()->getWindows()->getGeneration();
     if (this->layoutState_ != layoutGeneration)
     {
         layoutRequired = true;
@@ -91,18 +97,18 @@ bool MessageLayout::layout(const MessageLayoutContext &ctx,
     }
 
     // check if work mask changed
-    layoutRequired |= this->currentWordFlags_ != ctx.flags;
-    this->currentWordFlags_ = ctx.flags;  // getSettings()->getWordTypeMask();
+    layoutRequired |= this->currentWordFlags_ != flags;
+    this->currentWordFlags_ = flags;  // getSettings()->getWordTypeMask();
 
     // check if layout was requested manually
     layoutRequired |= this->flags.has(MessageLayoutFlag::RequiresLayout);
     this->flags.unset(MessageLayoutFlag::RequiresLayout);
 
     // check if dpi changed
-    layoutRequired |= this->scale_ != ctx.scale;
-    this->scale_ = ctx.scale;
-    layoutRequired |= this->imageScale_ != ctx.imageScale;
-    this->imageScale_ = ctx.imageScale;
+    layoutRequired |= this->scale_ != scale;
+    this->scale_ = scale;
+    layoutRequired |= this->imageScale_ != imageScale;
+    this->imageScale_ = imageScale;
 
     if (!layoutRequired)
     {
@@ -115,7 +121,7 @@ bool MessageLayout::layout(const MessageLayoutContext &ctx,
     }
 
     int oldHeight = this->container_.getHeight();
-    this->actuallyLayout(ctx);
+    this->actuallyLayout(width, flags);
     if (widthChanged || this->container_.getHeight() != oldHeight)
     {
         this->deleteBuffer();
@@ -125,7 +131,7 @@ bool MessageLayout::layout(const MessageLayoutContext &ctx,
     return true;
 }
 
-void MessageLayout::actuallyLayout(const MessageLayoutContext &ctx)
+void MessageLayout::actuallyLayout(int width, MessageElementFlags flags)
 {
 #ifdef FOURTF
     this->layoutCount_++;
@@ -134,7 +140,7 @@ void MessageLayout::actuallyLayout(const MessageLayoutContext &ctx)
     auto messageFlags = this->message_->flags;
 
     if (this->flags.has(MessageLayoutFlag::Expanded) ||
-        (ctx.flags.has(MessageElementFlag::ModeratorTools) &&
+        (flags.has(MessageElementFlag::ModeratorTools) &&
          !this->message_->flags.has(MessageFlag::Disabled)))
     {
         messageFlags.unset(MessageFlag::Collapsed);
@@ -143,9 +149,9 @@ void MessageLayout::actuallyLayout(const MessageLayoutContext &ctx)
     bool hideModerated = getSettings()->hideModerated;
     bool hideModerationActions = getSettings()->hideModerationActions;
     bool hideSimilar = getSettings()->hideSimilar;
-    bool hideReplies = !ctx.flags.has(MessageElementFlag::RepliedMessage);
+    bool hideReplies = !flags.has(MessageElementFlag::RepliedMessage);
 
-    this->container_.beginLayout(ctx.width, this->scale_, this->imageScale_,
+    this->container_.beginLayout(width, this->scale_, this->imageScale_,
                                  messageFlags);
 
     for (const auto &element : this->message_->elements)
@@ -160,7 +166,7 @@ void MessageLayout::actuallyLayout(const MessageLayoutContext &ctx)
         {
             if (hideModerationActions ||
                 (getSettings()->streamerModeHideModActions &&
-                 getApp()->getStreamerMode()->isEnabled()))
+                 getIApp()->getStreamerMode()->isEnabled()))
             {
                 continue;
             }
@@ -177,7 +183,7 @@ void MessageLayout::actuallyLayout(const MessageLayoutContext &ctx)
             continue;
         }
 
-        element->addToContainer(this->container_, ctx);
+        element->addToContainer(this->container_, flags);
     }
 
     if (this->height_ != this->container_.getHeight())
@@ -201,15 +207,10 @@ MessagePaintResult MessageLayout::paint(const MessagePaintContext &ctx)
 {
     MessagePaintResult result;
 
-    QPixmap *pixmap = this->ensureBuffer(ctx.painter, ctx.canvasWidth,
-                                         ctx.messageColors.hasTransparency);
+    QPixmap *pixmap = this->ensureBuffer(ctx.painter, ctx.canvasWidth);
 
     if (!this->bufferValid_)
     {
-        if (ctx.messageColors.hasTransparency)
-        {
-            pixmap->fill(Qt::transparent);
-        }
         this->updateBuffer(pixmap, ctx);
     }
 
@@ -284,7 +285,7 @@ MessagePaintResult MessageLayout::paint(const MessagePaintContext &ctx)
     return result;
 }
 
-QPixmap *MessageLayout::ensureBuffer(QPainter &painter, int width, bool clear)
+QPixmap *MessageLayout::ensureBuffer(QPainter &painter, int width)
 {
     if (this->buffer_ != nullptr)
     {
@@ -297,11 +298,6 @@ QPixmap *MessageLayout::ensureBuffer(QPainter &painter, int width, bool clear)
         int(this->container_.getHeight() *
             painter.device()->devicePixelRatioF()));
     this->buffer_->setDevicePixelRatio(painter.device()->devicePixelRatioF());
-
-    if (clear)
-    {
-        this->buffer_->fill(Qt::transparent);
-    }
 
     this->bufferValid_ = false;
     DebugCount::increase("message drawing buffers");
@@ -324,10 +320,10 @@ void MessageLayout::updateBuffer(QPixmap *buffer,
         if (ctx.preferences.alternateMessages &&
             this->flags.has(MessageLayoutFlag::AlternateBackground))
         {
-            return ctx.messageColors.alternateBg;
+            return ctx.messageColors.alternate;
         }
 
-        return ctx.messageColors.regularBg;
+        return ctx.messageColors.regular;
     }();
 
     if (this->message_->flags.has(MessageFlag::ElevatedMessage) &&

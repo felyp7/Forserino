@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/ChatterinoSetting.hpp"
-#include "singletons/Paths.hpp"
+#include "common/Singleton.hpp"
 #include "util/RapidJsonSerializeQString.hpp"
 
 #include <pajlada/settings/setting.hpp>
@@ -33,7 +33,7 @@ struct ThemeDescriptor {
     bool custom{};
 };
 
-class Theme final
+class Theme final : public Singleton
 {
 public:
     static const std::vector<ThemeDescriptor> builtInThemes;
@@ -43,7 +43,7 @@ public:
 
     static const int AUTO_RELOAD_INTERVAL_MS = 500;
 
-    Theme(const Paths &paths);
+    void initialize(Settings &settings, const Paths &paths) final;
 
     bool isLightTheme() const;
     bool isSystemTheme() const;
@@ -60,19 +60,6 @@ public:
             QColor hover;
             QColor unfocused;
         } line;
-    };
-
-    struct TextColors {
-        QColor regular;
-        QColor caret;
-        QColor link;
-        QColor system;
-        QColor chatPlaceholder;
-    };
-
-    struct MessageBackgrounds {
-        QColor regular;
-        QColor alternate;
     };
 
     QColor accent{"#00aeef"};
@@ -97,8 +84,18 @@ public:
 
     /// MESSAGES
     struct {
-        TextColors textColors;
-        MessageBackgrounds backgrounds;
+        struct {
+            QColor regular;
+            QColor caret;
+            QColor link;
+            QColor system;
+            QColor chatPlaceholder;
+        } textColors;
+
+        struct {
+            QColor regular;
+            QColor alternate;
+        } backgrounds;
 
         QColor disabled;
         QColor selection;
@@ -106,15 +103,6 @@ public:
         QColor highlightAnimationStart;
         QColor highlightAnimationEnd;
     } messages;
-
-    struct {
-        TextColors textColors;
-        MessageBackgrounds backgrounds;
-
-        QColor disabled;
-        QColor selection;
-        QColor background;
-    } overlayMessages;
 
     /// SCROLLBAR
     struct {

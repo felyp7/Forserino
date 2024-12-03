@@ -220,7 +220,7 @@ QString marker(const CommandContext &ctx)
     }
 
     // Avoid Helix calls without Client ID and/or OAuth Token
-    if (getApp()->getAccounts()->twitch.getCurrent()->isAnon())
+    if (getIApp()->getAccounts()->twitch.getCurrent()->isAnon())
     {
         ctx.channel->addSystemMessage(
             "You need to be logged in to create stream markers!");
@@ -367,7 +367,7 @@ QString popup(const CommandContext &ctx)
     if (target.isEmpty())
     {
         auto *currentPage =
-            dynamic_cast<SplitContainer *>(getApp()
+            dynamic_cast<SplitContainer *>(getIApp()
                                                ->getWindows()
                                                ->getMainWindow()
                                                .getNotebook()
@@ -388,8 +388,9 @@ QString popup(const CommandContext &ctx)
     }
 
     // Open channel passed as argument in a popup
-    auto targetChannel = getApp()->getTwitch()->getOrAddChannel(target);
-    getApp()->getWindows()->openInPopup(targetChannel);
+    auto targetChannel =
+        getIApp()->getTwitchAbstract()->getOrAddChannel(target);
+    getIApp()->getWindows()->openInPopup(targetChannel);
 
     return "";
 }
@@ -398,7 +399,7 @@ QString clearmessages(const CommandContext &ctx)
 {
     (void)ctx;
 
-    auto *currentPage = getApp()
+    auto *currentPage = getIApp()
                             ->getWindows()
                             ->getLastSelectedWindow()
                             ->getNotebook()
@@ -530,7 +531,8 @@ QString sendRawMessage(const CommandContext &ctx)
 
     if (ctx.channel->isTwitchChannel())
     {
-        getApp()->getTwitch()->sendRawMessage(ctx.words.mid(1).join(" "));
+        getIApp()->getTwitchAbstract()->sendRawMessage(
+            ctx.words.mid(1).join(" "));
     }
     else
     {
@@ -563,7 +565,7 @@ QString injectFakeMessage(const CommandContext &ctx)
     }
 
     auto ircText = ctx.words.mid(1).join(" ");
-    getApp()->getTwitch()->addFakeMessage(ircText);
+    getIApp()->getTwitchAbstract()->addFakeMessage(ircText);
 
     return "";
 }
@@ -585,7 +587,7 @@ QString injectStreamUpdateNoStream(const CommandContext &ctx)
         return "";
     }
 
-    ctx.twitchChannel->updateStreamStatus(std::nullopt, false);
+    ctx.twitchChannel->updateStreamStatus(std::nullopt);
     return "";
 }
 
@@ -632,7 +634,7 @@ QString unstableSetUserClientSideColor(const CommandContext &ctx)
 
     auto color = ctx.words.value(2);
 
-    getApp()->getUserData()->setUserColor(userID, color);
+    getIApp()->getUserData()->setUserColor(userID, color);
 
     return "";
 }
@@ -662,7 +664,7 @@ QString openUsercard(const CommandContext &ctx)
         stripChannelName(channelName);
 
         ChannelPtr channelTemp =
-            getApp()->getTwitch()->getChannelOrEmpty(channelName);
+            getIApp()->getTwitchAbstract()->getChannelOrEmpty(channelName);
 
         if (channelTemp->isEmpty())
         {
@@ -677,7 +679,7 @@ QString openUsercard(const CommandContext &ctx)
 
     // try to link to current split if possible
     Split *currentSplit = nullptr;
-    auto *currentPage = dynamic_cast<SplitContainer *>(getApp()
+    auto *currentPage = dynamic_cast<SplitContainer *>(getIApp()
                                                            ->getWindows()
                                                            ->getMainWindow()
                                                            .getNotebook()
@@ -693,7 +695,7 @@ QString openUsercard(const CommandContext &ctx)
     {
         // not possible to use current split, try searching for one
         const auto &notebook =
-            getApp()->getWindows()->getMainWindow().getNotebook();
+            getIApp()->getWindows()->getMainWindow().getNotebook();
         auto count = notebook.getPageCount();
         for (int i = 0; i < count; i++)
         {

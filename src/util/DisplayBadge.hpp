@@ -3,7 +3,6 @@
 #include <QString>
 
 namespace chatterino {
-
 class DisplayBadge
 {
 public:

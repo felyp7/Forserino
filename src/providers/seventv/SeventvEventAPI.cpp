@@ -1,7 +1,6 @@
 #include "providers/seventv/SeventvEventAPI.hpp"
 
 #include "Application.hpp"
-#include "common/Literals.hpp"
 #include "providers/seventv/eventapi/Client.hpp"
 #include "providers/seventv/eventapi/Dispatch.hpp"
 #include "providers/seventv/eventapi/Message.hpp"
@@ -17,18 +16,12 @@ namespace chatterino {
 
 using namespace seventv;
 using namespace seventv::eventapi;
-using namespace chatterino::literals;
 
 SeventvEventAPI::SeventvEventAPI(
     QString host, std::chrono::milliseconds defaultHeartbeatInterval)
-    : BasicPubSubManager(std::move(host), u"7TV"_s)
+    : BasicPubSubManager(std::move(host))
     , heartbeatInterval_(defaultHeartbeatInterval)
 {
-}
-
-SeventvEventAPI::~SeventvEventAPI()
-{
-    this->stop();
 }
 
 void SeventvEventAPI::subscribeUser(const QString &userID,
@@ -233,10 +226,6 @@ void SeventvEventAPI::handleDispatch(const Dispatch &dispatch)
             }
         }
         break;
-        case SubscriptionType::ResetEntitlement: {
-            // unhandled (not clear what we'd do here yet)
-        }
-        break;
         default: {
             qCDebug(chatterinoSeventvEventAPI)
                 << "Unknown subscription type:"
@@ -359,7 +348,7 @@ void SeventvEventAPI::onUserUpdate(const Dispatch &dispatch)
 
 void SeventvEventAPI::onCosmeticCreate(const CosmeticCreateDispatch &cosmetic)
 {
-    auto *badges = getApp()->getSeventvBadges();
+    auto *badges = getIApp()->getSeventvBadges();
     switch (cosmetic.kind)
     {
         case CosmeticKind::Badge: {
@@ -374,7 +363,7 @@ void SeventvEventAPI::onCosmeticCreate(const CosmeticCreateDispatch &cosmetic)
 void SeventvEventAPI::onEntitlementCreate(
     const EntitlementCreateDeleteDispatch &entitlement)
 {
-    auto *badges = getApp()->getSeventvBadges();
+    auto *badges = getIApp()->getSeventvBadges();
     switch (entitlement.kind)
     {
         case CosmeticKind::Badge: {
@@ -390,7 +379,7 @@ void SeventvEventAPI::onEntitlementCreate(
 void SeventvEventAPI::onEntitlementDelete(
     const EntitlementCreateDeleteDispatch &entitlement)
 {
-    auto *badges = getApp()->getSeventvBadges();
+    auto *badges = getIApp()->getSeventvBadges();
     switch (entitlement.kind)
     {
         case CosmeticKind::Badge: {

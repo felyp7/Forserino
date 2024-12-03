@@ -1,4 +1,4 @@
-#include "controllers/commands/Command.hpp"
+#include "Command.hpp"
 
 namespace chatterino {
 

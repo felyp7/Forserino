@@ -1,4 +1,4 @@
-#include "widgets/settingspages/NotificationPage.hpp"
+#include "NotificationPage.hpp"
 
 #include "Application.hpp"
 #include "controllers/notifications/NotificationController.hpp"
@@ -42,10 +42,6 @@ NotificationPage::NotificationPage()
                 settings.append(this->createCheckBox(
                     "Play sound for any channel going live",
                     getSettings()->notificationOnAnyChannel));
-
-                settings.append(this->createCheckBox(
-                    "Suppress live notifications on startup",
-                    getSettings()->suppressInitialLiveNotification));
 #ifdef Q_OS_WIN
                 settings.append(this->createCheckBox(
                     "Show notification", getSettings()->notificationToast));
@@ -97,7 +93,7 @@ NotificationPage::NotificationPage()
                 EditableModelView *view =
                     twitchChannels
                         .emplace<EditableModelView>(
-                            getApp()->getNotifications()->createModel(
+                            getIApp()->getNotifications()->createModel(
                                 nullptr, Platform::Twitch))
                         .getElement();
                 view->setTitles({"Twitch channels"});
@@ -115,8 +111,10 @@ NotificationPage::NotificationPage()
 
                 // We can safely ignore this signal connection since we own the view
                 std::ignore = view->addButtonPressed.connect([] {
-                    getApp()->getNotifications()->addChannelNotification(
-                        "channel", Platform::Twitch);
+                    getApp()
+                        ->getNotifications()
+                        ->channelMap[Platform::Twitch]
+                        .append("channel");
                 });
             }
         }

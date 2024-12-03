@@ -1,4 +1,4 @@
-#include "widgets/settingspages/AccountsPage.hpp"
+#include "AccountsPage.hpp"
 
 #include "Application.hpp"
 #include "controllers/accounts/AccountController.hpp"
@@ -63,7 +63,7 @@ AccountsPage::AccountsPage()
     //            return;
     //        }
 
-    //        getApp()->getAccounts()->Twitch.removeUser(selectedUser);
+    //        getIApp()->getAccounts()->Twitch.removeUser(selectedUser);
     //    });
 }
 

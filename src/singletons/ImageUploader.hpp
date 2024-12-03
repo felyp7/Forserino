@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/Singleton.hpp"
+
 #include <QMimeData>
 #include <QMutex>
 #include <QString>
@@ -20,7 +22,7 @@ struct RawImageData {
     QString filePath;
 };
 
-class ImageUploader final
+class ImageUploader final : public Singleton
 {
 public:
     /**
@@ -31,6 +33,7 @@ public:
     std::pair<std::queue<RawImageData>, QString> getImages(
         const QMimeData *source) const;
 
+    void save() override;
     void upload(std::queue<RawImageData> images, ChannelPtr channel,
                 QPointer<ResizingTextEdit> outputTextEdit);
 

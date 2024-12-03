@@ -124,10 +124,6 @@ protected:
 
     int marginForTheme() const;
 
-    void applyOuterMargin();
-
-    int replyMessageWidth() const;
-
     Split *const split_;
     ChannelView *const channelView_;
     QPointer<EmotePopup> emotePopup_;

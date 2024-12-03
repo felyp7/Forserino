@@ -1,4 +1,4 @@
-#include "widgets/helper/SearchPopup.hpp"
+#include "SearchPopup.hpp"
 
 #include "Application.hpp"
 #include "common/Channel.hpp"
@@ -103,7 +103,7 @@ void SearchPopup::addShortcuts()
         {"scrollPage", nullptr},
     };
 
-    this->shortcuts_ = getApp()->getHotkeys()->shortcutsForCategory(
+    this->shortcuts_ = getIApp()->getHotkeys()->shortcutsForCategory(
         HotkeyCategory::PopupWindow, actions, this);
 }
 
@@ -138,7 +138,7 @@ void SearchPopup::goToMessage(const MessagePtr &message)
         if (type == Channel::Type::TwitchMentions ||
             type == Channel::Type::TwitchAutomod)
         {
-            getApp()->getWindows()->scrollToMessage(message);
+            getIApp()->getWindows()->scrollToMessage(message);
             return;
         }
 
@@ -241,8 +241,10 @@ LimitedQueueSnapshot<MessagePtr> SearchPopup::buildSnapshot()
         const LimitedQueueSnapshot<MessagePtr> &snapshot =
             sharedView.channel()->getMessageSnapshot();
 
-        for (const auto &message : snapshot)
+        // TODO: implement iterator on LimitedQueueSnapshot?
+        for (auto i = 0; i < snapshot.size(); ++i)
         {
+            const MessagePtr &message = snapshot[i];
             if (filterSet && !filterSet->filter(message, sharedView.channel()))
             {
                 continue;

@@ -150,15 +150,6 @@ protected:
         return this->started_.load(std::memory_order_acquire);
     }
 
-    /**
-     * @brief Will be called when the clients has been requested to stop
-     *
-     * Derived classes can override this to implement their own shutdown behaviour
-     */
-    virtual void stopImpl()
-    {
-    }
-
     liveupdates::WebsocketClient &websocketClient_;
 
 private:
@@ -173,8 +164,6 @@ private:
     {
         assert(this->isStarted());
         this->started_.store(false, std::memory_order_release);
-
-        this->stopImpl();
     }
 
     liveupdates::WebsocketHandle handle_;

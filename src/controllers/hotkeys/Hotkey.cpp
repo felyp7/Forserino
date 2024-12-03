@@ -1,5 +1,6 @@
 #include "controllers/hotkeys/Hotkey.hpp"
 
+#include "Application.hpp"
 #include "common/QLogging.hpp"
 #include "controllers/hotkeys/ActionNames.hpp"
 #include "controllers/hotkeys/HotkeyController.hpp"
@@ -57,7 +58,7 @@ std::vector<QString> Hotkey::arguments() const
 
 QString Hotkey::getCategory() const
 {
-    return hotkeyCategoryDisplayName(this->category_);
+    return getIApp()->getHotkeys()->categoryDisplayName(this->category_);
 }
 
 Qt::ShortcutContext Hotkey::getContext() const

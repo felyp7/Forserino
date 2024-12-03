@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/FlagsEnum.hpp"
-#include "util/SignalListener.hpp"
+#include "common/Singleton.hpp"
 #include "widgets/splits/SplitContainer.hpp"
 
 #include <pajlada/settings/settinglistener.hpp>
@@ -24,8 +24,6 @@ using ChannelPtr = std::shared_ptr<Channel>;
 struct Message;
 using MessagePtr = std::shared_ptr<const Message>;
 class WindowLayout;
-class Theme;
-class Fonts;
 
 enum class MessageElementFlag : int64_t;
 using MessageElementFlags = FlagsEnum<MessageElementFlag>;
@@ -34,16 +32,13 @@ enum class WindowType;
 enum class SettingsDialogPreference;
 class FramelessEmbedWindow;
 
-class WindowManager final
+class WindowManager final : public Singleton
 {
-    Theme &themes;
-
 public:
     static const QString WINDOW_LAYOUT_FILENAME;
 
-    explicit WindowManager(const Paths &paths, Settings &settings,
-                           Theme &themes_, Fonts &fonts);
-    ~WindowManager();
+    explicit WindowManager(const Paths &paths);
+    ~WindowManager() override;
 
     WindowManager(const WindowManager &) = delete;
     WindowManager(WindowManager &&) = delete;
@@ -107,9 +102,8 @@ public:
     QRect emotePopupBounds() const;
     void setEmotePopupBounds(QRect bounds);
 
-    // Set up some final signals & actually show the windows
-    void initialize();
-    void save();
+    void initialize(Settings &settings, const Paths &paths) override;
+    void save() override;
     void closeAll();
 
     int getGeneration() const;
@@ -127,9 +121,6 @@ public:
     // If a save was already queued up, we reset the to happen in 10 seconds
     // again
     void queueSave();
-
-    /// Toggles the inertia in all open overlay windows
-    void toggleAllOverlayInertia();
 
     /// Signals
     pajlada::Signals::NoArgSignal gifRepaintRequested;
@@ -160,6 +151,7 @@ private:
     // Contains the full path to the window layout file, e.g. /home/pajlada/.local/share/Chatterino/Settings/window-layout.json
     const QString windowLayoutFilePath;
 
+    bool initialized_ = false;
     bool shuttingDown_ = false;
 
     QRect emotePopupBounds_;
@@ -173,16 +165,9 @@ private:
     Window *selectedWindow_{};
 
     MessageElementFlags wordFlags_{};
+    pajlada::SettingListener wordFlagsListener_;
 
     QTimer *saveTimer;
-
-    pajlada::Signals::SignalHolder signalHolder;
-
-    SignalListener updateWordTypeMaskListener;
-    SignalListener forceLayoutChannelViewsListener;
-    SignalListener layoutChannelViewsListener;
-    SignalListener invalidateChannelViewBuffersListener;
-    SignalListener repaintVisibleChatWidgetsListener;
 
     friend class Window;  // this is for selectedWindow_
 };

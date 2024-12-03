@@ -5,18 +5,20 @@
 #include "common/QLogging.hpp"
 #include "debug/AssertInGuiThread.hpp"
 #include "messages/MessageElement.hpp"
+#include "providers/irc/Irc2.hpp"
+#include "providers/irc/IrcChannel2.hpp"
+#include "providers/irc/IrcServer.hpp"
 #include "providers/twitch/TwitchIrcServer.hpp"
 #include "singletons/Paths.hpp"
 #include "singletons/Settings.hpp"
 #include "singletons/Theme.hpp"
+#include "util/Clamp.hpp"
 #include "util/CombinePath.hpp"
-#include "util/SignalListener.hpp"
 #include "widgets/AccountSwitchPopup.hpp"
 #include "widgets/dialogs/SettingsDialog.hpp"
 #include "widgets/FramelessEmbedWindow.hpp"
 #include "widgets/helper/NotebookTab.hpp"
 #include "widgets/Notebook.hpp"
-#include "widgets/OverlayWindow.hpp"
 #include "widgets/splits/Split.hpp"
 #include "widgets/splits/SplitContainer.hpp"
 #include "widgets/Window.hpp"
@@ -88,77 +90,37 @@ void WindowManager::showAccountSelectPopup(QPoint point)
     w->setFocus();
 }
 
-WindowManager::WindowManager(const Paths &paths, Settings &settings,
-                             Theme &themes_, Fonts &fonts)
-    : themes(themes_)
-    , windowLayoutFilePath(combinePath(paths.settingsDirectory,
+WindowManager::WindowManager(const Paths &paths)
+    : windowLayoutFilePath(combinePath(paths.settingsDirectory,
                                        WindowManager::WINDOW_LAYOUT_FILENAME))
-    , updateWordTypeMaskListener([this] {
-        this->updateWordTypeMask();
-    })
-    , forceLayoutChannelViewsListener([this] {
-        this->forceLayoutChannelViews();
-    })
-    , layoutChannelViewsListener([this] {
-        this->layoutChannelViews();
-    })
-    , invalidateChannelViewBuffersListener([this] {
-        this->invalidateChannelViewBuffers();
-    })
-    , repaintVisibleChatWidgetsListener([this] {
-        this->repaintVisibleChatWidgets();
-    })
 {
     qCDebug(chatterinoWindowmanager) << "init WindowManager";
 
-    this->updateWordTypeMaskListener.add(settings.showTimestamps);
-    this->updateWordTypeMaskListener.add(settings.showBadgesGlobalAuthority);
-    this->updateWordTypeMaskListener.add(settings.showBadgesPredictions);
-    this->updateWordTypeMaskListener.add(settings.showBadgesChannelAuthority);
-    this->updateWordTypeMaskListener.add(settings.showBadgesSubscription);
-    this->updateWordTypeMaskListener.add(settings.showBadgesVanity);
-    this->updateWordTypeMaskListener.add(settings.showBadgesChatterino);
-    this->updateWordTypeMaskListener.add(settings.showBadgesFfz);
-    this->updateWordTypeMaskListener.add(settings.showBadgesSevenTV);
-    this->updateWordTypeMaskListener.add(settings.enableEmoteImages);
-    this->updateWordTypeMaskListener.add(settings.lowercaseDomains);
-    this->updateWordTypeMaskListener.add(settings.showReplyButton);
+    auto *settings = getSettings();
 
-    this->forceLayoutChannelViewsListener.add(
-        settings.moderationActions.delayedItemsChanged);
-    this->forceLayoutChannelViewsListener.add(
-        settings.highlightedMessages.delayedItemsChanged);
-    this->forceLayoutChannelViewsListener.add(
-        settings.highlightedUsers.delayedItemsChanged);
-    this->forceLayoutChannelViewsListener.add(
-        settings.highlightedBadges.delayedItemsChanged);
-    this->forceLayoutChannelViewsListener.add(
-        settings.removeSpacesBetweenEmotes);
-    this->forceLayoutChannelViewsListener.add(settings.emoteScale);
-    this->forceLayoutChannelViewsListener.add(settings.timestampFormat);
-    this->forceLayoutChannelViewsListener.add(settings.collpseMessagesMinLines);
-    this->forceLayoutChannelViewsListener.add(settings.enableRedeemedHighlight);
-    this->forceLayoutChannelViewsListener.add(settings.colorUsernames);
-    this->forceLayoutChannelViewsListener.add(settings.boldUsernames);
-
-    this->layoutChannelViewsListener.add(settings.timestampFormat);
-    this->layoutChannelViewsListener.add(fonts.fontChanged);
-
-    this->invalidateChannelViewBuffersListener.add(settings.alternateMessages);
-    this->invalidateChannelViewBuffersListener.add(settings.separateMessages);
-
-    this->repaintVisibleChatWidgetsListener.add(
-        this->themes.repaintVisibleChatWidgets_);
+    this->wordFlagsListener_.addSetting(settings->showTimestamps);
+    this->wordFlagsListener_.addSetting(settings->showBadgesGlobalAuthority);
+    this->wordFlagsListener_.addSetting(settings->showBadgesPredictions);
+    this->wordFlagsListener_.addSetting(settings->showBadgesChannelAuthority);
+    this->wordFlagsListener_.addSetting(settings->showBadgesSubscription);
+    this->wordFlagsListener_.addSetting(settings->showBadgesVanity);
+    this->wordFlagsListener_.addSetting(settings->showBadgesChatterino);
+    this->wordFlagsListener_.addSetting(settings->showBadgesFfz);
+    this->wordFlagsListener_.addSetting(settings->showBadgesSevenTV);
+    this->wordFlagsListener_.addSetting(settings->enableEmoteImages);
+    this->wordFlagsListener_.addSetting(settings->lowercaseDomains);
+    this->wordFlagsListener_.addSetting(settings->showReplyButton);
+    this->wordFlagsListener_.setCB([this] {
+        this->updateWordTypeMask();
+    });
 
     this->saveTimer = new QTimer;
 
     this->saveTimer->setSingleShot(true);
 
     QObject::connect(this->saveTimer, &QTimer::timeout, [] {
-        getApp()->getWindows()->save();
+        getIApp()->getWindows()->save();
     });
-
-    this->updateWordTypeMask();
 }
 
 WindowManager::~WindowManager() = default;
@@ -195,7 +157,6 @@ void WindowManager::updateWordTypeMask()
     flags.set(settings->animateEmotes ? MEF::BitsAnimated : MEF::BitsStatic);
 
     // badges
-    flags.set(MEF::BadgeSharedChannel);
     flags.set(settings->showBadgesGlobalAuthority ? MEF::BadgeGlobalAuthority
                                                   : MEF::None);
     flags.set(settings->showBadgesPredictions ? MEF::BadgePredictions
@@ -381,9 +342,20 @@ void WindowManager::setEmotePopupBounds(QRect bounds)
     }
 }
 
-void WindowManager::initialize()
+void WindowManager::initialize(Settings &settings, const Paths &paths)
 {
+    (void)paths;
     assertInGuiThread();
+
+    // We can safely ignore this signal connection since both Themes and WindowManager
+    // share the Application state lifetime
+    // NOTE: APPLICATION_LIFETIME
+    std::ignore =
+        getIApp()->getThemes()->repaintVisibleChatWidgets_.connect([this] {
+            this->repaintVisibleChatWidgets();
+        });
+
+    assert(!this->initialized_);
 
     {
         WindowLayout windowLayout;
@@ -397,7 +369,7 @@ void WindowManager::initialize()
             windowLayout = this->loadWindowLayoutFromFile();
         }
 
-        auto desired = getApp()->getArgs().activateChannel;
+        auto desired = getIApp()->getArgs().activateChannel;
         if (desired)
         {
             windowLayout.activateOrAddChannel(desired->provider, desired->name);
@@ -426,6 +398,39 @@ void WindowManager::initialize()
             this->mainWindow_->hide();
         }
     }
+
+    settings.timestampFormat.connect([this](auto, auto) {
+        this->layoutChannelViews();
+    });
+
+    settings.emoteScale.connect([this](auto, auto) {
+        this->forceLayoutChannelViews();
+    });
+
+    settings.timestampFormat.connect([this](auto, auto) {
+        this->forceLayoutChannelViews();
+    });
+    settings.alternateMessages.connect([this](auto, auto) {
+        this->invalidateChannelViewBuffers();
+    });
+    settings.separateMessages.connect([this](auto, auto) {
+        this->invalidateChannelViewBuffers();
+    });
+    settings.collpseMessagesMinLines.connect([this](auto, auto) {
+        this->forceLayoutChannelViews();
+    });
+    settings.enableRedeemedHighlight.connect([this](auto, auto) {
+        this->forceLayoutChannelViews();
+    });
+
+    settings.colorUsernames.connect([this](auto, auto) {
+        this->forceLayoutChannelViews();
+    });
+    settings.boldUsernames.connect([this](auto, auto) {
+        this->forceLayoutChannelViews();
+    });
+
+    this->initialized_ = true;
 }
 
 void WindowManager::save()
@@ -546,37 +551,6 @@ void WindowManager::queueSave()
     this->saveTimer->start(10s);
 }
 
-void WindowManager::toggleAllOverlayInertia()
-{
-    // check if any window is not inert
-    bool anyNonInert = false;
-    for (auto *window : this->windows_)
-    {
-        if (anyNonInert)
-        {
-            break;
-        }
-        window->getNotebook().forEachSplit([&](auto *split) {
-            auto *overlay = split->overlayWindow();
-            if (overlay)
-            {
-                anyNonInert = anyNonInert || !overlay->isInert();
-            }
-        });
-    }
-
-    for (auto *window : this->windows_)
-    {
-        window->getNotebook().forEachSplit([&](auto *split) {
-            auto *overlay = split->overlayWindow();
-            if (overlay)
-            {
-                overlay->setInert(anyNonInert);
-            }
-        });
-    }
-}
-
 void WindowManager::encodeTab(SplitContainer *tab, bool isSelected,
                               QJsonObject &obj)
 {
@@ -675,6 +649,19 @@ void WindowManager::encodeChannel(IndirectChannel channel, QJsonObject &obj)
             obj.insert("type", "live");
         }
         break;
+        case Channel::Type::Irc: {
+            if (auto *ircChannel =
+                    dynamic_cast<IrcChannel *>(channel.get().get()))
+            {
+                obj.insert("type", "irc");
+                if (ircChannel->server())
+                {
+                    obj.insert("server", ircChannel->server()->id());
+                }
+                obj.insert("channel", ircChannel->getName());
+            }
+        }
+        break;
         case Channel::Type::Misc: {
             obj.insert("type", "misc");
             obj.insert("name", channel.get()->getName());
@@ -697,33 +684,41 @@ IndirectChannel WindowManager::decodeChannel(const SplitDescriptor &descriptor)
 {
     assertInGuiThread();
 
+    auto *app = getApp();
+
     if (descriptor.type_ == "twitch")
     {
-        return getApp()->getTwitch()->getOrAddChannel(descriptor.channelName_);
+        return getIApp()->getTwitchAbstract()->getOrAddChannel(
+            descriptor.channelName_);
     }
     else if (descriptor.type_ == "mentions")
     {
-        return getApp()->getTwitch()->getMentionsChannel();
+        return getIApp()->getTwitch()->getMentionsChannel();
     }
     else if (descriptor.type_ == "watching")
     {
-        return getApp()->getTwitch()->getWatchingChannel();
+        return getIApp()->getTwitch()->getWatchingChannel();
     }
     else if (descriptor.type_ == "whispers")
     {
-        return getApp()->getTwitch()->getWhispersChannel();
+        return getIApp()->getTwitch()->getWhispersChannel();
     }
     else if (descriptor.type_ == "live")
     {
-        return getApp()->getTwitch()->getLiveChannel();
+        return getIApp()->getTwitch()->getLiveChannel();
     }
     else if (descriptor.type_ == "automod")
     {
-        return getApp()->getTwitch()->getAutomodChannel();
+        return getIApp()->getTwitch()->getAutomodChannel();
+    }
+    else if (descriptor.type_ == "irc")
+    {
+        return Irc::instance().getOrAddChannel(descriptor.server_,
+                                               descriptor.channelName_);
     }
     else if (descriptor.type_ == "misc")
     {
-        return getApp()->getTwitch()->getChannelOrEmpty(
+        return getIApp()->getTwitchAbstract()->getChannelOrEmpty(
             descriptor.channelName_);
     }
 
@@ -784,7 +779,7 @@ void WindowManager::applyWindowLayout(const WindowLayout &layout)
         // get geometry
         {
             // out of bounds windows
-            auto screens = QApplication::screens();
+            auto screens = qApp->screens();
             bool outOfBounds =
                 !qEnvironmentVariableIsSet("I3SOCK") &&
                 std::none_of(screens.begin(), screens.end(),

@@ -1,7 +1,6 @@
 #include "BrowserExtension.hpp"
 
 #include "singletons/NativeMessaging.hpp"
-#include "util/RenameThread.hpp"
 
 #include <iostream>
 #include <memory>
@@ -70,7 +69,6 @@ void runLoop()
             std::this_thread::sleep_for(10s);
         }
     });
-    renameThread(thread, "BrowserPingCheck");
 
     while (true)
     {

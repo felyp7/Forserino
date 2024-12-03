@@ -4,14 +4,12 @@
 #include "messages/layouts/MessageLayoutContext.hpp"
 #include "messages/LimitedQueue.hpp"
 #include "messages/LimitedQueueSnapshot.hpp"
-#include "messages/MessageFlag.hpp"
 #include "messages/Selection.hpp"
 #include "util/ThreadGuard.hpp"
 #include "widgets/BaseWidget.hpp"
 #include "widgets/TooltipWidget.hpp"
 
 #include <pajlada/signals/signal.hpp>
-#include <QGestureEvent>
 #include <QMenu>
 #include <QPaintEvent>
 #include <QPointer>
@@ -32,6 +30,9 @@ using ChannelPtr = std::shared_ptr<Channel>;
 
 struct Message;
 using MessagePtr = std::shared_ptr<const Message>;
+
+enum class MessageFlag : int64_t;
+using MessageFlags = FlagsEnum<MessageFlag>;
 
 class MessageLayout;
 using MessageLayoutPtr = std::shared_ptr<MessageLayout>;
@@ -144,20 +145,9 @@ public:
     /// filter settings. It will always be of type Channel, not TwitchChannel
     /// nor IrcChannel.
     /// It's **not** equal to the channel passed in #setChannel().
-    /// @see #underlyingChannel()
     ChannelPtr channel();
 
-    /// @brief The channel this view displays messages for
-    ///
-    /// This channel potentially contains more messages than visible in this
-    /// view due to filter settings.
-    /// It's equal to the channel passed in #setChannel().
-    /// @see #channel()
-    ChannelPtr underlyingChannel() const;
-
-    /// @brief Set the channel this view is displaying
-    ///
-    /// @see #underlyingChannel()
+    /// Set the channel this view is displaying
     void setChannel(const ChannelPtr &underlyingChannel);
 
     void setFilters(const QList<QUuid> &ids);
@@ -202,24 +192,6 @@ public:
      */
     bool mayContainMessage(const MessagePtr &message);
 
-    void updateColorTheme();
-
-    /// @brief Adjusts the colors this view uses
-    ///
-    /// If @a isOverlay is true, the overlay colors (as specified in the theme)
-    /// will be used. Otherwise, regular message-colors will be used.
-    void setIsOverlay(bool isOverlay);
-
-    Scrollbar *scrollbar();
-
-    using ChannelViewID = std::size_t;
-    ///
-    /// \brief Get the ID of this ChannelView
-    ///
-    /// The ID is made of the underlying channel's name
-    /// combined with the filter set IDs
-    ChannelViewID getID() const;
-
     pajlada::Signals::Signal<QMouseEvent *> mouseDown;
     pajlada::Signals::NoArgSignal selectionChanged;
     pajlada::Signals::Signal<HighlightState> tabHighlightRequested;
@@ -243,9 +215,6 @@ protected:
     void enterEvent(QEvent * /*event*/) override;
 #endif
     void leaveEvent(QEvent * /*event*/) override;
-
-    bool event(QEvent *event) override;
-    bool gestureEvent(const QGestureEvent *event);
 
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -276,8 +245,7 @@ private:
                          std::optional<MessageFlags> overridingFlags);
     void messageAddedAtStart(std::vector<MessagePtr> &messages);
     void messageRemoveFromStart(MessagePtr &message);
-    void messageReplaced(size_t hint, const MessagePtr &prev,
-                         const MessagePtr &replacement);
+    void messageReplaced(size_t index, MessagePtr &replacement);
     void messagesUpdated();
 
     void performLayout(bool causedByScrollbar = false,
@@ -322,9 +290,6 @@ private:
     void setInputReply(const MessagePtr &message);
     void showReplyThreadPopup(const MessagePtr &message);
     bool canReplyToMessages() const;
-
-    void updateID();
-    ChannelViewID id_{};
 
     bool layoutQueued_ = false;
     bool bufferInvalidationQueued_ = false;
@@ -387,7 +352,7 @@ private:
     FilterSetPtr channelFilters_;
 
     // Returns true if message should be included
-    bool shouldIncludeMessage(const MessagePtr &message) const;
+    bool shouldIncludeMessage(const MessagePtr &m) const;
 
     // Returns whether the scrollbar should have highlights
     bool showScrollbarHighlights() const;
@@ -399,8 +364,6 @@ private:
 
     bool onlyUpdateEmotes_ = false;
 
-    bool isOverlay_ = false;
-
     // Mouse event variables
     bool isLeftMouseDown_ = false;
     bool isRightMouseDown_ = false;
@@ -411,7 +374,6 @@ private:
     QTimer clickTimer_;
 
     bool isScrolling_ = false;
-    bool isPanning_ = false;
     QPointF lastMiddlePressPosition_;
     QPointF currentMousePosition_;
     QTimer scrollTimer_;

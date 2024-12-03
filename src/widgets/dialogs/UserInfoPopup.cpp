@@ -2,7 +2,6 @@
 
 #include "Application.hpp"
 #include "common/Channel.hpp"
-#include "common/Literals.hpp"
 #include "common/network/NetworkRequest.hpp"
 #include "common/network/NetworkResult.hpp"
 #include "common/QLogging.hpp"
@@ -13,7 +12,6 @@
 #include "messages/Message.hpp"
 #include "messages/MessageBuilder.hpp"
 #include "providers/IvrApi.hpp"
-#include "providers/pronouns/Pronouns.hpp"
 #include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/ChannelPointReward.hpp"
 #include "providers/twitch/TwitchAccount.hpp"
@@ -27,7 +25,6 @@
 #include "util/Clipboard.hpp"
 #include "util/Helpers.hpp"
 #include "util/LayoutCreator.hpp"
-#include "util/PostToThread.hpp"
 #include "widgets/helper/ChannelView.hpp"
 #include "widgets/helper/EffectLabel.hpp"
 #include "widgets/helper/InvisibleSizeGrip.hpp"
@@ -39,8 +36,6 @@
 
 #include <QCheckBox>
 #include <QDesktopServices>
-#include <QMessageBox>
-#include <QMetaEnum>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QPointer>
@@ -57,6 +52,7 @@ const QString TEXT_PRONOUNS("Pronouns: %1");
 const QString TEXT_UNSPECIFIED("unspecified");
 const QString TEXT_LOADING("(loading...)"); 
 
+<<<<<<< HEAD
 namespace {
 
 using namespace chatterino;
@@ -67,87 +63,95 @@ Label *addCopyableLabel(LayoutCreator<QHBoxLayout> box, const char *tooltip,
     auto label = box.emplace<Label>();
     auto button = box.emplace<Button>();
     if (copyButton != nullptr)
+=======
+namespace chatterino {
+namespace {
+    Label *addCopyableLabel(LayoutCreator<QHBoxLayout> box, const char *tooltip,
+                            Button **copyButton = nullptr)
+>>>>>>> parent of 02933ee7 (Merge branch 'Mm2PL-dankerino' into forserino)
     {
-        button.assign(copyButton);
-    }
-    button->setPixmap(getApp()->getThemes()->buttons.copy);
-    button->setScaleIndependantSize(18, 18);
-    button->setDim(Button::Dim::Lots);
-    button->setToolTip(tooltip);
-    QObject::connect(
-        button.getElement(), &Button::leftClicked,
-        [label = label.getElement()] {
-            auto copyText = label->property("copy-text").toString();
-
-            crossPlatformCopy(copyText.isEmpty() ? label->getText() : copyText);
-        });
-
-    return label.getElement();
-};
-
-bool checkMessageUserName(const QString &userName, MessagePtr message)
-{
-    if (message->flags.has(MessageFlag::Whisper))
-    {
-        return false;
-    }
-
-    bool isSubscription = message->flags.has(MessageFlag::Subscription) &&
-                          message->loginName.isEmpty() &&
-                          message->messageText.split(" ").at(0).compare(
-                              userName, Qt::CaseInsensitive) == 0;
-
-    bool isModAction =
-        message->timeoutUser.compare(userName, Qt::CaseInsensitive) == 0;
-    bool isSelectedUser =
-        message->loginName.compare(userName, Qt::CaseInsensitive) == 0;
-
-    return (isSubscription || isModAction || isSelectedUser);
-}
-
-ChannelPtr filterMessages(const QString &userName, ChannelPtr channel)
-{
-    LimitedQueueSnapshot<MessagePtr> snapshot = channel->getMessageSnapshot();
-
-    ChannelPtr channelPtr;
-    if (channel->isTwitchChannel())
-    {
-        channelPtr = std::make_shared<TwitchChannel>(channel->getName());
-    }
-    else
-    {
-        channelPtr =
-            std::make_shared<Channel>(channel->getName(), Channel::Type::None);
-    }
-
-    for (size_t i = 0; i < snapshot.size(); i++)
-    {
-        MessagePtr message = snapshot[i];
-
-        if (checkMessageUserName(userName, message))
+        auto label = box.emplace<Label>();
+        auto button = box.emplace<Button>();
+        if (copyButton != nullptr)
         {
-            channelPtr->addMessage(message, MessageContext::Repost);
+            button.assign(copyButton);
         }
+        button->setPixmap(getIApp()->getThemes()->buttons.copy);
+        button->setScaleIndependantSize(18, 18);
+        button->setDim(Button::Dim::Lots);
+        button->setToolTip(tooltip);
+        QObject::connect(
+            button.getElement(), &Button::leftClicked,
+            [label = label.getElement()] {
+                auto copyText = label->property("copy-text").toString();
+
+                crossPlatformCopy(copyText.isEmpty() ? label->getText()
+                                                     : copyText);
+            });
+
+        return label.getElement();
+    };
+
+    bool checkMessageUserName(const QString &userName, MessagePtr message)
+    {
+        if (message->flags.has(MessageFlag::Whisper))
+        {
+            return false;
+        }
+
+        bool isSubscription = message->flags.has(MessageFlag::Subscription) &&
+                              message->loginName.isEmpty() &&
+                              message->messageText.split(" ").at(0).compare(
+                                  userName, Qt::CaseInsensitive) == 0;
+
+        bool isModAction =
+            message->timeoutUser.compare(userName, Qt::CaseInsensitive) == 0;
+        bool isSelectedUser =
+            message->loginName.compare(userName, Qt::CaseInsensitive) == 0;
+
+        return (isSubscription || isModAction || isSelectedUser);
     }
 
-    return channelPtr;
-};
+    ChannelPtr filterMessages(const QString &userName, ChannelPtr channel)
+    {
+        LimitedQueueSnapshot<MessagePtr> snapshot =
+            channel->getMessageSnapshot();
 
-const auto borderColor = QColor(255, 255, 255, 80);
+        ChannelPtr channelPtr;
+        if (channel->isTwitchChannel())
+        {
+            channelPtr = std::make_shared<TwitchChannel>(channel->getName());
+        }
+        else
+        {
+            channelPtr = std::make_shared<Channel>(channel->getName(),
+                                                   Channel::Type::None);
+        }
 
-int calculateTimeoutDuration(TimeoutButton timeout)
-{
-    static const QMap<QString, int> durations{
-        {"s", 1}, {"m", 60}, {"h", 3600}, {"d", 86400}, {"w", 604800},
+        for (size_t i = 0; i < snapshot.size(); i++)
+        {
+            MessagePtr message = snapshot[i];
+
+            if (checkMessageUserName(userName, message))
+            {
+                channelPtr->addMessage(message, MessageContext::Repost);
+            }
+        }
+
+        return channelPtr;
     };
-    return timeout.second * durations[timeout.first];
-}
+
+    const auto borderColor = QColor(255, 255, 255, 80);
+
+    int calculateTimeoutDuration(TimeoutButton timeout)
+    {
+        static const QMap<QString, int> durations{
+            {"s", 1}, {"m", 60}, {"h", 3600}, {"d", 86400}, {"w", 604800},
+        };
+        return timeout.second * durations[timeout.first];
+    }
 
 }  // namespace
-
-namespace chatterino {
-
-using namespace literals;
 
 UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
     : DraggablePopup(closeAutomatically, split)
@@ -227,13 +231,11 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
 
                  const auto &timeoutButtons =
                      getSettings()->timeoutButtons.getValue();
-                 if (static_cast<int>(timeoutButtons.size()) < buttonNum ||
-                     0 >= buttonNum)
+                 if (timeoutButtons.size() < buttonNum || 0 >= buttonNum)
                  {
                      return QString("Invalid argument for execModeratorAction: "
                                     "%1. Integer out of usable range: [1, %2]")
-                         .arg(buttonNum,
-                              static_cast<int>(timeoutButtons.size()) - 1);
+                         .arg(buttonNum, timeoutButtons.size() - 1);
                  }
                  const auto &button = timeoutButtons.at(buttonNum - 1);
                  msg = QString("/timeout %1 %2")
@@ -241,7 +243,7 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                            .arg(calculateTimeoutDuration(button));
              }
 
-             msg = getApp()->getCommands()->execCommand(
+             msg = getIApp()->getCommands()->execCommand(
                  msg, this->underlyingChannel_, false);
 
              this->underlyingChannel_->sendMessage(msg);
@@ -260,7 +262,7 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
         {"search", nullptr},
     };
 
-    this->shortcuts_ = getApp()->getHotkeys()->shortcutsForCategory(
+    this->shortcuts_ = getIApp()->getHotkeys()->shortcutsForCategory(
         HotkeyCategory::PopupWindow, actions, this);
 
     auto layers = LayoutCreator<QWidget>(this->getLayoutContainer())
@@ -313,22 +315,23 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                         menu->addAction(
                             "Open channel in a new popup window", this,
                             [loginName] {
-                                auto *app = getApp();
+                                auto *app = getIApp();
                                 auto &window = app->getWindows()->createWindow(
                                     WindowType::Popup, true);
                                 auto *split = window.getNotebook()
                                                   .getOrAddSelectedPage()
                                                   ->appendNewSplit(false);
                                 split->setChannel(
-                                    app->getTwitch()->getOrAddChannel(
+                                    app->getTwitchAbstract()->getOrAddChannel(
                                         loginName.toLower()));
                             });
 
                         menu->addAction(
                             "Open channel in a new tab", this, [loginName] {
                                 ChannelPtr channel =
-                                    getApp()->getTwitch()->getOrAddChannel(
-                                        loginName);
+                                    getIApp()
+                                        ->getTwitchAbstract()
+                                        ->getOrAddChannel(loginName);
                                 auto &nb = getApp()
                                                ->getWindows()
                                                ->getMainWindow()
@@ -387,11 +390,6 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
             }
 
             // items on the left
-            if (getSettings()->showPronouns)
-            {
-                vbox.emplace<Label>(TEXT_PRONOUNS.arg(TEXT_LOADING))
-                    .assign(&this->ui_.pronounsLabel);
-            }
             vbox.emplace<Label>(TEXT_FOLLOWERS.arg(""))
                 .assign(&this->ui_.followerCountLabel);
             vbox.emplace<Label>(TEXT_CREATED.arg(""))
@@ -452,25 +450,25 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
 
         QObject::connect(mod.getElement(), &Button::leftClicked, [this] {
             QString value = "/mod " + this->userName_;
-            value = getApp()->getCommands()->execCommand(
+            value = getIApp()->getCommands()->execCommand(
                 value, this->underlyingChannel_, false);
             this->underlyingChannel_->sendMessage(value);
         });
         QObject::connect(unmod.getElement(), &Button::leftClicked, [this] {
             QString value = "/unmod " + this->userName_;
-            value = getApp()->getCommands()->execCommand(
+            value = getIApp()->getCommands()->execCommand(
                 value, this->underlyingChannel_, false);
             this->underlyingChannel_->sendMessage(value);
         });
         QObject::connect(vip.getElement(), &Button::leftClicked, [this] {
             QString value = "/vip " + this->userName_;
-            value = getApp()->getCommands()->execCommand(
+            value = getIApp()->getCommands()->execCommand(
                 value, this->underlyingChannel_, false);
             this->underlyingChannel_->sendMessage(value);
         });
         QObject::connect(unvip.getElement(), &Button::leftClicked, [this] {
             QString value = "/unvip " + this->userName_;
-            value = getApp()->getCommands()->execCommand(
+            value = getIApp()->getCommands()->execCommand(
                 value, this->underlyingChannel_, false);
             this->underlyingChannel_->sendMessage(value);
         });
@@ -566,7 +564,7 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
             if (twitchChannel)
             {
                 bool isMyself =
-                    QString::compare(getApp()
+                    QString::compare(getIApp()
                                          ->getAccounts()
                                          ->twitch.getCurrent()
                                          ->getUserName(),
@@ -615,7 +613,7 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                     if (this->underlyingChannel_)
                     {
                         QString value = "/ban " + this->userName_;
-                        value = getApp()->getCommands()->execCommand(
+                        value = getIApp()->getCommands()->execCommand(
                             value, this->underlyingChannel_, false);
 
                         this->underlyingChannel_->sendMessage(value);
@@ -626,7 +624,7 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                     if (this->underlyingChannel_)
                     {
                         QString value = "/unban " + this->userName_;
-                        value = getApp()->getCommands()->execCommand(
+                        value = getIApp()->getCommands()->execCommand(
                             value, this->underlyingChannel_, false);
 
                         this->underlyingChannel_->sendMessage(value);
@@ -639,7 +637,7 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                         QString value = "/timeout " + this->userName_ + " " +
                                         QString::number(arg);
 
-                        value = getApp()->getCommands()->execCommand(
+                        value = getIApp()->getCommands()->execCommand(
                             value, this->underlyingChannel_, false);
 
                         this->underlyingChannel_->sendMessage(value);
@@ -688,7 +686,7 @@ void UserInfoPopup::themeChangedEvent()
     for (auto &&child : this->findChildren<QCheckBox *>())
     {
         child->setFont(
-            getApp()->getFonts()->getFont(FontStyle::UiMedium, this->scale()));
+            getIApp()->getFonts()->getFont(FontStyle::UiMedium, this->scale()));
     }
 }
 
@@ -713,7 +711,7 @@ void UserInfoPopup::installEvents()
     QObject::connect(
         this->ui_.block, &QCheckBox::stateChanged,
         [this](int newState) mutable {
-            auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
+            auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
             const auto reenableBlockCheckbox = [this] {
                 this->ui_.block->setEnabled(true);
@@ -725,75 +723,57 @@ void UserInfoPopup::installEvents()
                 return;
             }
 
-            if (newState == Qt::Unchecked)
+            switch (newState)
             {
-                this->ui_.block->setEnabled(false);
+                case Qt::CheckState::Unchecked: {
+                    this->ui_.block->setEnabled(false);
 
-                getApp()->getAccounts()->twitch.getCurrent()->unblockUser(
-                    this->userId_, this,
-                    [this, reenableBlockCheckbox, currentUser] {
-                        this->channel_->addSystemMessage(
-                            QString("You successfully unblocked user %1")
-                                .arg(this->userName_));
-                        reenableBlockCheckbox();
-                    },
-                    [this, reenableBlockCheckbox] {
-                        this->channel_->addSystemMessage(
-                            QString("User %1 couldn't be unblocked, an unknown "
+                    getIApp()->getAccounts()->twitch.getCurrent()->unblockUser(
+                        this->userId_, this,
+                        [this, reenableBlockCheckbox, currentUser] {
+                            this->channel_->addSystemMessage(
+                                QString("You successfully unblocked user %1")
+                                    .arg(this->userName_));
+                            reenableBlockCheckbox();
+                        },
+                        [this, reenableBlockCheckbox] {
+                            this->channel_->addSystemMessage(
+                                QString(
+                                    "User %1 couldn't be unblocked, an unknown "
                                     "error occurred!")
-                                .arg(this->userName_));
-                        reenableBlockCheckbox();
-                    });
-                return;
-            }
-
-            if (newState == Qt::Checked)
-            {
-                this->ui_.block->setEnabled(false);
-
-                bool wasPinned = this->ensurePinned();
-                auto btn = QMessageBox::warning(
-                    this,
-                    QString("Blocking %1").arg(this->userName_),
-                    QStringLiteral("Blocking %1 can cause unintended side-effects like unfollowing.\n\n"
-                                    "Are you sure you want to block %1?")
-                        .arg(this->userName_),
-                    QMessageBox::Yes | QMessageBox::Cancel,
-                    QMessageBox::Cancel);
-
-                if (wasPinned)
-                {
-                    this->togglePinned();
+                                    .arg(this->userName_));
+                            reenableBlockCheckbox();
+                        });
                 }
-                if (btn != QMessageBox::Yes)
-                {
-                    reenableBlockCheckbox();
-                    QSignalBlocker blocker(this->ui_.block);
-                    this->ui_.block->setCheckState(Qt::Unchecked);
-                    return;
+                break;
+
+                case Qt::CheckState::PartiallyChecked: {
+                    // We deliberately ignore this state
                 }
+                break;
 
-                getApp()->getAccounts()->twitch.getCurrent()->blockUser(
-                    this->userId_, this,
-                    [this, reenableBlockCheckbox, currentUser] {
-                        this->channel_->addSystemMessage(
-                            QString("You successfully blocked user %1")
-                                .arg(this->userName_));
-                        reenableBlockCheckbox();
-                    },
-                    [this, reenableBlockCheckbox] {
-                        this->channel_->addSystemMessage(
-                            QString("User %1 couldn't be blocked, an "
-                                    "unknown error occurred!")
-                                .arg(this->userName_));
-                        reenableBlockCheckbox();
-                    });
-                return;
+                case Qt::CheckState::Checked: {
+                    this->ui_.block->setEnabled(false);
+
+                    getIApp()->getAccounts()->twitch.getCurrent()->blockUser(
+                        this->userId_, this,
+                        [this, reenableBlockCheckbox, currentUser] {
+                            this->channel_->addSystemMessage(
+                                QString("You successfully blocked user %1")
+                                    .arg(this->userName_));
+                            reenableBlockCheckbox();
+                        },
+                        [this, reenableBlockCheckbox] {
+                            this->channel_->addSystemMessage(
+                                QString(
+                                    "User %1 couldn't be blocked, an unknown "
+                                    "error occurred!")
+                                    .arg(this->userName_));
+                            reenableBlockCheckbox();
+                        });
+                }
+                break;
             }
-
-            qCWarning(chatterinoWidget)
-                << "Unexpected check-state when blocking" << this->userName_
-                << QMetaEnum::fromType<Qt::CheckState>().valueToKey(newState);
         });
 
     // ignore highlights
@@ -812,10 +792,9 @@ void UserInfoPopup::installEvents()
             {
                 const auto &vector = getSettings()->blacklistedUsers.raw();
 
-                for (int i = 0; i < static_cast<int>(vector.size()); i++)
+                for (int i = 0; i < vector.size(); i++)
                 {
-                    if (this->userName_ ==
-                        vector[static_cast<size_t>(i)].getPattern())
+                    if (this->userName_ == vector[i].getPattern())
                     {
                         getSettings()->blacklistedUsers.removeAt(i);
                         i--;
@@ -884,7 +863,8 @@ void UserInfoPopup::setData(const QString &name,
 
     auto type = this->channel_->getType();
     if (type == Channel::Type::TwitchLive ||
-        type == Channel::Type::TwitchWhispers || type == Channel::Type::Misc)
+        type == Channel::Type::TwitchWhispers || type == Channel::Type::Irc ||
+        type == Channel::Type::Misc)
     {
         // not a normal twitch channel, the url opened by the button will be invalid, so hide the button
         this->ui_.usercardLabel->hide();
@@ -932,7 +912,7 @@ void UserInfoPopup::updateLatestMessages()
 void UserInfoPopup::updateUserData()
 {
     std::weak_ptr<bool> hack = this->lifetimeHack_;
-    auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
+    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
     // Define success and failure handlers for fetching user color
     auto userColorSuccess = [this, hack](const HelixColor &color) {
@@ -1050,7 +1030,7 @@ void UserInfoPopup::updateUserData()
         getHelix()->getUserColor(this->userId_, userColorSuccess,
                                       userColorFailure);
 
-        if (getApp()->getStreamerMode()->isEnabled() &&
+        if (getIApp()->getStreamerMode()->isEnabled() &&
             getSettings()->streamerModeHideUsercardAvatars)
         {
             this->ui_.avatarButton->setPixmap(getResources().streamerMode);
@@ -1081,9 +1061,9 @@ void UserInfoPopup::updateUserData()
         // get ignoreHighlights state
         bool isIgnoringHighlights = false;
         const auto &vector = getSettings()->blacklistedUsers.raw();
-        for (const auto &user : vector)
+        for (int i = 0; i < vector.size(); i++)
         {
-            if (this->userName_ == user.getPattern())
+            if (this->userName_ == vector[i].getPattern())
             {
                 isIgnoringHighlights = true;
                 break;
@@ -1208,42 +1188,6 @@ void UserInfoPopup::updateUserData()
             }
             },
             [] {});
-        // get pronouns
-        if (getSettings()->showPronouns)
-        {
-            getApp()->getPronouns()->getUserPronoun(
-                user.login,
-                [this, hack](const auto userPronoun) {
-                    runInGuiThread([this, hack,
-                                    userPronoun = std::move(userPronoun)]() {
-                        if (!hack.lock() || this->ui_.pronounsLabel == nullptr)
-                        {
-                            return;
-                        }
-                        if (!userPronoun.isUnspecified())
-                        {
-                            this->ui_.pronounsLabel->setText(
-                                TEXT_PRONOUNS.arg(userPronoun.format()));
-                        }
-                        else
-                        {
-                            this->ui_.pronounsLabel->setText(
-                                TEXT_PRONOUNS.arg(TEXT_UNSPECIFIED));
-                        }
-                    });
-                },
-                [this, hack]() {
-                    runInGuiThread([this, hack]() {
-                        qCWarning(chatterinoTwitch) << "Error getting pronouns";
-                        if (!hack.lock())
-                        {
-                            return;
-                        }
-                        this->ui_.pronounsLabel->setText(
-                            TEXT_PRONOUNS.arg(TEXT_UNSPECIFIED));
-                    });
-                });
-        }
     };
 
     if (!this->userId_.isEmpty())

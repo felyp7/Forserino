@@ -7,10 +7,10 @@
 
 #include <QPainter>
 
-namespace {
-
 // number of columns in grid mode
-constexpr int GRID_NUM_COLS = 3;
+#define GRID_NUM_COLS 3
+
+namespace {
 
 #ifdef Q_OS_WIN
 template <typename T>
@@ -47,13 +47,13 @@ TooltipWidget::TooltipWidget(BaseWidget *parent)
     this->setLayout(this->vLayout_);
     this->currentStyle_ = TooltipStyle::Vertical;
 
-    this->connections_.managedConnect(getApp()->getFonts()->fontChanged,
+    this->connections_.managedConnect(getIApp()->getFonts()->fontChanged,
                                       [this] {
                                           this->updateFont();
                                       });
     this->updateFont();
 
-    auto *windows = getApp()->getWindows();
+    auto *windows = getIApp()->getWindows();
     this->connections_.managedConnect(windows->gifRepaintRequested, [this] {
         if (!this->isVisible())
         {
@@ -119,9 +119,9 @@ void TooltipWidget::set(const std::vector<TooltipEntry> &entries,
 
     this->setVisibleEntries(entries.size());
 
-    for (size_t i = 0; i < entries.size(); ++i)
+    for (int i = 0; i < entries.size(); ++i)
     {
-        if (auto *entryWidget = this->entryAt(static_cast<int>(i)))
+        if (auto *entryWidget = this->entryAt(i))
         {
             const auto &entry = entries[i];
             entryWidget->setImage(entry.image);
@@ -300,8 +300,8 @@ void TooltipWidget::scaleChangedEvent(float)
 
 void TooltipWidget::updateFont()
 {
-    this->setFont(getApp()->getFonts()->getFont(FontStyle::ChatMediumSmall,
-                                                this->scale()));
+    this->setFont(getIApp()->getFonts()->getFont(FontStyle::ChatMediumSmall,
+                                                 this->scale()));
 }
 
 void TooltipWidget::setWordWrap(bool wrap)

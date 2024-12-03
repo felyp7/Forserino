@@ -1,4 +1,4 @@
-#include "controllers/accounts/AccountModel.hpp"
+#include "AccountModel.hpp"
 
 #include "controllers/accounts/Account.hpp"
 #include "util/StandardItemHelper.hpp"

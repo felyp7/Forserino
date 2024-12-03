@@ -1,11 +1,15 @@
 #pragma once
 
+#include "common/Aliases.hpp"
 #include "messages/ImageSet.hpp"
 
 #include <QJsonObject>
 
-namespace chatterino {
+#define TWITCH_CHANNEL_POINT_REWARD_URL(x)                                  \
+    QString("https://static-cdn.jtvnw.net/custom-reward-images/default-%1") \
+        .arg(x)
 
+namespace chatterino {
 struct ChannelPointReward {
     ChannelPointReward(const QJsonObject &redemption);
     ChannelPointReward() = delete;
@@ -24,8 +28,6 @@ struct ChannelPointReward {
         QString login;
         QString displayName;
     } user;
-
-    QJsonObject toJson() const;
 };
 
 }  // namespace chatterino

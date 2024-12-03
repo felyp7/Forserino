@@ -1,9 +1,10 @@
 #include "controllers/moderationactions/ModerationAction.hpp"
 
 #include "messages/Image.hpp"
-#include "mocks/BaseApplication.hpp"
-#include "mocks/Emotes.hpp"
+#include "mocks/EmptyApplication.hpp"
+#include "singletons/Emotes.hpp"
 #include "singletons/Resources.hpp"
+#include "singletons/Settings.hpp"
 #include "Test.hpp"
 
 #include <QString>
@@ -14,17 +15,21 @@ using namespace std::chrono_literals;
 
 namespace {
 
-class MockApplication : public mock::BaseApplication
+class MockApplication : mock::EmptyApplication
 {
 public:
-    MockApplication() = default;
+    MockApplication()
+        : settings(this->settingsDir.filePath("settings.json"))
+    {
+    }
 
     IEmotes *getEmotes() override
     {
         return &this->emotes;
     }
 
-    mock::Emotes emotes;
+    Settings settings;
+    Emotes emotes;
 };
 
 class ModerationActionTest : public ::testing::Test

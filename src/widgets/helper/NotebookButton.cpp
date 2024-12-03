@@ -14,6 +14,8 @@
 #include <QPainterPath>
 #include <QRadialGradient>
 
+#define nuuls nullptr
+
 namespace chatterino {
 
 NotebookButton::NotebookButton(Notebook *parent)

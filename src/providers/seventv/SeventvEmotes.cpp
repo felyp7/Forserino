@@ -79,8 +79,7 @@ bool isZeroWidthRecommended(const QJsonObject &emoteData)
 Tooltip createTooltip(const QString &name, const QString &author, bool isGlobal)
 {
     return Tooltip{QString("%1<br>%2 7TV Emote<br>By: %3")
-                       .arg(name.toHtmlEscaped(),
-                            isGlobal ? "Global" : "Channel",
+                       .arg(name, isGlobal ? "Global" : "Channel",
                             author.isEmpty() ? "<deleted>" : author)};
 }
 
@@ -88,8 +87,7 @@ Tooltip createAliasedTooltip(const QString &name, const QString &baseName,
                              const QString &author, bool isGlobal)
 {
     return Tooltip{QString("%1<br>Alias of %2<br>%3 7TV Emote<br>By: %4")
-                       .arg(name.toHtmlEscaped(), baseName.toHtmlEscaped(),
-                            isGlobal ? "Global" : "Channel",
+                       .arg(name, baseName, isGlobal ? "Global" : "Channel",
                             author.isEmpty() ? "<deleted>" : author)};
 }
 
@@ -108,18 +106,12 @@ CreateEmoteResult createEmote(const QJsonObject &activeEmote,
             ? createAliasedTooltip(emoteName.string, baseEmoteName.string,
                                    author.string, isGlobal)
             : createTooltip(emoteName.string, author.string, isGlobal);
-    auto imageSet = SeventvEmotes::createImageSet(emoteData, false);
+    auto imageSet = SeventvEmotes::createImageSet(emoteData);
 
-    auto emote = Emote({
-        emoteName,
-        imageSet,
-        tooltip,
-        Url{EMOTE_LINK_FORMAT.arg(emoteId.string)},
-        zeroWidth,
-        emoteId,
-        author,
-        makeConditionedOptional(aliasedName, baseEmoteName),
-    });
+    auto emote =
+        Emote({emoteName, imageSet, tooltip,
+               Url{EMOTE_LINK_FORMAT.arg(emoteId.string)}, zeroWidth, emoteId,
+               author, makeConditionedOptional(aliasedName, baseEmoteName)});
 
     return {emote, emoteId, emoteName, !emote.images.getImage1()->isEmpty()};
 }
@@ -196,11 +188,6 @@ EmoteMap seventv::detail::parseEmotes(const QJsonArray &emoteSetEmotes,
 SeventvEmotes::SeventvEmotes()
     : global_(std::make_shared<EmoteMap>())
 {
-    getSettings()->enableSevenTVGlobalEmotes.connect(
-        [this] {
-            this->loadGlobalEmotes();
-        },
-        this->managedConnections, false);
 }
 
 std::shared_ptr<const EmoteMap> SeventvEmotes::globalEmotes() const
@@ -230,7 +217,7 @@ void SeventvEmotes::loadGlobalEmotes()
 
     qCDebug(chatterinoSeventv) << "Loading 7TV Global Emotes";
 
-    getApp()->getSeventvAPI()->getEmoteSet(
+    getIApp()->getSeventvAPI()->getEmoteSet(
         u"global"_s,
         [this](const auto &json) {
             QJsonArray parsedEmotes = json["emotes"].toArray();
@@ -259,7 +246,7 @@ void SeventvEmotes::loadChannelEmotes(
     qCDebug(chatterinoSeventv)
         << "Reloading 7TV Channel Emotes" << channelId << manualRefresh;
 
-    getApp()->getSeventvAPI()->getUserByTwitchID(
+    getIApp()->getSeventvAPI()->getUserByTwitchID(
         channelId,
         [callback = std::move(callback), channel, channelId,
          manualRefresh](const auto &json) {
@@ -418,7 +405,7 @@ void SeventvEmotes::getEmoteSet(
 {
     qCDebug(chatterinoSeventv) << "Loading 7TV Emote Set" << emoteSetId;
 
-    getApp()->getSeventvAPI()->getEmoteSet(
+    getIApp()->getSeventvAPI()->getEmoteSet(
         emoteSetId,
         [callback = std::move(successCallback), emoteSetId](const auto &json) {
             auto parsedEmotes = json["emotes"].toArray();
@@ -435,8 +422,7 @@ void SeventvEmotes::getEmoteSet(
         });
 }
 
-ImageSet SeventvEmotes::createImageSet(const QJsonObject &emoteData,
-                                       bool useStatic)
+ImageSet SeventvEmotes::createImageSet(const QJsonObject &emoteData)
 {
     auto host = emoteData["host"].toObject();
     // "//cdn.7tv[...]"
@@ -472,21 +458,9 @@ ImageSet SeventvEmotes::createImageSet(const QJsonObject &emoteData,
             baseWidth = width;
         }
 
-        auto name = [&] {
-            if (useStatic)
-            {
-                auto staticName = file["static_name"].toString();
-                if (!staticName.isEmpty())
-                {
-                    return staticName;
-                }
-            }
-            return file["name"].toString();
-        }();
-
-        auto image =
-            Image::fromUrl({QString("https:%1/%2").arg(baseUrl, name)}, scale,
-                           {static_cast<int>(width), file["height"].toInt(16)});
+        auto image = Image::fromUrl(
+            {QString("https:%1/%2").arg(baseUrl, file["name"].toString())},
+            scale, {static_cast<int>(width), file["height"].toInt(16)});
 
         sizes.at(nextSize) = image;
         nextSize++;

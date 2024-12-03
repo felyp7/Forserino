@@ -1,13 +1,12 @@
-#include "singletons/Updates.hpp"
+#include "Updates.hpp"
 
-#include "common/Literals.hpp"
 #include "common/Modes.hpp"
 #include "common/network/NetworkRequest.hpp"
 #include "common/network/NetworkResult.hpp"
 #include "common/QLogging.hpp"
 #include "common/Version.hpp"
+#include "Settings.hpp"
 #include "singletons/Paths.hpp"
-#include "singletons/Settings.hpp"
 #include "util/CombinePath.hpp"
 #include "util/PostToThread.hpp"
 
@@ -16,48 +15,23 @@
 #include <QMessageBox>
 #include <QProcess>
 #include <QRegularExpression>
-#include <QStringBuilder>
-#include <QtConcurrent>
 #include <semver/semver.hpp>
 
+namespace chatterino {
 namespace {
-
-using namespace chatterino;
-using namespace literals;
-
-QString currentBranch()
-{
-    return getSettings()->betaUpdates ? "beta" : "stable";
-}
-
-#if defined(Q_OS_WIN)
-const QString CHATTERINO_OS = u"win"_s;
-#elif defined(Q_OS_MACOS)
-const QString CHATTERINO_OS = u"macos"_s;
-#elif defined(Q_OS_LINUX)
-const QString CHATTERINO_OS = u"linux"_s;
-#elif defined(Q_OS_FREEBSD)
-const QString CHATTERINO_OS = u"freebsd"_s;
-#else
-const QString CHATTERINO_OS = u"unknown"_s;
-#endif
+    QString currentBranch()
+    {
+        return getSettings()->betaUpdates ? "beta" : "stable";
+    }
 
 }  // namespace
 
-namespace chatterino {
-
-Updates::Updates(const Paths &paths_, Settings &settings)
+Updates::Updates(const Paths &paths_)
     : paths(paths_)
     , currentVersion_(CHATTERINO_VERSION)
     , updateGuideLink_("https://chatterino.com")
 {
     qCDebug(chatterinoUpdate) << "init UpdateManager";
-
-    settings.betaUpdates.connect(
-        [this] {
-            this->checkForUpdates();
-        },
-        this->managedConnections, false);
 }
 
 /// Checks if the online version is newer or older than the current version.
@@ -80,26 +54,6 @@ bool Updates::isDowngradeOf(const QString &online, const QString &current)
     }
 
     return onlineVersion < currentVersion;
-}
-
-void Updates::deleteOldFiles()
-{
-    std::ignore = QtConcurrent::run([dir{this->paths.miscDirectory}] {
-        {
-            auto path = combinePath(dir, "Update.exe");
-            if (QFile::exists(path))
-            {
-                QFile::remove(path);
-            }
-        }
-        {
-            auto path = combinePath(dir, "update.zip");
-            if (QFile::exists(path))
-            {
-                QFile::remove(path);
-            }
-        }
-    });
 }
 
 const QString &Updates::getCurrentVersion() const
@@ -308,8 +262,9 @@ void Updates::checkForUpdates()
         return;
     }
 
-    QString url = "https://notitia.chatterino.com/version/chatterino/" %
-                  CHATTERINO_OS % "/" % currentBranch();
+    QString url =
+        "https://notitia.chatterino.com/version/chatterino/" CHATTERINO_OS "/" +
+        currentBranch();
 
     NetworkRequest(url)
         .timeout(60000)

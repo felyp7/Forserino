@@ -2,6 +2,7 @@
 
 #ifdef CHATTERINO_HAVE_PLUGINS
 
+#    include "common/Singleton.hpp"
 #    include "controllers/commands/CommandContext.hpp"
 #    include "controllers/plugins/Plugin.hpp"
 
@@ -10,7 +11,6 @@
 #    include <QJsonArray>
 #    include <QJsonObject>
 #    include <QString>
-#    include <sol/forward.hpp>
 
 #    include <algorithm>
 #    include <map>
@@ -24,14 +24,14 @@ namespace chatterino {
 
 class Paths;
 
-class PluginController
+class PluginController : public Singleton
 {
     const Paths &paths;
 
 public:
     explicit PluginController(const Paths &paths_);
 
-    void initialize(Settings &settings);
+    void initialize(Settings &settings, const Paths &paths) override;
 
     QString tryExecPluginCommand(const QString &commandName,
                                  const CommandContext &ctx);
@@ -67,16 +67,11 @@ private:
               const PluginMeta &meta);
 
     // This function adds lua standard libraries into the state
-    static void openLibrariesFor(Plugin *plugin);
-
-    static void initSol(sol::state_view &lua, Plugin *plugin);
-
+    static void openLibrariesFor(lua_State *L, const PluginMeta & /*meta*/,
+                                 const QDir &pluginDir);
     static void loadChatterinoLib(lua_State *l);
     bool tryLoadFromDir(const QDir &pluginDir);
     std::map<QString, std::unique_ptr<Plugin>> plugins_;
-
-    // This is for tests, pay no attention
-    friend class PluginControllerAccess;
 };
 
 }  // namespace chatterino

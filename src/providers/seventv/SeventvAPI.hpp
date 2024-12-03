@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/Singleton.hpp"
+
 #include <functional>
 
 class QString;
@@ -9,7 +11,7 @@ namespace chatterino {
 
 class NetworkResult;
 
-class SeventvAPI final
+class SeventvAPI : public Singleton
 {
     using ErrorCallback = std::function<void(const NetworkResult &)>;
     template <typename... T>
@@ -17,7 +19,7 @@ class SeventvAPI final
 
 public:
     SeventvAPI() = default;
-    ~SeventvAPI() = default;
+    ~SeventvAPI() override = default;
 
     SeventvAPI(const SeventvAPI &) = delete;
     SeventvAPI(SeventvAPI &&) = delete;

@@ -7,6 +7,7 @@
 #include "common/QLogging.hpp"
 #include "debug/Benchmark.hpp"
 #include "messages/MessageBuilder.hpp"
+#include "providers/twitch/TwitchMessageBuilder.hpp"
 #include "singletons/Paths.hpp"
 #include "singletons/Settings.hpp"
 #include "util/CombinePath.hpp"
@@ -23,10 +24,10 @@
 
 #include <utility>
 
-namespace {
-
+#define UPLOAD_DELAY 2000
 // Delay between uploads in milliseconds
-constexpr int UPLOAD_DELAY = 2000;
+
+namespace {
 
 std::optional<QByteArray> convertToPng(const QImage &image)
 {
@@ -53,7 +54,7 @@ void ImageUploader::logToFile(const QString &originalFilePath,
 {
     const QString logFileName =
         combinePath((getSettings()->logPath.getValue().isEmpty()
-                         ? getApp()->getPaths().messageLogDirectory
+                         ? getIApp()->getPaths().messageLogDirectory
                          : getSettings()->logPath),
                     "ImageUploader.json");
 
@@ -120,6 +121,10 @@ QString getLinkFromResponse(NetworkResult response, QString pattern)
         match = regExp.match(pattern);
     }
     return pattern;
+}
+
+void ImageUploader::save()
+{
 }
 
 void ImageUploader::sendImageUploadRequest(RawImageData imageData,

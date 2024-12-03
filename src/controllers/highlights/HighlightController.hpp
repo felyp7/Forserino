@@ -1,10 +1,9 @@
 #pragma once
 
+#include "common/FlagsEnum.hpp"
+#include "common/Singleton.hpp"
 #include "common/UniqueAccess.hpp"
-#include "messages/MessageFlag.hpp"
-#include "singletons/Settings.hpp"
 
-#include <boost/signals2/connection.hpp>
 #include <pajlada/settings.hpp>
 #include <pajlada/settings/settinglistener.hpp>
 #include <QColor>
@@ -19,7 +18,8 @@ namespace chatterino {
 
 class Badge;
 struct MessageParseArgs;
-class AccountController;
+enum class MessageFlag : int64_t;
+using MessageFlags = FlagsEnum<MessageFlag>;
 
 struct HighlightResult {
     HighlightResult(bool _alert, bool _playSound,
@@ -83,10 +83,10 @@ struct HighlightCheck {
     Checker cb;
 };
 
-class HighlightController final
+class HighlightController final : public Singleton
 {
 public:
-    HighlightController(Settings &settings, AccountController *accounts);
+    void initialize(Settings &settings, const Paths &paths) override;
 
     /**
      * @brief Checks the given message parameters if it matches our internal checks, and returns a result
@@ -108,7 +108,6 @@ private:
 
     pajlada::SettingListener rebuildListener_;
     pajlada::Signals::SignalHolder signalHolder_;
-    std::vector<boost::signals2::scoped_connection> bConnections;
 };
 
 }  // namespace chatterino

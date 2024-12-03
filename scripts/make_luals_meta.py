@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 This script generates docs/plugin-meta.lua. It accepts no arguments
 
@@ -197,7 +196,7 @@ def write_func(path: Path, line: int, comments: list[str], out: TextIOWrapper):
     if not comments[0].startswith("@"):
         out.write(f"--- {comments[0]}\n---\n")
         comments = comments[1:]
-    params: list[str] = []
+    params = []
     for comment in comments[:-1]:
         if not comment.startswith("@lua"):
             panic(path, line, f"Invalid function specification - got '{comment}'")
@@ -210,7 +209,7 @@ def write_func(path: Path, line: int, comments: list[str], out: TextIOWrapper):
         panic(path, line, f"Invalid function exposure - got '{comments[-1]}'")
     name = comments[-1].split(" ", 1)[1]
     printmsg(path, line, f"function {name}")
-    lua_params = ", ".join(p.removesuffix("?") for p in params)
+    lua_params = ", ".join(params)
     out.write(f"function {name}({lua_params}) end\n\n")
 
 
@@ -243,19 +242,17 @@ def read_file(path: Path, out: TextIOWrapper):
                 )
             name = header[0].split(" ", 1)[1]
             printmsg(path, reader.line_no(), f"enum {name}")
+            out.write(f"---@alias {name} integer\n")
             if header_comment:
                 out.write(f"--- {header_comment}\n")
-            out.write(f"---@enum {name}\n")
-            out.write(f"{name} = {{\n")
+            out.write("---@type { ")
             out.write(
-                "\n".join(
-                    [
-                        f"    {variant} = {{}}, ---@type {name}.{variant}"
-                        for variant in reader.read_enum_variants()
-                    ]
+                ", ".join(
+                    [f"{variant}: {name}" for variant in reader.read_enum_variants()]
                 )
             )
-            out.write("\n}\n\n")
+            out.write(" }\n")
+            out.write(f"{name} = {{}}\n\n")
             continue
 
         # class

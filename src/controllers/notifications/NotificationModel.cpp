@@ -1,4 +1,4 @@
-#include "controllers/notifications/NotificationModel.hpp"
+#include "NotificationModel.hpp"
 
 #include "Application.hpp"
 #include "singletons/Settings.hpp"

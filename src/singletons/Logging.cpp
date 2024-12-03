@@ -2,6 +2,7 @@
 
 #include "messages/Message.hpp"
 #include "singletons/helper/LoggingChannel.hpp"
+#include "singletons/Paths.hpp"
 #include "singletons/Settings.hpp"
 
 #include <QDir>
@@ -57,7 +58,7 @@ void Logging::addMessage(const QString &channelName, MessagePtr message,
         auto map = std::map<QString, std::unique_ptr<LoggingChannel>>();
         this->loggingChannels_[platformName] = std::move(map);
         auto &ref = this->loggingChannels_.at(platformName);
-        ref.emplace(channelName, channel);
+        ref.emplace(channelName, std::move(channel));
         return;
     }
     auto chanIt = platIt->second.find(channelName);
@@ -65,23 +66,12 @@ void Logging::addMessage(const QString &channelName, MessagePtr message,
     {
         auto *channel = new LoggingChannel(channelName, platformName);
         channel->addMessage(message, streamID);
-        platIt->second.emplace(channelName, channel);
+        platIt->second.emplace(channelName, std::move(channel));
     }
     else
     {
         chanIt->second->addMessage(message, streamID);
     }
-}
-
-void Logging::closeChannel(const QString &channelName,
-                           const QString &platformName)
-{
-    auto platIt = this->loggingChannels_.find(platformName);
-    if (platIt == this->loggingChannels_.end())
-    {
-        return;
-    }
-    platIt->second.erase(channelName);
 }
 
 }  // namespace chatterino

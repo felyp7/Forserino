@@ -1,7 +1,5 @@
 #include "providers/twitch/TwitchAccountManager.hpp"
 
-#include "Application.hpp"
-#include "common/Args.hpp"
 #include "common/Common.hpp"
 #include "common/QLogging.hpp"
 #include "providers/twitch/api/Helix.hpp"
@@ -146,11 +144,6 @@ void TwitchAccountManager::reloadUsers()
 
 void TwitchAccountManager::load()
 {
-    if (getApp()->getArgs().initialLogin.has_value())
-    {
-        this->currentUsername = getApp()->getArgs().initialLogin.value();
-    }
-
     this->reloadUsers();
 
     this->currentUsername.connect([this](const QString &newUsername) {
@@ -169,7 +162,6 @@ void TwitchAccountManager::load()
         }
 
         this->currentUserChanged();
-        this->currentUser_->reloadEmotes();
     });
 }
 

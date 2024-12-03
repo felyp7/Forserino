@@ -41,7 +41,7 @@ void initUpdateButton(Button &button,
                 }
                 break;
                 case UpdateDialog::Install: {
-                    getApp()->getUpdates().installUpdates();
+                    getIApp()->getUpdates().installUpdates();
                 }
                 break;
             }
@@ -53,17 +53,17 @@ void initUpdateButton(Button &button,
 
     // update image when state changes
     auto updateChange = [&button](auto) {
-        button.setVisible(getApp()->getUpdates().shouldShowUpdateButton());
+        button.setVisible(getIApp()->getUpdates().shouldShowUpdateButton());
 
-        const auto *imageUrl = getApp()->getUpdates().isError()
+        const auto *imageUrl = getIApp()->getUpdates().isError()
                                    ? ":/buttons/updateError.png"
                                    : ":/buttons/update.png";
         button.setPixmap(QPixmap(imageUrl));
     };
 
-    updateChange(getApp()->getUpdates().getStatus());
+    updateChange(getIApp()->getUpdates().getStatus());
 
-    signalHolder.managedConnect(getApp()->getUpdates().statusUpdated,
+    signalHolder.managedConnect(getIApp()->getUpdates().statusUpdated,
                                 [updateChange](auto status) {
                                     updateChange(status);
                                 });

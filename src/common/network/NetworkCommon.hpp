@@ -16,7 +16,7 @@ using NetworkErrorCallback = std::function<void(NetworkResult)>;
 using NetworkFinallyCallback = std::function<void()>;
 
 /**
- * @exposeenum c2.HTTPMethod
+ * @exposeenum HTTPMethod
  */
 enum class NetworkRequestType {
     Get,

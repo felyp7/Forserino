@@ -25,7 +25,8 @@ namespace {
      * @return How different the emote is from query. Values in the range [-10,
      * \infty].
      */
-    int costOfEmote(QStringView query, QStringView emote, bool prioritizeUpper)
+    int costOfEmote(const QString &query, const QString &emote,
+                    bool prioritizeUpper)
     {
         int score = 0;
 
@@ -67,8 +68,8 @@ namespace {
     // matchingFunction is used for testing if the emote should be included in the search.
     void completeEmotes(
         const std::vector<EmoteItem> &items, std::vector<EmoteItem> &output,
-        QStringView query, bool ignoreColonForCost,
-        const std::function<bool(EmoteItem, Qt::CaseSensitivity)>
+        const QString &query, bool ignoreColonForCost,
+        const std::function<bool(EmoteItem, QString, Qt::CaseSensitivity)>
             &matchingFunction)
     {
         // Given these emotes: pajaW, PAJAW
@@ -91,7 +92,8 @@ namespace {
         for (const auto &item : items)
         {
             if (matchingFunction(
-                    item, haveUpper ? Qt::CaseSensitive : Qt::CaseInsensitive))
+                    item, query,
+                    haveUpper ? Qt::CaseSensitive : Qt::CaseInsensitive))
             {
                 output.push_back(item);
             }
@@ -116,7 +118,7 @@ namespace {
             // Run the search again but this time without case sensitivity
             for (const auto &item : items)
             {
-                if (matchingFunction(item, Qt::CaseInsensitive))
+                if (matchingFunction(item, query, Qt::CaseInsensitive))
                 {
                     output.push_back(item);
                 }
@@ -168,10 +170,9 @@ void SmartEmoteStrategy::apply(const std::vector<EmoteItem> &items,
         ignoreColonForCost = true;
     }
     completeEmotes(items, output, normalizedQuery, ignoreColonForCost,
-                   [normalizedQuery](const EmoteItem &left,
-                                     Qt::CaseSensitivity caseHandling) {
-                       return left.searchName.contains(normalizedQuery,
-                                                       caseHandling);
+                   [](const EmoteItem &left, const QString &right,
+                      Qt::CaseSensitivity caseHandling) {
+                       return left.searchName.contains(right, caseHandling);
                    });
 }
 
@@ -179,38 +180,25 @@ void SmartTabEmoteStrategy::apply(const std::vector<EmoteItem> &items,
                                   std::vector<EmoteItem> &output,
                                   const QString &query) const
 {
-    bool colonStart = query.startsWith(':');
-    QStringView normalizedQuery = query;
-    if (colonStart)
+    bool emojiOnly = false;
+    QString normalizedQuery = query;
+    if (normalizedQuery.startsWith(':'))
     {
-        // TODO(Qt6): use sliced
         normalizedQuery = normalizedQuery.mid(1);
+        // tab completion with : prefix should do emojis only
+        emojiOnly = true;
     }
-
-    completeEmotes(
-        items, output, normalizedQuery, false,
-        [&](const EmoteItem &item, Qt::CaseSensitivity caseHandling) -> bool {
-            QStringView itemQuery;
-            if (item.isEmoji)
-            {
-                if (colonStart)
-                {
-                    itemQuery = normalizedQuery;
-                }
-                else
-                {
-                    return false;  // ignore emojis when not completing with ':'
-                }
-            }
-            else
-            {
-                itemQuery = query;
-            }
-
-            return startsWithOrContains(
-                item.searchName, itemQuery, caseHandling,
-                getSettings()->prefixOnlyEmoteCompletion);
-        });
+    completeEmotes(items, output, normalizedQuery, false,
+                   [emojiOnly](const EmoteItem &left, const QString &right,
+                               Qt::CaseSensitivity caseHandling) -> bool {
+                       if (emojiOnly ^ left.isEmoji)
+                       {
+                           return false;
+                       }
+                       return startsWithOrContains(
+                           left.searchName, right, caseHandling,
+                           getSettings()->prefixOnlyEmoteCompletion);
+                   });
 }
 
 }  // namespace chatterino::completion

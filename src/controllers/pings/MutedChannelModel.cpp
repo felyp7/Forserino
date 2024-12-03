@@ -1,4 +1,4 @@
-#include "controllers/pings/MutedChannelModel.hpp"
+#include "MutedChannelModel.hpp"
 
 #include "Application.hpp"
 #include "singletons/Settings.hpp"

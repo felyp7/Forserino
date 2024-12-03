@@ -3,9 +3,9 @@
 #include "Application.hpp"
 #include "messages/Message.hpp"
 #include "messages/MessageBuilder.hpp"
-#include "messages/MessageSimilarity.hpp"
+#include "providers/irc/IrcChannel2.hpp"
+#include "providers/irc/IrcServer.hpp"
 #include "providers/twitch/IrcMessageHandler.hpp"
-#include "providers/twitch/TwitchIrcServer.hpp"
 #include "singletons/Emotes.hpp"
 #include "singletons/Logging.hpp"
 #include "singletons/Settings.hpp"
@@ -26,7 +26,7 @@ namespace chatterino {
 // Channel
 //
 Channel::Channel(const QString &name, Type type)
-    : completionModel(new TabCompletionModel(*this, nullptr))
+    : completionModel(*this, nullptr)
     , lastDate_(QDate::currentDate())
     , name_(name)
     , messages_(getSettings()->scrollbackSplitLimit)
@@ -36,15 +36,12 @@ Channel::Channel(const QString &name, Type type)
     {
         this->platform_ = "twitch";
     }
+
+    // Irc platform is set through IrcChannel2 ctor
 }
 
 Channel::~Channel()
 {
-    auto *app = tryGetApp();
-    if (app)
-    {
-        app->getChatLogger()->closeChannel(this->name_, this->platform_);
-    }
     this->destroyed.invoke();
 }
 
@@ -103,9 +100,9 @@ void Channel::addMessage(MessagePtr message, MessageContext context,
         if (!isDoNotLogSet)
         {
             // Only log messages where the `DoNotLog` flag is not set
-            getApp()->getChatLogger()->addMessage(this->name_, message,
-                                                  this->platform_,
-                                                  this->getCurrentStreamID());
+            getIApp()->getChatLogger()->addMessage(this->name_, message,
+                                                   this->platform_,
+                                                   this->getCurrentStreamID());
         }
     }
 
@@ -123,10 +120,10 @@ void Channel::addSystemMessage(const QString &contents)
     this->addMessage(msg, MessageContext::Original);
 }
 
-void Channel::addOrReplaceTimeout(MessagePtr message, QTime now)
+void Channel::addOrReplaceTimeout(MessagePtr message)
 {
     addOrReplaceChannelTimeout(
-        this->getMessageSnapshot(), std::move(message), now,
+        this->getMessageSnapshot(), std::move(message), QTime::currentTime(),
         [this](auto /*idx*/, auto msg, auto replacement) {
             this->replaceMessage(msg, replacement);
         },
@@ -255,33 +252,21 @@ void Channel::fillInMissingMessages(const std::vector<MessagePtr> &messages)
     }
 }
 
-void Channel::replaceMessage(const MessagePtr &message,
-                             const MessagePtr &replacement)
+void Channel::replaceMessage(MessagePtr message, MessagePtr replacement)
 {
     int index = this->messages_.replaceItem(message, replacement);
 
     if (index >= 0)
     {
-        this->messageReplaced.invoke((size_t)index, message, replacement);
+        this->messageReplaced.invoke((size_t)index, replacement);
     }
 }
 
-void Channel::replaceMessage(size_t index, const MessagePtr &replacement)
+void Channel::replaceMessage(size_t index, MessagePtr replacement)
 {
-    MessagePtr prev;
-    if (this->messages_.replaceItem(index, replacement, &prev))
+    if (this->messages_.replaceItem(index, replacement))
     {
-        this->messageReplaced.invoke(index, prev, replacement);
-    }
-}
-
-void Channel::replaceMessage(size_t hint, const MessagePtr &message,
-                             const MessagePtr &replacement)
-{
-    auto index = this->messages_.replaceItem(hint, message, replacement);
-    if (index >= 0)
-    {
-        this->messageReplaced.invoke(hint, message, replacement);
+        this->messageReplaced.invoke(index, replacement);
     }
 }
 
@@ -294,22 +279,11 @@ void Channel::deleteMessage(QString messageID)
     }
 }
 
-void Channel::clearMessages()
-{
-    this->messages_.clear();
-    this->messagesCleared.invoke();
-}
-
 MessagePtr Channel::findMessage(QString messageID)
-{
-    return this->findMessageByID(messageID);
-}
-
-MessagePtr Channel::findMessageByID(QStringView messageID)
 {
     MessagePtr res;
 
-    if (auto msg = this->messages_.rfind([messageID](const MessagePtr &msg) {
+    if (auto msg = this->messages_.rfind([&messageID](const MessagePtr &msg) {
             return msg->id == messageID;
         });
         msg)
@@ -318,19 +292,6 @@ MessagePtr Channel::findMessageByID(QStringView messageID)
     }
 
     return res;
-}
-
-void Channel::applySimilarityFilters(const MessagePtr &message) const
-{
-    setSimilarityFlags(message, this->messages_.getSnapshot());
-}
-
-MessageSinkTraits Channel::sinkTraits() const
-{
-    return {
-        MessageSinkTrait::AddMentionsToGlobalChannel,
-        MessageSinkTrait::RequiresKnownChannelPointReward,
-    };
 }
 
 bool Channel::canSendMessage() const

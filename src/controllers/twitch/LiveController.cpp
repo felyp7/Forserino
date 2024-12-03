@@ -56,7 +56,7 @@ void TwitchLiveController::add(const std::shared_ptr<TwitchChannel> &newChannel)
 
     {
         std::unique_lock lock(this->channelsMutex);
-        this->channels[channelID] = {.ptr = newChannel, .wasChecked = false};
+        this->channels[channelID] = newChannel;
     }
 
     {
@@ -120,11 +120,9 @@ void TwitchLiveController::request(std::optional<QStringList> optChannelIDs)
                         auto it = this->channels.find(result.first);
                         if (it != channels.end())
                         {
-                            if (auto channel = it->second.ptr.lock(); channel)
+                            if (auto channel = it->second.lock(); channel)
                             {
-                                channel->updateStreamStatus(
-                                    result.second, !it->second.wasChecked);
-                                it->second.wasChecked = true;
+                                channel->updateStreamStatus(result.second);
                             }
                             else
                             {
@@ -161,7 +159,7 @@ void TwitchLiveController::request(std::optional<QStringList> optChannelIDs)
                         auto it = this->channels.find(helixChannel.userId);
                         if (it != this->channels.end())
                         {
-                            if (auto channel = it->second.ptr.lock(); channel)
+                            if (auto channel = it->second.lock(); channel)
                             {
                                 channel->updateStreamTitle(helixChannel.title);
                                 channel->updateDisplayName(helixChannel.name);

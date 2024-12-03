@@ -181,20 +181,6 @@ inline const std::map<HotkeyCategory, ActionDefinitionMap> actionNames{
          {"showSearch", ActionDefinition{"Search current channel"}},
          {"showGlobalSearch", ActionDefinition{"Search all channels"}},
          {"debug", ActionDefinition{"Show debug popup"}},
-         {"popupOverlay", ActionDefinition{"New overlay popup"}},
-         {"toggleOverlayInertia",
-          ActionDefinition{
-              .displayName = "Toggle overlay click-through",
-              .argumentDescription = "<target popup: this or thisOrAll or all>",
-              .minCountArguments = 1,
-              .maxCountArguments = 1,
-              .possibleArguments{
-                  {"This", {"this"}},
-                  {"All", {"all"}},
-                  {"This or all", {"thisOrAll"}},
-              },
-              .argumentsPrompt = "Target popup:",
-          }},
      }},
     {HotkeyCategory::SplitInput,
      {
@@ -273,8 +259,7 @@ inline const std::map<HotkeyCategory, ActionDefinitionMap> actionNames{
          {"moveTab",
           ActionDefinition{
               "Move tab",
-              "<where to move the tab: next, previous, or new index of "
-              "tab>",
+              "<where to move the tab: next, previous, or new index of tab>",
               1,
           }},
          {"newSplit", ActionDefinition{"Create a new split"}},
@@ -341,16 +326,15 @@ inline const std::map<HotkeyCategory, ActionDefinitionMap> actionNames{
          {"setTabVisibility",
           ActionDefinition{
               .displayName = "Set tab visibility",
-              .argumentDescription =
-                  "[on, off, toggle, or liveOnly. default: toggle]",
+              .argumentDescription = "[on, off, toggle, liveOnly, or "
+                                     "toggleLiveOnly. default: toggle]",
               .minCountArguments = 0,
               .maxCountArguments = 1,
-              .possibleArguments{
-                  {"Toggle", {}},
-                  {"Show all tabs", {"on"}},
-                  {"Hide all tabs", {"off"}},
-                  {"Only show live tabs", {"liveOnly"}},
-              },
+              .possibleArguments{{"Toggle", {}},
+                                 {"Set to on", {"on"}},
+                                 {"Set to off", {"off"}},
+                                 {"Live only on", {"liveOnly"}},
+                                 {"Live only toggle", {"toggleLiveOnly"}}},
               .argumentsPrompt = "New value:",
               .argumentsPromptHover = "Should the tabs be enabled, disabled, "
                                       "toggled, or live-only.",

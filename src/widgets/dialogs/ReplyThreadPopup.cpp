@@ -77,7 +77,7 @@ ReplyThreadPopup::ReplyThreadPopup(bool closeAutomatically, Split *split)
         {"search", nullptr},
     };
 
-    this->shortcuts_ = getApp()->getHotkeys()->shortcutsForCategory(
+    this->shortcuts_ = getIApp()->getHotkeys()->shortcutsForCategory(
         HotkeyCategory::PopupWindow, actions, this);
 
     // initialize UI
@@ -98,7 +98,7 @@ ReplyThreadPopup::ReplyThreadPopup(bool closeAutomatically, Split *split)
         new SplitInput(this, this->split_, this->ui_.threadView, false);
 
     this->bSignals_.emplace_back(
-        getApp()->getAccounts()->twitch.currentUserChanged.connect([this] {
+        getIApp()->getAccounts()->twitch.currentUserChanged.connect([this] {
             this->updateInputUI();
         }));
 
@@ -287,7 +287,7 @@ void ReplyThreadPopup::updateInputUI()
 
     this->ui_.replyInput->setVisible(channel->isWritable());
 
-    auto user = getApp()->getAccounts()->twitch.getCurrent();
+    auto user = getIApp()->getAccounts()->twitch.getCurrent();
     QString placeholderText;
 
     if (user->isAnon())
@@ -297,7 +297,7 @@ void ReplyThreadPopup::updateInputUI()
     else
     {
         placeholderText = QStringLiteral("Reply as %1...")
-                              .arg(getApp()
+                              .arg(getIApp()
                                        ->getAccounts()
                                        ->twitch.getCurrent()
                                        ->getUserName());

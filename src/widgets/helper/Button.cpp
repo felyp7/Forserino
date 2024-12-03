@@ -1,4 +1,4 @@
-#include "widgets/helper/Button.hpp"
+#include "Button.hpp"
 
 #include "singletons/Theme.hpp"
 #include "util/FunctionEventFilter.hpp"

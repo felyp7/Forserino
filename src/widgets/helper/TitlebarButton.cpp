@@ -1,4 +1,4 @@
-#include "widgets/helper/TitlebarButton.hpp"
+#include "TitlebarButton.hpp"
 
 #include "singletons/Theme.hpp"
 

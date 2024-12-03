@@ -9,8 +9,6 @@
 #include <optional>
 #include <unordered_map>
 
-class QJsonObject;
-
 namespace chatterino {
 
 struct Emote {
@@ -32,8 +30,6 @@ struct Emote {
     {
         return name.string;
     }
-
-    QJsonObject toJson() const;
 };
 
 bool operator==(const Emote &a, const Emote &b);
@@ -59,7 +55,7 @@ public:
                                        const QString &emoteID) const;
 };
 
-inline const std::shared_ptr<const EmoteMap> EMPTY_EMOTE_MAP = std::make_shared<
+static const std::shared_ptr<const EmoteMap> EMPTY_EMOTE_MAP = std::make_shared<
     const EmoteMap>();  // NOLINT(cert-err58-cpp) -- assume this doesn't throw an exception
 
 EmotePtr cachedOrMakeEmotePtr(Emote &&emote, const EmoteMap &cache);

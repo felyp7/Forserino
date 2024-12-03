@@ -6,6 +6,7 @@
 #include "providers/IvrApi.hpp"
 #include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
+#include "providers/twitch/TwitchMessageBuilder.hpp"
 
 namespace {
 

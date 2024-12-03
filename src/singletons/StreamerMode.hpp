@@ -20,8 +20,6 @@ public:
 
     [[nodiscard]] virtual bool isEnabled() const = 0;
 
-    virtual void start() = 0;
-
 signals:
     void changed(bool enabled);
 };
@@ -38,8 +36,6 @@ public:
     StreamerMode &operator=(StreamerMode &&) = delete;
 
     bool isEnabled() const override;
-
-    void start() override;
 
 private:
     void updated(bool enabled);

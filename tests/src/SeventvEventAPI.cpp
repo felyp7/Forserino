@@ -28,16 +28,16 @@ TEST(SeventvEventAPI, AllEvents)
     std::optional<EmoteRemoveDispatch> removeDispatch;
     std::optional<UserConnectionUpdateDispatch> userDispatch;
 
-    std::ignore = eventAPI.signals_.emoteAdded.connect([&](const auto &d) {
+    eventAPI.signals_.emoteAdded.connect([&](const auto &d) {
         addDispatch = d;
     });
-    std::ignore = eventAPI.signals_.emoteUpdated.connect([&](const auto &d) {
+    eventAPI.signals_.emoteUpdated.connect([&](const auto &d) {
         updateDispatch = d;
     });
-    std::ignore = eventAPI.signals_.emoteRemoved.connect([&](const auto &d) {
+    eventAPI.signals_.emoteRemoved.connect([&](const auto &d) {
         removeDispatch = d;
     });
-    std::ignore = eventAPI.signals_.userUpdated.connect([&](const auto &d) {
+    eventAPI.signals_.userUpdated.connect([&](const auto &d) {
         userDispatch = d;
     });
 

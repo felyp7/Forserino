@@ -1,4 +1,4 @@
-#include "widgets/settingspages/HighlightingPage.hpp"
+#include "HighlightingPage.hpp"
 
 #include "Application.hpp"
 #include "controllers/highlights/BadgeHighlightModel.hpp"
@@ -10,6 +10,7 @@
 #include "controllers/highlights/UserHighlightModel.hpp"
 #include "providers/colors/ColorProvider.hpp"
 #include "singletons/Settings.hpp"
+#include "singletons/Theme.hpp"
 #include "util/Helpers.hpp"
 #include "util/LayoutCreator.hpp"
 #include "widgets/dialogs/BadgePickerDialog.hpp"
@@ -23,6 +24,8 @@
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QTabWidget>
+
+#define ALWAYS_PLAY "Play highlight sound even when Chatterino is focused"
 
 namespace chatterino {
 
@@ -110,8 +113,8 @@ HighlightingPage::HighlightingPage()
                 pingUsers.emplace<QLabel>(
                     "Play notification sounds and highlight messages from "
                     "certain users.\n"
-                    "User highlights are prioritized over badge highlights, "
-                    "but under message highlights.");
+                    "User highlights are prioritized badge highlights, but "
+                    "under message highlights.");
                 EditableModelView *view =
                     pingUsers
                         .emplace<EditableModelView>(
@@ -309,9 +312,8 @@ HighlightingPage::HighlightingPage()
                 this->managedConnections_);
         }
 
-        layout.append(createCheckBox(
-            "Play highlight sound even when Chatterino is focused",
-            getSettings()->highlightAlwaysPlaySound));
+        layout.append(createCheckBox(ALWAYS_PLAY,
+                                     getSettings()->highlightAlwaysPlaySound));
         layout.append(createCheckBox(
             "Flash taskbar only stops highlighting when Chatterino is focused",
             getSettings()->longAlerts));

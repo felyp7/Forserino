@@ -136,7 +136,7 @@ QString startRaid(const CommandContext &ctx)
         return "";
     }
 
-    auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
+    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
     if (currentUser->isAnon())
     {
         ctx.channel->addSystemMessage("You must be logged in to start a raid!");
@@ -152,8 +152,9 @@ QString startRaid(const CommandContext &ctx)
          channel{ctx.channel}](const HelixUser &targetUser) {
             getHelix()->startRaid(
                 twitchChannel->roomId(), targetUser.id,
-                [] {
-                    // do nothing
+                [channel, targetUser] {
+                    channel->addSystemMessage(QString("You started to raid %1.")
+                                                  .arg(targetUser.displayName));
                 },
                 [channel, targetUser](auto error, auto message) {
                     auto errorMessage = formatStartRaidError(error, message);
@@ -191,7 +192,7 @@ QString cancelRaid(const CommandContext &ctx)
         return "";
     }
 
-    auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
+    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
     if (currentUser->isAnon())
     {
         ctx.channel->addSystemMessage(
@@ -201,8 +202,8 @@ QString cancelRaid(const CommandContext &ctx)
 
     getHelix()->cancelRaid(
         ctx.twitchChannel->roomId(),
-        [] {
-            // do nothing
+        [channel{ctx.channel}] {
+            channel->addSystemMessage("You cancelled the raid.");
         },
         [channel{ctx.channel}](auto error, auto message) {
             auto errorMessage = formatCancelRaidError(error, message);

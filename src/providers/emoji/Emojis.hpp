@@ -1,13 +1,12 @@
 #pragma once
 
-#include "common/FlagsEnum.hpp"
-
 #include <boost/variant.hpp>
 #include <QMap>
 #include <QRegularExpression>
 #include <QVector>
 
 #include <memory>
+#include <set>
 #include <vector>
 
 namespace chatterino {
@@ -30,15 +29,7 @@ struct EmojiData {
     // i.e. thinking
     std::vector<QString> shortCodes;
 
-    enum class Capability : uint8_t {
-        Apple = 1 << 0,
-        Google = 1 << 1,
-        Twitter = 1 << 2,
-        Facebook = 1 << 3,
-    };
-    using Capabilities = FlagsEnum<Capability>;
-
-    Capabilities capabilities;
+    std::set<QString> capabilities;
 
     std::vector<EmojiData> variations;
 

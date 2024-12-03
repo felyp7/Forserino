@@ -3,9 +3,11 @@
 #include "Application.hpp"
 #include "common/QLogging.hpp"
 #include "common/Version.hpp"
+#include "providers/irc/IrcMessageBuilder.hpp"
 #include "singletons/Settings.hpp"
 #include "singletons/WindowManager.hpp"
 #include "util/Helpers.hpp"
+#include "util/SplitCommand.hpp"
 #include "widgets/dialogs/QualityPopup.hpp"
 #include "widgets/splits/Split.hpp"
 #include "widgets/Window.hpp"
@@ -160,16 +162,16 @@ void openStreamlink(const QString &channelURL, const QString &quality,
 {
     auto *proc = createStreamlinkProcess();
     auto arguments = proc->arguments()
-                     << std::move(extraArguments) << channelURL << quality;
+                     << extraArguments << channelURL << quality;
 
     // Remove empty arguments before appending additional streamlink options
     // as the options might purposely contain empty arguments
     arguments.removeAll(QString());
 
     QString additionalOptions = getSettings()->streamlinkOpts.getValue();
-    arguments << QProcess::splitCommand(additionalOptions);
+    arguments << splitCommand(additionalOptions);
 
-    proc->setArguments(arguments);
+    proc->setArguments(std::move(arguments));
     bool res = proc->startDetached();
 
     if (!res)
@@ -182,7 +184,7 @@ void openStreamlinkForChannel(const QString &channel)
 {
     static const QString INFO_TEMPLATE("Opening %1 in Streamlink ...");
 
-    auto *currentPage = dynamic_cast<SplitContainer *>(getApp()
+    auto *currentPage = dynamic_cast<SplitContainer *>(getIApp()
                                                            ->getWindows()
                                                            ->getMainWindow()
                                                            .getNotebook()

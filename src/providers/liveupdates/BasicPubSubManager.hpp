@@ -8,12 +8,10 @@
 #include "providers/twitch/PubSubHelpers.hpp"
 #include "util/DebugCount.hpp"
 #include "util/ExponentialBackoff.hpp"
-#include "util/RenameThread.hpp"
 
 #include <pajlada/signals/signal.hpp>
 #include <QJsonObject>
 #include <QString>
-#include <QStringBuilder>
 #include <websocketpp/client.hpp>
 
 #include <algorithm>
@@ -61,9 +59,8 @@ template <typename Subscription>
 class BasicPubSubManager
 {
 public:
-    BasicPubSubManager(QString host, QString shortName)
+    BasicPubSubManager(QString host)
         : host_(std::move(host))
-        , shortName_(std::move(shortName))
     {
         this->websocketClient_.set_access_channels(
             websocketpp::log::alevel::all);
@@ -97,11 +94,7 @@ public:
                 .toStdString());
     }
 
-    virtual ~BasicPubSubManager()
-    {
-        // The derived class must call stop in its destructor
-        assert(this->stopping_);
-    }
+    virtual ~BasicPubSubManager() = default;
 
     BasicPubSubManager(const BasicPubSubManager &) = delete;
     BasicPubSubManager(const BasicPubSubManager &&) = delete;
@@ -122,17 +115,10 @@ public:
         this->mainThread_.reset(new std::thread([this] {
             runThread();
         }));
-
-        renameThread(*this->mainThread_.get(), "BPSM-" % this->shortName_);
     }
 
     void stop()
     {
-        if (this->stopping_)
-        {
-            return;
-        }
-
         this->stopping_ = true;
 
         for (const auto &client : this->clients_)
@@ -144,20 +130,10 @@ public:
 
         if (this->mainThread_->joinable())
         {
-            // NOTE: We spawn a new thread to join the websocket thread.
-            // There is a case where a new client was initiated but not added to the clients list.
-            // We just don't join the thread & let the operating system nuke the thread if joining fails
-            // within 1s.
-            auto joiner = std::async(std::launch::async, &std::thread::join,
-                                     this->mainThread_.get());
-            if (joiner.wait_for(std::chrono::seconds(1)) ==
-                std::future_status::timeout)
-            {
-                qCWarning(chatterinoLiveupdates)
-                    << "Thread didn't join within 1 second, rip it out";
-                this->websocketClient_.stop();
-            }
+            this->mainThread_->join();
         }
+
+        assert(this->clients_.empty());
     }
 
 protected:
@@ -396,9 +372,6 @@ private:
     std::unique_ptr<std::thread> mainThread_;
 
     const QString host_;
-
-    /// Short name of the service (e.g. "7TV" or "BTTV")
-    const QString shortName_;
 
     bool stopping_{false};
 };

@@ -11,7 +11,6 @@ concurrency:
 
 jobs:
   review:
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-clang-tidy') }}
     name: "clang-tidy ${{ matrix.os }}, Qt ${{ matrix.qt-version }})"
     runs-on: ${{ matrix.os }}
     strategy:
@@ -47,7 +46,7 @@ jobs:
           build_dir: build-clang-tidy
           config_file: ".clang-tidy"
           split_workflow: true
-          exclude: "lib/*,tools/crash-handler/*,mocks/*"
+          exclude: "lib/*,tools/crash-handler/*"
           cmake_command: >-
             ./.CI/setup-clang-tidy.sh
           apt_packages: >-

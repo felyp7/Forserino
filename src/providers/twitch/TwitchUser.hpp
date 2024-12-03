@@ -12,7 +12,6 @@
 namespace chatterino {
 
 struct HelixBlock;
-struct HelixUser;
 
 struct TwitchUser {
     QString id;
@@ -26,8 +25,6 @@ struct TwitchUser {
         this->name = other.name;
         this->displayName = other.displayName;
     }
-
-    void update(const HelixUser &user) const;
 
     void fromHelixBlock(const HelixBlock &ignore);
 

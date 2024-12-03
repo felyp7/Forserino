@@ -108,7 +108,7 @@ QString unbanUser(const CommandContext &ctx)
 
     assert(!actions.value().empty());
 
-    auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
+    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
     if (currentUser->isAnon())
     {
         ctx.channel->addSystemMessage(

@@ -10,10 +10,10 @@
 #include <QGroupBox>
 #include <QLabel>
 
-namespace chatterino {
+#define STREAMLINK_QUALITY \
+    "Choose", "Source", "High", "Medium", "Low", "Audio only"
 
-inline const QStringList STREAMLINK_QUALITY = {
-    "Choose", "Source", "High", "Medium", "Low", "Audio only"};
+namespace chatterino {
 
 ExternalToolsPage::ExternalToolsPage()
 {
@@ -75,7 +75,7 @@ ExternalToolsPage::ExternalToolsPage()
         groupLayout->addRow("Custom streamlink path:", customPath);
         groupLayout->addRow(
             "Preferred quality:",
-            this->createComboBox(STREAMLINK_QUALITY,
+            this->createComboBox({STREAMLINK_QUALITY},
                                  getSettings()->preferredQuality));
         groupLayout->addRow(
             "Additional options:",

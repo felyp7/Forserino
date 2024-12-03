@@ -2,18 +2,12 @@
 
 #include "common/Atomic.hpp"
 #include "common/Channel.hpp"
-#include "common/Common.hpp"
-#include "providers/irc/IrcConnection2.hpp"
-#include "util/RatelimitBucket.hpp"
+#include "providers/irc/AbstractIrcServer.hpp"
 
-#include <IrcMessage>
-#include <pajlada/signals/signal.hpp>
 #include <pajlada/signals/signalholder.hpp>
 
 #include <chrono>
-#include <functional>
 #include <memory>
-#include <mutex>
 #include <queue>
 
 namespace chatterino {
@@ -21,33 +15,16 @@ namespace chatterino {
 class Settings;
 class Paths;
 class TwitchChannel;
+class BttvLiveUpdates;
+class SeventvEventAPI;
 class BttvEmotes;
 class FfzEmotes;
 class SeventvEmotes;
-class RatelimitBucket;
 
 class ITwitchIrcServer
 {
 public:
-    ITwitchIrcServer() = default;
     virtual ~ITwitchIrcServer() = default;
-    ITwitchIrcServer(const ITwitchIrcServer &) = delete;
-    ITwitchIrcServer(ITwitchIrcServer &&) = delete;
-    ITwitchIrcServer &operator=(const ITwitchIrcServer &) = delete;
-    ITwitchIrcServer &operator=(ITwitchIrcServer &&) = delete;
-
-    virtual void connect() = 0;
-
-    virtual void sendRawMessage(const QString &rawMessage) = 0;
-
-    virtual ChannelPtr getOrAddChannel(const QString &dirtyChannelName) = 0;
-    virtual ChannelPtr getChannelOrEmpty(const QString &dirtyChannelName) = 0;
-
-    virtual void addFakeMessage(const QString &data) = 0;
-
-    virtual void addGlobalSystemMessage(const QString &messageText) = 0;
-
-    virtual void forEachChannel(std::function<void(ChannelPtr)> func) = 0;
 
     virtual void forEachChannelAndSpecialChannels(
         std::function<void(ChannelPtr)> func) = 0;
@@ -57,6 +34,9 @@ public:
 
     virtual void dropSeventvChannel(const QString &userID,
                                     const QString &emoteSetID) = 0;
+
+    virtual std::unique_ptr<BttvLiveUpdates> &getBTTVLiveUpdates() = 0;
+    virtual std::unique_ptr<SeventvEventAPI> &getSeventvEventAPI() = 0;
 
     virtual const IndirectChannel &getWatchingChannel() const = 0;
     virtual void setWatchingChannel(ChannelPtr newWatchingChannel) = 0;
@@ -71,14 +51,9 @@ public:
     // Update this interface with TwitchIrcServer methods as needed
 };
 
-class TwitchIrcServer final : public ITwitchIrcServer, public QObject
+class TwitchIrcServer final : public AbstractIrcServer, public ITwitchIrcServer
 {
 public:
-    enum class ConnectionType {
-        Read,
-        Write,
-    };
-
     TwitchIrcServer();
     ~TwitchIrcServer() override = default;
 
@@ -95,8 +70,11 @@ public:
     std::shared_ptr<Channel> getChannelOrEmptyByID(
         const QString &channelID) override;
 
+    void reloadBTTVGlobalEmotes();
     void reloadAllBTTVChannelEmotes();
+    void reloadFFZGlobalEmotes();
     void reloadAllFFZChannelEmotes();
+    void reloadSevenTVGlobalEmotes();
     void reloadAllSevenTVChannelEmotes();
 
     /** Calls `func` with all twitch channels that have `emoteSetId` added. */
@@ -115,25 +93,6 @@ public:
     void dropSeventvChannel(const QString &userID,
                             const QString &emoteSetID) override;
 
-    void addFakeMessage(const QString &data) override;
-
-    void addGlobalSystemMessage(const QString &messageText) override;
-
-    // iteration
-    void forEachChannel(std::function<void(ChannelPtr)> func) override;
-
-    void connect() override;
-    void disconnect();
-
-    void sendMessage(const QString &channelName, const QString &message);
-    void sendRawMessage(const QString &rawMessage) override;
-
-    ChannelPtr getOrAddChannel(const QString &dirtyChannelName) override;
-
-    ChannelPtr getChannelOrEmpty(const QString &dirtyChannelName) override;
-
-    void open(ConnectionType type);
-
 private:
     Atomic<QString> lastUserThatWhisperedMe;
 
@@ -143,7 +102,13 @@ private:
     const ChannelPtr automodChannel;
     IndirectChannel watchingChannel;
 
+    std::unique_ptr<BttvLiveUpdates> bttvLiveUpdates;
+    std::unique_ptr<SeventvEventAPI> seventvEventAPI;
+
 public:
+    std::unique_ptr<BttvLiveUpdates> &getBTTVLiveUpdates() override;
+    std::unique_ptr<SeventvEventAPI> &getSeventvEventAPI() override;
+
     const IndirectChannel &getWatchingChannel() const override;
     void setWatchingChannel(ChannelPtr newWatchingChannel) override;
     ChannelPtr getWhispersChannel() const override;
@@ -155,21 +120,19 @@ public:
     void setLastUserThatWhisperedMe(const QString &user) override;
 
 protected:
-    void initializeConnection(IrcConnection *connection, ConnectionType type);
-    std::shared_ptr<Channel> createChannel(const QString &channelName);
+    void initializeConnection(IrcConnection *connection,
+                              ConnectionType type) override;
+    std::shared_ptr<Channel> createChannel(const QString &channelName) override;
 
-    void privateMessageReceived(Communi::IrcPrivateMessage *message);
-    void readConnectionMessageReceived(Communi::IrcMessage *message);
-    void writeConnectionMessageReceived(Communi::IrcMessage *message);
+    void privateMessageReceived(Communi::IrcPrivateMessage *message) override;
+    void readConnectionMessageReceived(Communi::IrcMessage *message) override;
+    void writeConnectionMessageReceived(Communi::IrcMessage *message) override;
 
-    void onReadConnected(IrcConnection *connection);
-    void onWriteConnected(IrcConnection *connection);
-    void onDisconnected();
-    void markChannelsConnected();
+    std::shared_ptr<Channel> getCustomChannel(
+        const QString &channelname) override;
 
-    std::shared_ptr<Channel> getCustomChannel(const QString &channelname);
-
-    QString cleanChannelName(const QString &dirtyChannelName);
+    QString cleanChannelName(const QString &dirtyChannelName) override;
+    bool hasSeparateWriteConnection() const override;
 
 private:
     void onMessageSendRequested(const std::shared_ptr<TwitchChannel> &channel,
@@ -179,23 +142,6 @@ private:
                               bool &sent);
 
     bool prepareToSend(const std::shared_ptr<TwitchChannel> &channel);
-
-    QMap<QString, std::weak_ptr<Channel>> channels;
-    std::mutex channelMutex;
-
-    QObjectPtr<IrcConnection> writeConnection_ = nullptr;
-    QObjectPtr<IrcConnection> readConnection_ = nullptr;
-
-    // Our rate limiting bucket for the Twitch join rate limits
-    // https://dev.twitch.tv/docs/irc/guide#rate-limits
-    QObjectPtr<RatelimitBucket> joinBucket_;
-
-    QTimer reconnectTimer_;
-    int falloffCounter_ = 1;
-
-    std::mutex connectionMutex_;
-
-    pajlada::Signals::SignalHolder connections_;
 
     std::mutex lastMessageMutex_;
     std::queue<std::chrono::steady_clock::time_point> lastMessagePleb_;

@@ -4,8 +4,6 @@
 
 #include <memory>
 
-class QJsonObject;
-
 namespace chatterino {
 
 class Image;
@@ -35,8 +33,6 @@ public:
 
     bool operator==(const ImageSet &other) const;
     bool operator!=(const ImageSet &other) const;
-
-    QJsonObject toJson() const;
 
 private:
     ImagePtr imageX1_;

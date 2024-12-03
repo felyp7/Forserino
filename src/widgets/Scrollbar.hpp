@@ -127,8 +127,6 @@ public:
     /// unaffected by simultaneous shifts of minimum and maximum.
     qreal getRelativeCurrentValue() const;
 
-    void setShowThumb(bool showthumb);
-
     // offset the desired value without breaking smooth scolling
     void offset(qreal value);
     pajlada::Signals::NoArgSignal &getCurrentValueChanged();
@@ -171,7 +169,6 @@ private:
     boost::circular_buffer<ScrollbarHighlight> highlights_;
 
     bool atBottom_{false};
-    bool showThumb_ = true;
 
     MouseLocation mouseOverLocation_ = MouseLocation::Outside;
     MouseLocation mouseDownLocation_ = MouseLocation::Outside;

@@ -1,7 +1,0 @@
-comment: false
-ignore:
-  - "/usr/local*/**/*"
-  - "/usr/include/**/*"
-  - "lib/"
-  - "**/ui_*.h"
-  - "**/moc_*.cpp"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/SignalVector.hpp"
+#include "common/Singleton.hpp"
 #include "providers/twitch/TwitchAccountManager.hpp"
 
 #include <QObject>
@@ -13,17 +14,14 @@ class Paths;
 
 class AccountModel;
 
-class AccountController final
+class AccountController final : public Singleton
 {
 public:
     AccountController();
 
     AccountModel *createModel(QObject *parent);
 
-    /**
-     * Load current user & send off a signal to subscribers about any potential changes
-     */
-    void load();
+    void initialize(Settings &settings, const Paths &paths) override;
 
     TwitchAccountManager twitch;
 

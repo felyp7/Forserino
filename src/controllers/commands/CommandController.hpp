@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/SignalVector.hpp"
+#include "common/Singleton.hpp"
 #include "util/QStringHash.hpp"
 
 #include <pajlada/settings.hpp>
@@ -23,7 +24,7 @@ struct Command;
 class CommandModel;
 struct CommandContext;
 
-class CommandController final
+class CommandController final : public Singleton
 {
 public:
     SignalVector<Command> items;
@@ -32,8 +33,8 @@ public:
                         bool dryRun);
     QStringList getDefaultChatterinoCommandList();
 
-    CommandController(const Paths &paths);
-    void save();
+    void initialize(Settings &, const Paths &paths) override;
+    void save() override;
 
     CommandModel *createModel(QObject *parent);
 

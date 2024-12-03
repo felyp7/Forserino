@@ -183,7 +183,7 @@ void rebuildReplyThreadHighlight(Settings &settings,
 void rebuildMessageHighlights(Settings &settings,
                               std::vector<HighlightCheck> &checks)
 {
-    auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
+    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
     QString currentUsername = currentUser->getUserName();
 
     if (settings.enableSelfHighlight && !currentUsername.isEmpty() &&
@@ -442,11 +442,9 @@ std::ostream &operator<<(std::ostream &os, const HighlightResult &result)
     return os;
 }
 
-HighlightController::HighlightController(Settings &settings,
-                                         AccountController *accounts)
+void HighlightController::initialize(Settings &settings,
+                                     const Paths & /*paths*/)
 {
-    assert(accounts != nullptr);
-
     this->rebuildListener_.addSetting(settings.enableSelfHighlight);
     this->rebuildListener_.addSetting(settings.enableSelfHighlightSound);
     this->rebuildListener_.addSetting(settings.enableSelfHighlightTaskbar);
@@ -509,12 +507,12 @@ HighlightController::HighlightController(Settings &settings,
             this->rebuildChecks(settings);
         });
 
-    this->bConnections.emplace_back(
-        accounts->twitch.currentUserChanged.connect([this, &settings] {
+    getIApp()->getAccounts()->twitch.currentUserChanged.connect(
+        [this, &settings] {
             qCDebug(chatterinoHighlights)
                 << "Rebuild checks because user swapped accounts";
             this->rebuildChecks(settings);
-        }));
+        });
 
     this->rebuildChecks(settings);
 }
@@ -552,7 +550,7 @@ std::pair<bool, HighlightResult> HighlightController::check(
     // Access for checking
     const auto checks = this->checks_.accessConst();
 
-    auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
+    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
     auto self = (senderName == currentUser->getUserName());
 
     for (const auto &check : *checks)

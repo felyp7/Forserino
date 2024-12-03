@@ -2,8 +2,6 @@
 
 namespace chatterino {
 
-enum class ProviderId {  // NOLINT(performance-enum-size)
-    Twitch,
-};
+enum class ProviderId { Twitch, Irc };
 //
 }  // namespace chatterino

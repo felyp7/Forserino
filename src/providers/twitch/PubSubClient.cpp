@@ -4,6 +4,7 @@
 #include "providers/twitch/PubSubActions.hpp"
 #include "providers/twitch/PubSubHelpers.hpp"
 #include "providers/twitch/PubSubMessages.hpp"
+#include "providers/twitch/pubsubmessages/Unlisten.hpp"
 #include "singletons/Settings.hpp"
 #include "util/DebugCount.hpp"
 #include "util/Helpers.hpp"

@@ -58,10 +58,6 @@ MessageFlagsPredicate::MessageFlagsPredicate(const QString &flags, bool negate)
         {
             this->flags_.set(MessageFlag::MonitoredMessage);
         }
-        else if (flag == "shared")
-        {
-            this->flags_.set(MessageFlag::SharedMessage);
-        }
     }
 }
 

@@ -1,7 +1,6 @@
 #include "widgets/settingspages/IgnoresPage.hpp"
 
 #include "Application.hpp"
-#include "common/Literals.hpp"
 #include "controllers/accounts/AccountController.hpp"
 #include "controllers/ignores/IgnoreModel.hpp"
 #include "controllers/ignores/IgnorePhrase.hpp"
@@ -20,9 +19,11 @@
 #include <QTableView>
 #include <QVBoxLayout>
 
-namespace chatterino {
+// clang-format off
+#define INFO "/block <user> in chat blocks a user.\n/unblock <user> in chat unblocks a user.\nYou can also click on a user to open the usercard."
+// clang-format on
 
-using namespace literals;
+namespace chatterino {
 
 static void addPhrasesTab(LayoutCreator<QVBoxLayout> box);
 static void addUsersTab(IgnoresPage &page, LayoutCreator<QVBoxLayout> box,
@@ -73,8 +74,7 @@ void addPhrasesTab(LayoutCreator<QVBoxLayout> layout)
 void addUsersTab(IgnoresPage &page, LayoutCreator<QVBoxLayout> users,
                  QStringListModel &userModel)
 {
-    auto label = users.emplace<QLabel>(
-        u"/block <user> in chat blocks a user.\n/unblock <user> in chat unblocks a user.\nYou can also click on a user to open the usercard."_s);
+    auto label = users.emplace<QLabel>(INFO);
     label->setWordWrap(true);
     users.append(page.createCheckBox("Enable Twitch blocked users",
                                      getSettings()->enableTwitchBlockedUsers));

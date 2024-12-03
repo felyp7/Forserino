@@ -1,4 +1,4 @@
-#include "util/FuzzyConvert.hpp"
+#include "FuzzyConvert.hpp"
 
 #include <QRegularExpression>
 

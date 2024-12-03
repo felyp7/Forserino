@@ -4,7 +4,6 @@
 #include "common/QLogging.hpp"
 #include "common/Version.hpp"
 
-#include <QApplication>
 #include <QDebug>
 #include <QFile>
 #include <QtConcurrent>
@@ -45,7 +44,7 @@ NetworkRequest NetworkRequest::caller(const QObject *caller) &&
     if (caller)
     {
         // Caller must be in gui thread
-        assert(caller->thread() == QApplication::instance()->thread());
+        assert(caller->thread() == qApp->thread());
 
         this->data->caller = const_cast<QObject *>(caller);
         this->data->hasCaller = true;

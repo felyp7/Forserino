@@ -1,8 +1,6 @@
 #include "common/ChannelChatters.hpp"
 
-#include "mocks/BaseApplication.hpp"
 #include "mocks/Channel.hpp"
-#include "mocks/Logging.hpp"
 #include "Test.hpp"
 
 #include <QColor>
@@ -11,28 +9,9 @@
 using namespace chatterino;
 using chatterino::mock::MockChannel;
 
-namespace {
-
-class MockApplication : public mock::BaseApplication
-{
-public:
-    MockApplication() = default;
-
-    ILogging *getChatLogger() override
-    {
-        return &this->logging;
-    }
-
-    mock::EmptyLogging logging;
-};
-
-}  // namespace
-
 // Ensure inserting the same user does not increase the size of the stored colors
-TEST(ChannelChatters, insertSameUser)
+TEST(ChatterChatters, insertSameUser)
 {
-    MockApplication app;
-
     MockChannel channel("test");
 
     ChannelChatters chatters(channel);
@@ -45,10 +24,8 @@ TEST(ChannelChatters, insertSameUser)
 }
 
 // Ensure we can update a chatters color
-TEST(ChannelChatters, insertSameUserUpdatesColor)
+TEST(ChatterChatters, insertSameUserUpdatesColor)
 {
-    MockApplication app;
-
     MockChannel channel("test");
 
     ChannelChatters chatters(channel);
@@ -60,10 +37,8 @@ TEST(ChannelChatters, insertSameUserUpdatesColor)
 }
 
 // Ensure getting a non-existant users color returns an invalid QColor
-TEST(ChannelChatters, getNonExistantUser)
+TEST(ChatterChatters, getNonExistantUser)
 {
-    MockApplication app;
-
     MockChannel channel("test");
 
     ChannelChatters chatters(channel);
@@ -72,10 +47,8 @@ TEST(ChannelChatters, getNonExistantUser)
 }
 
 // Ensure getting a user doesn't create an entry
-TEST(ChannelChatters, getDoesNotCreate)
+TEST(ChatterChatters, getDoesNotCreate)
 {
-    MockApplication app;
-
     MockChannel channel("test");
 
     ChannelChatters chatters(channel);
@@ -86,10 +59,8 @@ TEST(ChannelChatters, getDoesNotCreate)
 }
 
 // Ensure the least recently used entry is purged when we reach MAX_SIZE
-TEST(ChannelChatters, insertMaxSize)
+TEST(ChatterChatters, insertMaxSize)
 {
-    MockApplication app;
-
     MockChannel channel("test");
 
     ChannelChatters chatters(channel);

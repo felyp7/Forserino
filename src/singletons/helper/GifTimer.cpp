@@ -4,8 +4,6 @@
 #include "singletons/Settings.hpp"
 #include "singletons/WindowManager.hpp"
 
-#include <QApplication>
-
 namespace chatterino {
 
 void GIFTimer::initialize()
@@ -26,15 +24,14 @@ void GIFTimer::initialize()
 
     QObject::connect(&this->timer, &QTimer::timeout, [this] {
         if (getSettings()->animationsWhenFocused &&
-            this->openOverlayWindows_ == 0 &&
-            QApplication::activeWindow() == nullptr)
+            qApp->activeWindow() == nullptr)
         {
             return;
         }
 
         this->position_ += GIF_FRAME_LENGTH;
         this->signal.invoke();
-        getApp()->getWindows()->repaintGifEmotes();
+        getIApp()->getWindows()->repaintGifEmotes();
     });
 }
 

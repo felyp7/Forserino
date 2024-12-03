@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/Singleton.hpp"
+
 #include <QtGlobal>
 
 #ifdef CHATTERINO_WITH_CRASHPAD
@@ -13,7 +15,7 @@ namespace chatterino {
 class Args;
 class Paths;
 
-class CrashHandler
+class CrashHandler : public Singleton
 {
     const Paths &paths;
 
@@ -27,6 +29,8 @@ public:
 
     /// Sets and saves whether Chatterino should restart on a crash
     void saveShouldRecover(bool value);
+
+    void initialize(Settings &settings, const Paths &paths) override;
 
 private:
     bool shouldRecover_ = false;

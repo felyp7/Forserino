@@ -2,25 +2,19 @@
 #ifdef CHATTERINO_HAVE_PLUGINS
 #    include "common/network/NetworkRequest.hpp"
 #    include "controllers/plugins/LuaUtilities.hpp"
-
-#    include <sol/forward.hpp>
-#    include <sol/types.hpp>
+#    include "controllers/plugins/PluginController.hpp"
 
 #    include <memory>
-
-namespace chatterino {
-class PluginController;
-}  // namespace chatterino
 
 namespace chatterino::lua::api {
 // NOLINTBEGIN(readability-identifier-naming)
 
 /**
- * @lua@alias c2.HTTPCallback fun(result: c2.HTTPResponse): nil
+ * @lua@alias HTTPCallback fun(result: HTTPResponse): nil
  */
 
 /**
- * @lua@class c2.HTTPRequest
+ * @lua@class HTTPRequest
  */
 class HTTPRequest : public std::enable_shared_from_this<HTTPRequest>
 {
@@ -39,18 +33,32 @@ public:
 private:
     NetworkRequest req_;
 
-    static void createUserType(sol::table &c2);
+    static void createMetatable(lua_State *L);
     friend class chatterino::PluginController;
+
+    /**
+     * @brief Get the content of the top object on Lua stack, usually the first argument as an HTTPRequest
+     *
+     * If the object given is not a userdatum or the pointer inside that
+     * userdatum doesn't point to a HTTPRequest, a lua error is thrown.
+     *
+     * This function always returns a non-null pointer.
+     */
+    static std::shared_ptr<HTTPRequest> getOrError(lua_State *L,
+                                                   StackIdx where = -1);
+    /**
+     * Pushes the private table onto the lua stack.
+     *
+     * This might create it if it doesn't exist.
+     */
+    StackIdx pushPrivate(lua_State *L);
 
     // This is the key in the registry the private table it held at (if it exists)
     // This might be a null QString if the request has already been executed or
     // the table wasn't created yet.
+    QString privateKey;
     int timeout_ = 10'000;
     bool done = false;
-
-    std::optional<sol::protected_function> cbSuccess;
-    std::optional<sol::protected_function> cbError;
-    std::optional<sol::protected_function> cbFinally;
 
 public:
     // These functions are wrapped so data can be accessed more easily. When a call from Lua comes in:
@@ -61,63 +69,65 @@ public:
     /**
      * Sets the success callback
      *
-     * @lua@param callback c2.HTTPCallback Function to call when the HTTP request succeeds
-     * @exposed c2.HTTPRequest:on_success
+     * @lua@param callback HTTPCallback Function to call when the HTTP request succeeds
+     * @exposed HTTPRequest:on_success
      */
-    void on_success(sol::protected_function func);
+    static int on_success_wrap(lua_State *L);
+    int on_success(lua_State *L);
 
     /**
      * Sets the failure callback
      *
-     * @lua@param callback c2.HTTPCallback Function to call when the HTTP request fails or returns a non-ok status
-     * @exposed c2.HTTPRequest:on_error
+     * @lua@param callback HTTPCallback Function to call when the HTTP request fails or returns a non-ok status
+     * @exposed HTTPRequest:on_error
      */
-    void on_error(sol::protected_function func);
+    static int on_error_wrap(lua_State *L);
+    int on_error(lua_State *L);
 
     /**
      * Sets the finally callback
      *
      * @lua@param callback fun(): nil Function to call when the HTTP request finishes
-     * @exposed c2.HTTPRequest:finally
+     * @exposed HTTPRequest:finally
      */
-    void finally(sol::protected_function func);
+    static int finally_wrap(lua_State *L);
+    int finally(lua_State *L);
 
     /**
      * Sets the timeout
      *
      * @lua@param timeout integer How long in milliseconds until the times out
-     * @exposed c2.HTTPRequest:set_timeout
+     * @exposed HTTPRequest:set_timeout
      */
-    void set_timeout(int timeout);
+    static int set_timeout_wrap(lua_State *L);
+    int set_timeout(lua_State *L);
 
     /**
      * Sets the request payload
      *
      * @lua@param data string
-     * @exposed c2.HTTPRequest:set_payload
+     * @exposed HTTPRequest:set_payload
      */
-    void set_payload(QByteArray payload);
+    static int set_payload_wrap(lua_State *L);
+    int set_payload(lua_State *L);
 
     /**
      * Sets a header in the request
      *
      * @lua@param name string
      * @lua@param value string
-     * @exposed c2.HTTPRequest:set_header
+     * @exposed HTTPRequest:set_header
      */
-    void set_header(QByteArray name, QByteArray value);
+    static int set_header_wrap(lua_State *L);
+    int set_header(lua_State *L);
 
     /**
      * Executes the HTTP request
      *
-     * @exposed c2.HTTPRequest:execute
+     * @exposed HTTPRequest:execute
      */
-    void execute(sol::this_state L);
-    /**
-     * @lua@return string
-     * @exposed c2.HTTPRequest:__tostring
-     */
-    QString to_string();
+    static int execute_wrap(lua_State *L);
+    int execute(lua_State *L);
 
     /**
      * Static functions
@@ -126,15 +136,13 @@ public:
     /**
      * Creates a new HTTPRequest
      *
-     * @lua@param method c2.HTTPMethod Method to use
+     * @lua@param method HTTPMethod Method to use
      * @lua@param url string Where to send the request to
      *
-     * @lua@return c2.HTTPRequest
-     * @exposed c2.HTTPRequest.create
+     * @lua@return HTTPRequest
+     * @exposed HTTPRequest.create
      */
-    static std::shared_ptr<HTTPRequest> create(sol::this_state L,
-                                               NetworkRequestType method,
-                                               QString url);
+    static int create(lua_State *L);
 };
 
 // NOLINTEND(readability-identifier-naming)

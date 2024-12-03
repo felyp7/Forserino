@@ -1,7 +1,5 @@
 #pragma once
 
-#include "messages/MessageElement.hpp"
-
 #include <QColor>
 #include <QPainter>
 
@@ -18,27 +16,18 @@ struct Selection;
 
 // TODO: Figure out if this could be a subset of Theme instead (e.g. Theme::MessageColors)
 struct MessageColors {
-    QColor channelBackground;
-
-    // true if any of the background colors have transparency
-    bool hasTransparency = false;
-
-    QColor regularBg;
-    QColor alternateBg;
-
+    QColor regular;
+    QColor alternate;
     QColor disabled;
     QColor selection;
-
-    QColor regularText;
-    QColor linkText;
-    QColor systemText;
+    QColor system;
 
     QColor messageSeperator;
 
     QColor focusedLastMessageLine;
     QColor unfocusedLastMessageLine;
 
-    void applyTheme(Theme *theme, bool isOverlay, int backgroundOpacity);
+    void applyTheme(Theme *theme);
 };
 
 // TODO: Explore if we can let settings own this
@@ -81,15 +70,6 @@ struct MessagePaintContext {
     size_t messageIndex{};
 
     bool isLastReadMessage{};
-};
-
-struct MessageLayoutContext {
-    const MessageColors &messageColors;
-    MessageElementFlags flags;
-
-    int width = 1;
-    float scale = 1;
-    float imageScale = 1;
 };
 
 }  // namespace chatterino

@@ -354,7 +354,7 @@ public:
     // contains a comma
     MOCK_METHOD(
         void, getChatters,
-        (QString broadcasterID, QString moderatorID, size_t maxChattersToFetch,
+        (QString broadcasterID, QString moderatorID, int maxChattersToFetch,
          ResultCallback<HelixChatters> successCallback,
          (FailureCallback<HelixGetChattersError, QString> failureCallback)),
         (override));  // getChatters
@@ -412,23 +412,6 @@ public:
         (HelixSendMessageArgs args,
          ResultCallback<HelixSentMessage> successCallback,
          (FailureCallback<HelixSendMessageError, QString> failureCallback)),
-        (override));
-
-    // get user emotes
-    MOCK_METHOD(
-        void, getUserEmotes,
-        (QString userID, QString broadcasterID,
-         (ResultCallback<std::vector<HelixChannelEmote>, HelixPaginationState>
-              successCallback),
-         FailureCallback<QString> failureCallback, CancellationToken &&token),
-        (override));
-
-    // get followed channel
-    MOCK_METHOD(
-        void, getFollowedChannel,
-        (QString userID, QString broadcasterID, const QObject *caller,
-         ResultCallback<std::optional<HelixFollowedChannel>> successCallback,
-         FailureCallback<QString> failureCallback),
         (override));
 
     MOCK_METHOD(void, update, (QString clientId, QString oauthToken),

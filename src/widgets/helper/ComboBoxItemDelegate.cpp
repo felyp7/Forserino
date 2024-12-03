@@ -1,4 +1,4 @@
-#include "widgets/helper/ComboBoxItemDelegate.hpp"
+#include "ComboBoxItemDelegate.hpp"
 
 #include <QComboBox>
 

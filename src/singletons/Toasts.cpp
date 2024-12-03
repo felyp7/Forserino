@@ -1,4 +1,4 @@
-#include "singletons/Toasts.hpp"
+#include "Toasts.hpp"
 
 #include "Application.hpp"
 #include "common/Common.hpp"
@@ -35,7 +35,7 @@ using namespace literals;
 QString avatarFilePath(const QString &channelName)
 {
     // TODO: cleanup channel (to be used as a file) and use combinePath
-    return getApp()->getPaths().twitchProfileAvatars % '/' % channelName %
+    return getIApp()->getPaths().twitchProfileAvatars % '/' % channelName %
            u".png";
 }
 
@@ -74,7 +74,7 @@ bool Toasts::isEnabled()
 {
 #ifdef Q_OS_WIN
     return WinToast::isCompatible() && getSettings()->notificationToast &&
-           !(getApp()->getStreamerMode()->isEnabled() &&
+           !(getIApp()->getStreamerMode()->isEnabled() &&
              getSettings()->streamerModeSuppressLiveNotifications);
 #else
     return false;
@@ -83,17 +83,19 @@ bool Toasts::isEnabled()
 
 QString Toasts::findStringFromReaction(const ToastReaction &reaction)
 {
+    // The constants are macros right now, but we want to avoid ASCII casts,
+    // so we're concatenating them with a QString literal - effectively making them part of it.
     switch (reaction)
     {
         case ToastReaction::OpenInBrowser:
-            return OPEN_IN_BROWSER;
+            return OPEN_IN_BROWSER u""_s;
         case ToastReaction::OpenInPlayer:
-            return OPEN_PLAYER_IN_BROWSER;
+            return OPEN_PLAYER_IN_BROWSER u""_s;
         case ToastReaction::OpenInStreamlink:
-            return OPEN_IN_STREAMLINK;
+            return OPEN_IN_STREAMLINK u""_s;
         case ToastReaction::DontOpen:
         default:
-            return DONT_OPEN;
+            return DONT_OPEN u""_s;
     }
 }
 

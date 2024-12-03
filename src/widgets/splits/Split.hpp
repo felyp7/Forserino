@@ -21,7 +21,6 @@ class SplitInput;
 class SplitContainer;
 class SplitOverlay;
 class SelectChannelDialog;
-class OverlayWindow;
 
 // Each ChatWidget consists of three sub-elements that handle their own part of
 // the chat widget: ChatWidgetHeader
@@ -80,8 +79,6 @@ public:
 
     // This is called on window focus lost
     void unpause();
-
-    OverlayWindow *overlayWindow();
 
     static pajlada::Signals::Signal<Qt::KeyboardModifiers>
         modifierStatusChanged;
@@ -161,8 +158,6 @@ private:
     SplitInput *const input_;
     SplitOverlay *const overlay_;
 
-    QPointer<OverlayWindow> overlayWindow_;
-
     QPointer<SelectChannelDialog> selectChannelDialog_;
 
     pajlada::Signals::Connection channelIDChangedConnection_;
@@ -184,7 +179,6 @@ public slots:
     void explainMoving();
     void explainSplitting();
     void popup();
-    void showOverlayWindow();
     void clear();
     void openInBrowser();
     void openModViewInBrowser();

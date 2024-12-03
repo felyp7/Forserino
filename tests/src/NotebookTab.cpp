@@ -3,8 +3,9 @@
 #include "common/Literals.hpp"
 #include "controllers/hotkeys/HotkeyController.hpp"
 #include "gmock/gmock.h"
-#include "mocks/BaseApplication.hpp"
+#include "mocks/EmptyApplication.hpp"
 #include "singletons/Fonts.hpp"
+#include "singletons/Settings.hpp"
 #include "singletons/Theme.hpp"
 #include "Test.hpp"
 #include "widgets/Notebook.hpp"
@@ -17,11 +18,11 @@ using ::testing::Exactly;
 
 namespace {
 
-class MockApplication : public mock::BaseApplication
+class MockApplication : mock::EmptyApplication
 {
 public:
     MockApplication()
-        : theme(this->paths_)
+        : settings(this->settingsDir.filePath("settings.json"))
         , fonts(this->settings)
     {
     }
@@ -40,6 +41,7 @@ public:
         return &this->fonts;
     }
 
+    Settings settings;
     Theme theme;
     HotkeyController hotkeys;
     Fonts fonts;

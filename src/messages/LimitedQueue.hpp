@@ -8,7 +8,6 @@
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
-#include <utility>
 #include <vector>
 
 namespace chatterino {
@@ -197,12 +196,12 @@ public:
         std::unique_lock lock(this->mutex_);
 
         Equals eq;
-        for (size_t i = 0; i < this->buffer_.size(); ++i)
+        for (int i = 0; i < this->buffer_.size(); ++i)
         {
             if (eq(this->buffer_[i], needle))
             {
                 this->buffer_[i] = replacement;
-                return static_cast<int>(i);
+                return i;
             }
         }
         return -1;
@@ -213,10 +212,9 @@ public:
      *
      * @param[in] index the index of the item to replace
      * @param[in] replacement the item to put in place of the item at index
-     * @param[out] prev (optional) the item located at @a index before replacing
      * @return true if a replacement took place
      */
-    bool replaceItem(size_t index, const T &replacement, T *prev = nullptr)
+    bool replaceItem(size_t index, const T &replacement)
     {
         std::unique_lock lock(this->mutex_);
 
@@ -225,44 +223,8 @@ public:
             return false;
         }
 
-        if (prev)
-        {
-            *prev = std::exchange(this->buffer_[index], replacement);
-        }
-        else
-        {
-            this->buffer_[index] = replacement;
-        }
+        this->buffer_[index] = replacement;
         return true;
-    }
-
-    /**
-     * @brief Replace the needle with the given item
-     *
-     * @param hint A hint on where the needle _might_ be
-     * @param[in] needle the item to search for
-     * @param[in] replacement the item to replace needle with
-     * @return the index of the replaced item, or -1 if no replacement took place
-     */
-    int replaceItem(size_t hint, const T &needle, const T &replacement)
-    {
-        std::unique_lock lock(this->mutex_);
-
-        if (hint < this->buffer_.size() && this->buffer_[hint] == needle)
-        {
-            this->buffer_[hint] = replacement;
-            return static_cast<int>(hint);
-        }
-
-        for (size_t i = 0; i < this->buffer_.size(); ++i)
-        {
-            if (this->buffer_[i] == needle)
-            {
-                this->buffer_[i] = replacement;
-                return static_cast<int>(i);
-            }
-        }
-        return -1;
     }
 
     /**
@@ -350,32 +312,6 @@ public:
             }
         }
 
-        return std::nullopt;
-    }
-
-    /**
-     * @brief Find an item with a hint
-     *
-     * @param hint A hint on where the needle _might_ be
-     * @param predicate that will used to find the item
-     * @return the item and its index or none if it's not found
-     */
-    std::optional<std::pair<size_t, T>> find(size_t hint, auto &&predicate)
-    {
-        std::unique_lock lock(this->mutex_);
-
-        if (hint < this->buffer_.size() && predicate(this->buffer_[hint]))
-        {
-            return std::pair{hint, this->buffer_[hint]};
-        };
-
-        for (size_t i = 0; i < this->buffer_.size(); i++)
-        {
-            if (predicate(this->buffer_[i]))
-            {
-                return std::pair{i, this->buffer_[i]};
-            }
-        }
         return std::nullopt;
     }
 

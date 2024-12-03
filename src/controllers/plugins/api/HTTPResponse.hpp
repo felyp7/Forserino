@@ -1,11 +1,12 @@
 #pragma once
 #ifdef CHATTERINO_HAVE_PLUGINS
 #    include "common/network/NetworkResult.hpp"
-
-#    include <lua.h>
-#    include <sol/sol.hpp>
+#    include "controllers/plugins/LuaUtilities.hpp"
 
 #    include <memory>
+extern "C" {
+#    include <lua.h>
+}
 
 namespace chatterino {
 class PluginController;
@@ -15,9 +16,9 @@ namespace chatterino::lua::api {
 // NOLINTBEGIN(readability-identifier-naming)
 
 /**
- * @lua@class c2.HTTPResponse
+ * @lua@class HTTPResponse
  */
-class HTTPResponse
+class HTTPResponse : public std::enable_shared_from_this<HTTPResponse>
 {
     NetworkResult result_;
 
@@ -30,46 +31,50 @@ public:
     ~HTTPResponse();
 
 private:
-    static void createUserType(sol::table &c2);
+    static void createMetatable(lua_State *L);
     friend class chatterino::PluginController;
+
+    /**
+     * @brief Get the content of the top object on Lua stack, usually the first argument as an HTTPResponse
+     *
+     * If the object given is not a userdatum or the pointer inside that
+     * userdatum doesn't point to a HTTPResponse, a lua error is thrown.
+     *
+     * This function always returns a non-null pointer.
+     */
+    static std::shared_ptr<HTTPResponse> getOrError(lua_State *L,
+                                                    StackIdx where = -1);
 
 public:
     /**
      * Returns the data. This is not guaranteed to be encoded using any
      * particular encoding scheme. It's just the bytes the server returned.
      * 
-     * @lua@return string
-     * @lua@nodiscard
-     * @exposed c2.HTTPResponse:data
+     * @exposed HTTPResponse:data
      */
-    QByteArray data();
+    static int data_wrap(lua_State *L);
+    int data(lua_State *L);
 
     /**
      * Returns the status code.
      *
-     * @lua@return number|nil
-     * @lua@nodiscard
-     * @exposed c2.HTTPResponse:status
+     * @exposed HTTPResponse:status
      */
-    std::optional<int> status();
+    static int status_wrap(lua_State *L);
+    int status(lua_State *L);
 
     /**
      * A somewhat human readable description of an error if such happened
-     *
-     * @lua@return string
-     * @lua@nodiscard
-     * @exposed c2.HTTPResponse:error
+     * @exposed HTTPResponse:error
      */
-    QString error();
 
-    /**
-     * @lua@return string
-     * @lua@nodiscard
-     * @exposed c2.HTTPResponse:__tostring
-     */
-    QString to_string();
+    static int error_wrap(lua_State *L);
+    int error(lua_State *L);
 };
 
 // NOLINTEND(readability-identifier-naming)
 }  // namespace chatterino::lua::api
+namespace chatterino::lua {
+StackIdx push(lua_State *L, std::shared_ptr<api::HTTPResponse> request);
+}  // namespace chatterino::lua
 #endif

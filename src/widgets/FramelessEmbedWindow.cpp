@@ -5,7 +5,6 @@
 #include "providers/twitch/TwitchIrcServer.hpp"
 #include "widgets/splits/Split.hpp"
 
-#include <QApplication>
 #include <QHBoxLayout>
 #include <QJsonDocument>
 #include <QMessageBox>
@@ -55,7 +54,8 @@ bool FramelessEmbedWindow::nativeEvent(const QByteArray &eventType,
                 auto channelName = root.value("channel-name").toString();
 
                 this->split_->setChannel(
-                    getApp()->getTwitch()->getOrAddChannel(channelName));
+                    getIApp()->getTwitchAbstract()->getOrAddChannel(
+                        channelName));
             }
         }
     }
@@ -76,7 +76,7 @@ void FramelessEmbedWindow::showEvent(QShowEvent *)
         auto handle = reinterpret_cast<HWND>(this->winId());
         if (!::SetParent(handle, parentHwnd))
         {
-            QApplication::exit(1);
+            qApp->exit(1);
         }
 
         QJsonDocument doc;

@@ -1,4 +1,4 @@
-#include "widgets/splits/ClosedSplits.hpp"
+#include "ClosedSplits.hpp"
 
 namespace chatterino {
 

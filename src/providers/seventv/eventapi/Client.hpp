@@ -19,8 +19,6 @@ public:
            liveupdates::WebsocketHandle handle,
            std::chrono::milliseconds heartbeatInterval);
 
-    void stopImpl() override;
-
     void setHeartbeatInterval(int intervalMs);
     void handleHeartbeat();
 
@@ -34,7 +32,6 @@ private:
         lastHeartbeat_;
     // This will be set once on the welcome message.
     std::chrono::milliseconds heartbeatInterval_;
-    std::shared_ptr<boost::asio::steady_timer> heartbeatTimer_;
 
     friend SeventvEventAPI;
 };

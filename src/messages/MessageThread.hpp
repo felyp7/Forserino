@@ -6,8 +6,6 @@
 #include <memory>
 #include <vector>
 
-class QJsonObject;
-
 namespace chatterino {
 struct Message;
 
@@ -63,8 +61,6 @@ public:
     {
         return replies_;
     }
-
-    QJsonObject toJson() const;
 
     boost::signals2::signal<void()> subscriptionUpdated;
 

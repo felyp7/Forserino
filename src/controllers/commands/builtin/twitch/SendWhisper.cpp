@@ -9,6 +9,8 @@
 #include "messages/MessageElement.hpp"
 #include "providers/bttv/BttvEmotes.hpp"
 #include "providers/ffz/FfzEmotes.hpp"
+#include "providers/irc/IrcChannel2.hpp"
+#include "providers/irc/IrcServer.hpp"
 #include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/TwitchAccount.hpp"
 #include "providers/twitch/TwitchIrcServer.hpp"
@@ -90,7 +92,7 @@ QString formatWhisperError(HelixWhisperError error, const QString &message)
 
 bool appendWhisperMessageWordsLocally(const QStringList &words)
 {
-    auto *app = getApp();
+    auto *app = getIApp();
 
     MessageBuilder b;
 
@@ -100,7 +102,7 @@ bool appendWhisperMessageWordsLocally(const QStringList &words)
         MessageElementFlag::Text, MessageColor::Text,
         FontStyle::ChatMediumBold);
     b.emplace<TextElement>("->", MessageElementFlag::Text,
-                           getApp()->getThemes()->messages.textColors.system);
+                           getIApp()->getThemes()->messages.textColors.system);
     b.emplace<TextElement>(words[1] + ":", MessageElementFlag::Text,
                            MessageColor::Text, FontStyle::ChatMediumBold);
 
@@ -113,8 +115,8 @@ bool appendWhisperMessageWordsLocally(const QStringList &words)
     for (int i = 2; i < words.length(); i++)
     {
         {  // Twitch emote
-            auto it = accemotes->find({words[i]});
-            if (it != accemotes->end())
+            auto it = accemotes.emotes.find({words[i]});
+            if (it != accemotes.emotes.end())
             {
                 b.emplace<EmoteElement>(it->second,
                                         MessageElementFlag::TwitchEmote);
@@ -175,16 +177,17 @@ bool appendWhisperMessageWordsLocally(const QStringList &words)
     b->flags.set(MessageFlag::Whisper);
     auto messagexD = b.release();
 
-    getApp()->getTwitch()->getWhispersChannel()->addMessage(
+    getIApp()->getTwitch()->getWhispersChannel()->addMessage(
         messagexD, MessageContext::Original);
 
     if (getSettings()->inlineWhispers &&
         !(getSettings()->streamerModeSuppressInlineWhispers &&
-          getApp()->getStreamerMode()->isEnabled()))
+          getIApp()->getStreamerMode()->isEnabled()))
     {
-        app->getTwitch()->forEachChannel([&messagexD](ChannelPtr _channel) {
-            _channel->addMessage(messagexD, MessageContext::Repost);
-        });
+        app->getTwitchAbstract()->forEachChannel(
+            [&messagexD](ChannelPtr _channel) {
+                _channel->addMessage(messagexD, MessageContext::Repost);
+            });
     }
 
     return true;
@@ -207,7 +210,7 @@ QString sendWhisper(const CommandContext &ctx)
         return "";
     }
 
-    auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
+    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
     if (currentUser->isAnon())
     {
         ctx.channel->addSystemMessage(
@@ -238,6 +241,17 @@ QString sendWhisper(const CommandContext &ctx)
             });
         return "";
     }
+
+    // we must be on IRC
+    auto *ircChannel = dynamic_cast<IrcChannel *>(ctx.channel.get());
+    if (ircChannel == nullptr)
+    {
+        // give up
+        return "";
+    }
+
+    auto *server = ircChannel->server();
+    server->sendWhisper(target, message);
 
     return "";
 }

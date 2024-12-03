@@ -17,13 +17,11 @@
 #include <QFont>
 #include <QIcon>
 #include <QScreen>
-#include <QWindow>
 
 #include <functional>
 
 #ifdef USEWINSDK
 #    include <dwmapi.h>
-#    include <shellapi.h>
 #    include <VersionHelpers.h>
 #    include <Windows.h>
 #    include <windowsx.h>
@@ -33,6 +31,7 @@
 #    include <QHBoxLayout>
 #    include <QMargins>
 #    include <QOperatingSystemVersion>
+#    include <QWindow>
 #endif
 
 #include "widgets/helper/TitlebarButton.hpp"
@@ -504,24 +503,6 @@ bool BaseWindow::event(QEvent *event)
         this->onFocusLost();
     }
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-    if (this->flags_.hasAny(DontFocus, Dialog, FramelessDraggable))
-    {
-        // This certain windows (e.g. TooltipWidget, input completion widget, and the search popup) retains their nullptr parent
-        // NOTE that this currently does not retain their original transient parent (which is the window it was created under)
-        // For now, we haven't noticed that this creates any issues, and I don't know of a good place to store the previous transient
-        // parent to restore it.
-        if (event->type() == QEvent::ParentWindowChange)
-        {
-            assert(this->windowHandle() != nullptr);
-            if (this->windowHandle()->parent() != nullptr)
-            {
-                this->windowHandle()->setParent(nullptr);
-            }
-        }
-    }
-#endif
-
     return QWidget::event(event);
 }
 
@@ -731,7 +712,7 @@ void BaseWindow::resizeEvent(QResizeEvent *)
     // Queue up save because: Window resized
     if (!flags_.has(DisableLayoutSave))
     {
-        getApp()->getWindows()->queueSave();
+        getIApp()->getWindows()->queueSave();
     }
 
 #ifdef USEWINSDK
@@ -746,7 +727,7 @@ void BaseWindow::moveEvent(QMoveEvent *event)
 #ifdef CHATTERINO
     if (!flags_.has(DisableLayoutSave))
     {
-        getApp()->getWindows()->queueSave();
+        getIApp()->getWindows()->queueSave();
     }
 #endif
 
@@ -876,17 +857,6 @@ bool BaseWindow::nativeEvent(const QByteArray &eventType, void *message,
         }
         break;
 
-        case WM_DPICHANGED: {
-            if (this->flags_.has(ClearBuffersOnDpiChange))
-            {
-                // wait for Qt to process this message
-                postToThread([] {
-                    getApp()->getWindows()->invalidateChannelViewBuffers();
-                });
-            }
-        }
-        break;
-
         case WM_NCLBUTTONDOWN:
         case WM_NCLBUTTONUP: {
             // WM_NCLBUTTON{DOWN, UP} gets called when the left mouse button
@@ -939,7 +909,7 @@ void BaseWindow::scaleChangedEvent(float scale)
 #endif
 
     this->setFont(
-        getApp()->getFonts()->getFont(FontStyle::UiTabs, this->scale()));
+        getIApp()->getFonts()->getFont(FontStyle::UiTabs, this->scale()));
 }
 
 void BaseWindow::paintEvent(QPaintEvent *)

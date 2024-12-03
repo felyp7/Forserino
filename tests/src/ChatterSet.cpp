@@ -4,11 +4,9 @@
 
 #include <QStringList>
 
-using namespace chatterino;
-
 TEST(ChatterSet, insert)
 {
-    ChatterSet set;
+    chatterino::ChatterSet set;
 
     EXPECT_FALSE(set.contains("pajlada"));
     EXPECT_FALSE(set.contains("Pajlada"));
@@ -28,7 +26,7 @@ TEST(ChatterSet, insert)
 
 TEST(ChatterSet, MaxSize)
 {
-    ChatterSet set;
+    chatterino::ChatterSet set;
 
     EXPECT_FALSE(set.contains("pajlada"));
     EXPECT_FALSE(set.contains("Pajlada"));
@@ -38,7 +36,7 @@ TEST(ChatterSet, MaxSize)
     EXPECT_TRUE(set.contains("Pajlada"));
 
     // After adding CHATTER_LIMIT-1 additional chatters, pajlada should still be in the set
-    for (auto i = 0; i < ChatterSet::CHATTER_LIMIT - 1; ++i)
+    for (auto i = 0; i < chatterino::ChatterSet::chatterLimit - 1; ++i)
     {
         set.addRecentChatter(QString("%1").arg(i));
     }
@@ -55,7 +53,7 @@ TEST(ChatterSet, MaxSize)
 
 TEST(ChatterSet, MaxSizeLastUsed)
 {
-    ChatterSet set;
+    chatterino::ChatterSet set;
 
     EXPECT_FALSE(set.contains("pajlada"));
     EXPECT_FALSE(set.contains("Pajlada"));
@@ -65,7 +63,7 @@ TEST(ChatterSet, MaxSizeLastUsed)
     EXPECT_TRUE(set.contains("Pajlada"));
 
     // After adding CHATTER_LIMIT-1 additional chatters, pajlada should still be in the set
-    for (auto i = 0; i < ChatterSet::CHATTER_LIMIT - 1; ++i)
+    for (auto i = 0; i < chatterino::ChatterSet::chatterLimit - 1; ++i)
     {
         set.addRecentChatter(QString("%1").arg(i));
     }
@@ -77,7 +75,7 @@ TEST(ChatterSet, MaxSizeLastUsed)
     set.addRecentChatter("pajlada");
 
     // After another CHATTER_LIMIT-1 additional chatters, pajlada should still be there
-    for (auto i = 0; i < ChatterSet::CHATTER_LIMIT - 1; ++i)
+    for (auto i = 0; i < chatterino::ChatterSet::chatterLimit - 1; ++i)
     {
         set.addRecentChatter(QString("new-%1").arg(i));
     }

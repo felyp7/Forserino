@@ -52,8 +52,6 @@ private:
     void addShortcuts() override;
     bool eventFilter(QObject *object, QEvent *event) override;
 
-    void reloadEmotes();
-
     void saveBounds() const;
 };
 

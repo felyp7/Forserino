@@ -1,7 +1,5 @@
 #include "providers/ffz/FfzUtil.hpp"
 
-#include <QUrl>
-
 namespace chatterino {
 
 Url parseFfzUrl(const QString &ffzUrl)

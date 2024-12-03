@@ -47,7 +47,7 @@ AccountController::AccountController()
     });
 }
 
-void AccountController::load()
+void AccountController::initialize(Settings &settings, const Paths &paths)
 {
     this->twitch.load();
 }

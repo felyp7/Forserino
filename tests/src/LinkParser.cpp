@@ -1,13 +1,11 @@
 #include "common/LinkParser.hpp"
 
-#include "common/Literals.hpp"
 #include "Test.hpp"
 
 #include <QString>
 #include <QStringList>
 
 using namespace chatterino;
-using namespace literals;
 
 struct Case {
     // -Wmissing-field-initializers complains otherwise
@@ -23,8 +21,8 @@ struct Case {
             "", "_", "__", "<", "<<", "<_<", "(((", "<*_~(", "**", "~~",
         };
         QStringList suffixes{
-            "",   ">",   "?",      "!",  ".",  ",",  ":",  "*",    "~",
-            ">>", "?!.", "~~,*!?", "**", ").", "),", ",)", ")),.", ")?",
+            "",  ">", "?",  "!",   ".",      ",",  ":",
+            "*", "~", ">>", "?!.", "~~,*!?", "**",
         };
 
         for (const auto &prefix : prefixes)
@@ -72,8 +70,6 @@ TEST(LinkParser, parseDomainLinks)
         {"", "chatterino.com", ":80"},
         {"", "wiki.chatterino.com", ":80"},
         {"", "wiki.chatterino.com", ":80/foo/bar"},
-        {"", "wiki.chatterino.com", ":80?foo"},
-        {"", "wiki.chatterino.com", ":80#foo"},
         {"", "wiki.chatterino.com", "/:80?foo/bar"},
         {"", "wiki.chatterino.com", "/127.0.0.1"},
         {"", "a.b.c.chatterino.com"},
@@ -91,25 +87,10 @@ TEST(LinkParser, parseDomainLinks)
         {"", "https.cat"},
         {"", "httpsd.cat"},
         {"", "http.cat", "/200"},
-        {"", "http.cat", "/200()"},
-        {"", "a.com", "?()"},
-        {"", "a.com", "#()"},
+        {"", "http.cat", "/200("},
+        {"", "a.com", "?("},
+        {"", "a.com", "#("},
         {"", "a.com", "/__my_user__"},
-        {"", "a.b.c.-._.1.com", ""},
-        {"", "0123456789.com", ""},
-        {"", "ABCDEFGHIJKLMNOPQRSTUVWXYZ.com", ""},
-        {"", "abcdefghijklmnopqrstuvwxyz.com", ""},
-        {"", "example.com", "/foo(bar)"},
-        {"", "example.com", "/foo((bar))"},
-        {"", "example.com", "/(f)(o)(o)(b)(a)r"},
-        {"", "example.com", "/foobar()()"},
-        {"", "example.com", "/foobar()(())baz"},
-        {"", "example.com", "/(foo)"},
-        {"", "example.com", "/()"},
-        // non-ASCII characters are allowed
-        {"", u"köln.de"_s, ""},
-        {"", u"ü.com"_s, ""},
-        {"", u"─.com"_s, ""},
         // test case-insensitiveness
         {"HtTpS://", "127.0.0.1.CoM"},
         {"HTTP://", "XD.CHATTERINO.COM", "/#?FOO"},
@@ -158,7 +139,6 @@ TEST(LinkParser, parseIpv4Links)
 TEST(LinkParser, doesntParseInvalidIpv4Links)
 {
     const QStringList inputs = {
-        "196.162.a.1",
         // U+0660 - in category "number digits"
         QStringLiteral("٠.٠.٠.٠"),
         "https://127.0.0.",
@@ -188,11 +168,6 @@ TEST(LinkParser, doesntParseInvalidIpv4Links)
         "196.162.8.1(())",
         "196.162.8.1(",
         "196.162.8.1(!",
-        "127.1.1;.com",
-        "127.0.-.1",
-        "127...",
-        "1.1.1.",
-        "1.1.1.:80",
     };
 
     for (const auto &input : inputs)
@@ -230,10 +205,6 @@ TEST(LinkParser, doesntParseInvalidLinks)
         "https://pn./",
         "pn./",
         "pn.",
-        "pn.:80",
-        "pn./foo",
-        "pn.#foo",
-        "pn.?foo",
         "http/chatterino.com",
         "http/wiki.chatterino.com",
         "http:cat.com",
@@ -248,24 +219,11 @@ TEST(LinkParser, doesntParseInvalidLinks)
         "~~a.com()",
         "https://chatterino.com><https://chatterino.com",
         "<https://chatterino.com><https://chatterino.com>",
-        "chatterino.com><chatterino.com",
-        "https://chatterino.com><chatterino.com",
-        "<chatterino.com><chatterino.com>",
-        "<https://chatterino.com><chatterino.com>",
-        "info@example.com",
-        "user:pass@example.com",
-        ":.com",
-        "a:.com",
-        "1:.com",
-        "[a].com",
-        "`a`.com",
-        "{a}.com",
-        "a.com:pass@example.com",
-        "@@@.com",
-        "%%%.com",
-        "*.com",
-        "example.com(foo)",
-        "example.com()",
+        // invalid characters are still accepted (see #4769)
+        // "chatterino.com><chatterino.com",
+        // "https://chatterino.com><chatterino.com",
+        // "<chatterino.com><chatterino.com>",
+        // "<https://chatterino.com><chatterino.com>",
     };
 
     for (const auto &input : inputs)

@@ -27,7 +27,7 @@ UpdateDialog::UpdateDialog()
     auto *dismiss = buttons->addButton("Dismiss", QDialogButtonBox::RejectRole);
 
     QObject::connect(install, &QPushButton::clicked, this, [this] {
-        getApp()->getUpdates().installUpdates();
+        getIApp()->getUpdates().installUpdates();
         this->close();
     });
     QObject::connect(dismiss, &QPushButton::clicked, this, [this] {
@@ -35,8 +35,8 @@ UpdateDialog::UpdateDialog()
         this->close();
     });
 
-    this->updateStatusChanged(getApp()->getUpdates().getStatus());
-    this->connections_.managedConnect(getApp()->getUpdates().statusUpdated,
+    this->updateStatusChanged(getIApp()->getUpdates().getStatus());
+    this->connections_.managedConnect(getIApp()->getUpdates().statusUpdated,
                                       [this](auto status) {
                                           this->updateStatusChanged(status);
                                       });
@@ -53,17 +53,17 @@ void UpdateDialog::updateStatusChanged(Updates::Status status)
     {
         case Updates::UpdateAvailable: {
             this->ui_.label->setText((
-                getApp()->getUpdates().isDowngrade()
+                getIApp()->getUpdates().isDowngrade()
                     ? QString(
                           "The version online (%1) seems to be\nlower than the "
                           "current (%2).\nEither a version was reverted or "
                           "you are\nrunning a newer build.\n\nDo you want to "
                           "download and install it?")
-                          .arg(getApp()->getUpdates().getOnlineVersion(),
-                               getApp()->getUpdates().getCurrentVersion())
+                          .arg(getIApp()->getUpdates().getOnlineVersion(),
+                               getIApp()->getUpdates().getCurrentVersion())
                     : QString("An update (%1) is available.\n\nDo you want to "
                               "download and install it?")
-                          .arg(getApp()->getUpdates().getOnlineVersion())));
+                          .arg(getIApp()->getUpdates().getOnlineVersion())));
             this->updateGeometry();
         }
         break;

@@ -1,11 +1,9 @@
 #pragma once
 
 #include <QColor>
-#include <QString>
 
 namespace chatterino {
-
-struct MessageColors;
+class Theme;
 
 struct MessageColor {
     enum Type { Custom, Text, Link, System };
@@ -13,9 +11,7 @@ struct MessageColor {
     MessageColor(const QColor &color);
     MessageColor(Type type_ = Text);
 
-    const QColor &getColor(const MessageColors &colors) const;
-
-    QString toString() const;
+    const QColor &getColor(Theme &themeManager) const;
 
 private:
     Type type_;

@@ -1,4 +1,4 @@
-#include "debug/Benchmark.hpp"
+#include "Benchmark.hpp"
 
 #include "common/QLogging.hpp"
 

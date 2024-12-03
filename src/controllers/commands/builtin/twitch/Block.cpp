@@ -36,7 +36,7 @@ QString blockUser(const CommandContext &ctx)
         return "";
     }
 
-    auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
+    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
     if (currentUser->isAnon())
     {
@@ -52,7 +52,7 @@ QString blockUser(const CommandContext &ctx)
         target,
         [currentUser, channel{ctx.channel},
          target](const HelixUser &targetUser) {
-            getApp()->getAccounts()->twitch.getCurrent()->blockUser(
+            getIApp()->getAccounts()->twitch.getCurrent()->blockUser(
                 targetUser.id, nullptr,
                 [channel, target, targetUser] {
                     channel->addSystemMessage(
@@ -109,7 +109,7 @@ QString unblockUser(const CommandContext &ctx)
         return "";
     }
 
-    auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
+    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
 
     if (currentUser->isAnon())
     {
@@ -124,7 +124,7 @@ QString unblockUser(const CommandContext &ctx)
     getHelix()->getUserByName(
         target,
         [currentUser, channel{ctx.channel}, target](const auto &targetUser) {
-            getApp()->getAccounts()->twitch.getCurrent()->unblockUser(
+            getIApp()->getAccounts()->twitch.getCurrent()->unblockUser(
                 targetUser.id, nullptr,
                 [channel, target, targetUser] {
                     channel->addSystemMessage(

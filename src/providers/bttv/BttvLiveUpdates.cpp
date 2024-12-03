@@ -1,23 +1,14 @@
 #include "providers/bttv/BttvLiveUpdates.hpp"
 
-#include "common/Literals.hpp"
-
 #include <QJsonDocument>
 
 #include <utility>
 
 namespace chatterino {
 
-using namespace chatterino::literals;
-
 BttvLiveUpdates::BttvLiveUpdates(QString host)
-    : BasicPubSubManager(std::move(host), u"BTTV"_s)
+    : BasicPubSubManager(std::move(host))
 {
-}
-
-BttvLiveUpdates::~BttvLiveUpdates()
-{
-    this->stop();
 }
 
 void BttvLiveUpdates::joinChannel(const QString &channelID,

@@ -2,7 +2,6 @@ set(LIBRARY_PROJECT "${PROJECT_NAME}-lib")
 set(VERSION_PROJECT "${LIBRARY_PROJECT}-version")
 set(EXECUTABLE_PROJECT "${PROJECT_NAME}")
 add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x050F00)
-add_compile_definitions(QT_WARN_DEPRECATED_UP_TO=0x050F00)
 
 # registers the native messageing host
 option(CHATTERINO_DEBUG_NATIVE_MESSAGES "Debug native messages" OFF)
@@ -40,7 +39,6 @@ set(SOURCE_FILES
         common/WindowDescriptors.cpp
         common/WindowDescriptors.hpp
 
-        common/enums/MessageContext.hpp
         common/enums/MessageOverflow.hpp
 
         common/network/NetworkCommon.cpp
@@ -227,28 +225,24 @@ set(SOURCE_FILES
         controllers/pings/MutedChannelModel.cpp
         controllers/pings/MutedChannelModel.hpp
 
-
         controllers/plugins/api/ChannelRef.cpp
         controllers/plugins/api/ChannelRef.hpp
-        controllers/plugins/api/EventType.hpp
+        controllers/plugins/api/IOWrapper.cpp
+        controllers/plugins/api/IOWrapper.hpp
         controllers/plugins/api/HTTPRequest.cpp
         controllers/plugins/api/HTTPRequest.hpp
         controllers/plugins/api/HTTPResponse.cpp
         controllers/plugins/api/HTTPResponse.hpp
-        controllers/plugins/api/IOWrapper.cpp
-        controllers/plugins/api/IOWrapper.hpp
         controllers/plugins/LuaAPI.cpp
         controllers/plugins/LuaAPI.hpp
-        controllers/plugins/LuaUtilities.cpp
-        controllers/plugins/LuaUtilities.hpp
-        controllers/plugins/PluginController.cpp
-        controllers/plugins/PluginController.hpp
-        controllers/plugins/Plugin.cpp
-        controllers/plugins/Plugin.hpp
         controllers/plugins/PluginPermission.cpp
         controllers/plugins/PluginPermission.hpp
-        controllers/plugins/SolTypes.cpp
-        controllers/plugins/SolTypes.hpp
+        controllers/plugins/Plugin.cpp
+        controllers/plugins/Plugin.hpp
+        controllers/plugins/PluginController.hpp
+        controllers/plugins/PluginController.cpp
+        controllers/plugins/LuaUtilities.cpp
+        controllers/plugins/LuaUtilities.hpp
 
         controllers/sound/ISoundController.hpp
         controllers/sound/MiniaudioBackend.cpp
@@ -282,12 +276,11 @@ set(SOURCE_FILES
         messages/MessageColor.hpp
         messages/MessageElement.cpp
         messages/MessageElement.hpp
-        messages/MessageFlag.hpp
-        messages/MessageSimilarity.cpp
-        messages/MessageSimilarity.hpp
-        messages/MessageSink.hpp
         messages/MessageThread.cpp
         messages/MessageThread.hpp
+
+        messages/SharedMessageBuilder.cpp
+        messages/SharedMessageBuilder.hpp
 
         messages/layouts/MessageLayout.cpp
         messages/layouts/MessageLayout.hpp
@@ -350,8 +343,22 @@ set(SOURCE_FILES
         providers/ffz/FfzUtil.cpp
         providers/ffz/FfzUtil.hpp
 
+        providers/irc/AbstractIrcServer.cpp
+        providers/irc/AbstractIrcServer.hpp
+        providers/irc/Irc2.cpp
+        providers/irc/Irc2.hpp
+        providers/irc/IrcAccount.cpp
+        providers/irc/IrcAccount.hpp
+        providers/irc/IrcChannel2.cpp
+        providers/irc/IrcChannel2.hpp
+        providers/irc/IrcCommands.cpp
+        providers/irc/IrcCommands.hpp
         providers/irc/IrcConnection2.cpp
         providers/irc/IrcConnection2.hpp
+        providers/irc/IrcMessageBuilder.cpp
+        providers/irc/IrcMessageBuilder.hpp
+        providers/irc/IrcServer.cpp
+        providers/irc/IrcServer.hpp
 
         providers/links/LinkInfo.cpp
         providers/links/LinkInfo.hpp
@@ -361,13 +368,6 @@ set(SOURCE_FILES
         providers/liveupdates/BasicPubSubClient.hpp
         providers/liveupdates/BasicPubSubManager.hpp
         providers/liveupdates/BasicPubSubWebsocket.hpp
-
-        providers/pronouns/Pronouns.cpp
-        providers/pronouns/Pronouns.hpp
-        providers/pronouns/UserPronouns.cpp
-        providers/pronouns/UserPronouns.hpp
-        providers/pronouns/alejo/PronounsAlejoApi.cpp
-        providers/pronouns/alejo/PronounsAlejoApi.hpp
 
         providers/recentmessages/Api.cpp
         providers/recentmessages/Api.hpp
@@ -417,20 +417,16 @@ set(SOURCE_FILES
         providers/twitch/TwitchBadges.hpp
         providers/twitch/TwitchChannel.cpp
         providers/twitch/TwitchChannel.hpp
-        providers/twitch/TwitchCommon.cpp
-        providers/twitch/TwitchCommon.hpp
         providers/twitch/TwitchEmotes.cpp
         providers/twitch/TwitchEmotes.hpp
         providers/twitch/TwitchHelpers.cpp
         providers/twitch/TwitchHelpers.hpp
-        providers/twitch/TwitchIrc.cpp
-        providers/twitch/TwitchIrc.hpp
         providers/twitch/TwitchIrcServer.cpp
         providers/twitch/TwitchIrcServer.hpp
+        providers/twitch/TwitchMessageBuilder.cpp
+        providers/twitch/TwitchMessageBuilder.hpp
         providers/twitch/TwitchUser.cpp
         providers/twitch/TwitchUser.hpp
-        providers/twitch/TwitchUsers.cpp
-        providers/twitch/TwitchUsers.hpp
 
         providers/twitch/pubsubmessages/AutoMod.cpp
         providers/twitch/pubsubmessages/AutoMod.hpp
@@ -453,6 +449,8 @@ set(SOURCE_FILES
         providers/twitch/api/Helix.cpp
         providers/twitch/api/Helix.hpp
 
+        singletons/Badges.cpp
+        singletons/Badges.hpp
         singletons/CrashHandler.cpp
         singletons/CrashHandler.hpp
         singletons/Emotes.cpp
@@ -494,11 +492,11 @@ set(SOURCE_FILES
         util/ChannelHelpers.hpp
         util/Clipboard.cpp
         util/Clipboard.hpp
+        util/ConcurrentMap.hpp
         util/DebugCount.cpp
         util/DebugCount.hpp
         util/DisplayBadge.cpp
         util/DisplayBadge.hpp
-        util/Expected.hpp
         util/FormatTime.cpp
         util/FormatTime.hpp
         util/FunctionEventFilter.cpp
@@ -513,8 +511,6 @@ set(SOURCE_FILES
         util/InitUpdateButton.hpp
         util/IpcQueue.cpp
         util/IpcQueue.hpp
-        util/IrcHelpers.cpp
-        util/IrcHelpers.hpp
         util/LayoutHelper.cpp
         util/LayoutHelper.hpp
         util/LoadPixmap.cpp
@@ -523,12 +519,11 @@ set(SOURCE_FILES
         util/RapidjsonHelpers.hpp
         util/RatelimitBucket.cpp
         util/RatelimitBucket.hpp
-        util/RenameThread.cpp
-        util/RenameThread.hpp
         util/SampleData.cpp
         util/SampleData.hpp
         util/SharedPtrElementLess.hpp
-        util/SignalListener.hpp
+        util/SplitCommand.cpp
+        util/SplitCommand.hpp
         util/StreamLink.cpp
         util/StreamLink.hpp
         util/ThreadGuard.hpp
@@ -536,8 +531,6 @@ set(SOURCE_FILES
         util/Twitch.hpp
         util/TypeName.hpp
         util/Variant.hpp
-        util/VectorMessageSink.cpp
-        util/VectorMessageSink.hpp
         util/WidgetHelpers.cpp
         util/WidgetHelpers.hpp
         util/WindowsHelper.cpp
@@ -571,8 +564,6 @@ set(SOURCE_FILES
         widgets/Label.hpp
         widgets/Notebook.cpp
         widgets/Notebook.hpp
-        widgets/OverlayWindow.cpp
-        widgets/OverlayWindow.hpp
         widgets/Scrollbar.cpp
         widgets/Scrollbar.hpp
         widgets/TooltipEntryWidget.cpp
@@ -592,6 +583,9 @@ set(SOURCE_FILES
         widgets/dialogs/EditHotkeyDialog.hpp
         widgets/dialogs/EmotePopup.cpp
         widgets/dialogs/EmotePopup.hpp
+        widgets/dialogs/IrcConnectionEditor.cpp
+        widgets/dialogs/IrcConnectionEditor.hpp
+        widgets/dialogs/IrcConnectionEditor.ui
         widgets/dialogs/LastRunCrashDialog.cpp
         widgets/dialogs/LastRunCrashDialog.hpp
         widgets/dialogs/LoginDialog.cpp
@@ -662,8 +656,6 @@ set(SOURCE_FILES
         widgets/helper/NotebookButton.hpp
         widgets/helper/NotebookTab.cpp
         widgets/helper/NotebookTab.hpp
-        widgets/helper/OverlayInteraction.cpp
-        widgets/helper/OverlayInteraction.hpp
         widgets/helper/RegExpItemDelegate.cpp
         widgets/helper/RegExpItemDelegate.hpp
         widgets/helper/ResizingTextEdit.cpp
@@ -813,7 +805,7 @@ target_link_libraries(${LIBRARY_PROJECT}
         $<$<BOOL:${WIN32}>:Wtsapi32>
         )
 if (CHATTERINO_PLUGINS)
-    target_link_libraries(${LIBRARY_PROJECT} PUBLIC lua sol2::sol2)
+    target_link_libraries(${LIBRARY_PROJECT} PUBLIC lua)
 endif()
 
 if (BUILD_WITH_QTKEYCHAIN)
@@ -998,7 +990,6 @@ target_compile_definitions(${LIBRARY_PROJECT} PUBLIC
     IRC_STATIC
     IRC_NAMESPACE=Communi
     $<$<BOOL:${WIN32}>:_WIN32_WINNT=0x0A00> # Windows 10
-    $<$<BOOL:${BUILD_TESTS}>:CHATTERINO_WITH_TESTS>
     )
 
 if (USE_SYSTEM_QTKEYCHAIN)
