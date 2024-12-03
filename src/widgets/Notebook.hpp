@@ -18,6 +18,7 @@ class UpdateDialog;
 class NotebookButton;
 class NotebookTab;
 class SplitContainer;
+class Split;
 
 enum NotebookTabLocation { Top = 0, Left = 1, Right = 2, Bottom = 3 };
 
@@ -116,9 +117,6 @@ public:
     bool getAllowUserTabManagement() const;
     void setAllowUserTabManagement(bool value);
 
-    bool getShowTabs() const;
-    void setShowTabs(bool value);
-
     bool getShowAddButton() const;
     void setShowAddButton(bool value);
 
@@ -133,6 +131,9 @@ public:
     void refresh();
 
 protected:
+    bool getShowTabs() const;
+    void setShowTabs(bool value);
+
     void scaleChangedEvent(float scale_) override;
     void resizeEvent(QResizeEvent *) override;
     void mousePressEvent(QMouseEvent *event) override;
@@ -178,7 +179,6 @@ private:
      * @brief Updates the visibility state of all tabs
      **/
     void updateTabVisibility();
-    void updateTabVisibilityMenuAction();
     void resizeAddButton();
 
     bool containsPage(QWidget *page);
@@ -209,7 +209,6 @@ private:
     NotebookTabLocation tabLocation_ = NotebookTabLocation::Top;
 
     QAction *lockNotebookLayoutAction_;
-    QAction *showTabsAction_;
     QAction *toggleTopMostAction_;
 
     // This filter, if set, is used to figure out the visibility of
@@ -230,7 +229,17 @@ public:
     void themeChangedEvent() override;
 
     void addNotebookActionsToMenu(QMenu *menu) override;
-    void toggleOfflineTabs();
+
+    void forEachSplit(const std::function<void(Split *)> &cb);
+
+    /**
+     * Toggles between the "Show all tabs" and "Hide all tabs" tab visibility states
+     */
+    void toggleTabVisibility();
+
+    QAction *showAllTabsAction;
+    QAction *onlyShowLiveTabsAction;
+    QAction *hideAllTabsAction;
 
 protected:
     void showEvent(QShowEvent *event) override;
@@ -239,9 +248,6 @@ private:
     void addCustomButtons();
 
     pajlada::Signals::SignalHolder signalHolder_;
-
-    QAction *toggleOfflineTabsAction_;
-    void updateToggleOfflineTabsHotkey(NotebookTabVisibility newTabVisibility);
 
     // Main window on Windows has basically a duplicate of this in Window
     NotebookButton *streamerModeIcon_{};

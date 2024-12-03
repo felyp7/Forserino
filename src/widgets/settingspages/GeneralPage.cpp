@@ -1,6 +1,7 @@
 #include "widgets/settingspages/GeneralPage.hpp"
 
 #include "Application.hpp"
+#include "common/Literals.hpp"
 #include "common/QLogging.hpp"
 #include "common/Version.hpp"
 #include "controllers/hotkeys/HotkeyCategory.hpp"
@@ -19,7 +20,6 @@
 #include "util/IncognitoBrowser.hpp"
 #include "widgets/BaseWindow.hpp"
 #include "widgets/settingspages/GeneralPageView.hpp"
-#include "widgets/splits/SplitInput.hpp"
 
 #include <magic_enum/magic_enum.hpp>
 #include <QDesktopServices>
@@ -30,63 +30,62 @@
 #include <QFormLayout>
 
 
-#define CHROME_EXTENSION_LINK                                           \
-    "https://chrome.google.com/webstore/detail/chatterino-native-host/" \
-    "glknmaideaikkmemifbfkhnomoknepka"
-#define FIREFOX_EXTENSION_LINK \
-    "https://addons.mozilla.org/en-US/firefox/addon/chatterino-native-host/"
+namespace {
 
-// define to highlight sections in editor
-#define addTitle addTitle
-#define addSubtitle addSubtitle
+using namespace chatterino;
+using namespace literals;
+
+const QString CHROME_EXTENSION_LINK =
+    u"https://chrome.google.com/webstore/detail/chatterino-native-host/glknmaideaikkmemifbfkhnomoknepka"_s;
+const QString FIREFOX_EXTENSION_LINK =
+    u"https://addons.mozilla.org/en-US/firefox/addon/chatterino-native-host/"_s;
 
 #ifdef Q_OS_WIN
-#    define META_KEY "Windows"
+const QString META_KEY = u"Windows"_s;
 #else
-#    define META_KEY "Meta"
+const QString META_KEY = u"Meta"_s;
 #endif
 
-namespace chatterino {
-namespace {
-    void addKeyboardModifierSetting(GeneralPageView &layout,
-                                    const QString &title,
-                                    EnumSetting<Qt::KeyboardModifier> &setting)
-    {
-        layout.addDropdown<std::underlying_type<Qt::KeyboardModifier>::type>(
-            title, {"None", "Shift", "Control", "Alt", META_KEY}, setting,
-            [](int index) {
-                switch (index)
-                {
-                    case Qt::ShiftModifier:
-                        return 1;
-                    case Qt::ControlModifier:
-                        return 2;
-                    case Qt::AltModifier:
-                        return 3;
-                    case Qt::MetaModifier:
-                        return 4;
-                    default:
-                        return 0;
-                }
-            },
-            [](DropdownArgs args) {
-                switch (args.index)
-                {
-                    case 1:
-                        return Qt::ShiftModifier;
-                    case 2:
-                        return Qt::ControlModifier;
-                    case 3:
-                        return Qt::AltModifier;
-                    case 4:
-                        return Qt::MetaModifier;
-                    default:
-                        return Qt::NoModifier;
-                }
-            },
-            false);
-    }
+void addKeyboardModifierSetting(GeneralPageView &layout, const QString &title,
+                                EnumSetting<Qt::KeyboardModifier> &setting)
+{
+    layout.addDropdown<std::underlying_type<Qt::KeyboardModifier>::type>(
+        title, {"None", "Shift", "Control", "Alt", META_KEY}, setting,
+        [](int index) {
+            switch (index)
+            {
+                case Qt::ShiftModifier:
+                    return 1;
+                case Qt::ControlModifier:
+                    return 2;
+                case Qt::AltModifier:
+                    return 3;
+                case Qt::MetaModifier:
+                    return 4;
+                default:
+                    return 0;
+            }
+        },
+        [](DropdownArgs args) {
+            switch (args.index)
+            {
+                case 1:
+                    return Qt::ShiftModifier;
+                case 2:
+                    return Qt::ControlModifier;
+                case 3:
+                    return Qt::AltModifier;
+                case 4:
+                    return Qt::MetaModifier;
+                default:
+                    return Qt::NoModifier;
+            }
+        },
+        false);
+}
 }  // namespace
+
+namespace chatterino {
 
 GeneralPage::GeneralPage()
 {
@@ -124,7 +123,7 @@ void GeneralPage::initLayout(GeneralPageView &layout)
     layout.addTitle("Interface");
 
     {
-        auto *themes = getIApp()->getThemes();
+        auto *themes = getApp()->getThemes();
         auto available = themes->availableThemes();
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
         available.emplace_back("System", "System");
@@ -275,7 +274,7 @@ void GeneralPage::initLayout(GeneralPageView &layout)
     layout.addCheckbox("Show message reply button", s.showReplyButton, false,
                        "Show a reply button next to every chat message");
 
-    auto removeTabSeq = getIApp()->getHotkeys()->getDisplaySequence(
+    auto removeTabSeq = getApp()->getHotkeys()->getDisplaySequence(
         HotkeyCategory::Window, "removeTab");
     QString removeTabShortcut = "an assigned hotkey (Window -> remove tab)";
     if (!removeTabSeq.isEmpty())
@@ -296,7 +295,7 @@ void GeneralPage::initLayout(GeneralPageView &layout)
 #endif
     if (!BaseWindow::supportsCustomWindowFrame())
     {
-        auto settingsSeq = getIApp()->getHotkeys()->getDisplaySequence(
+        auto settingsSeq = getApp()->getHotkeys()->getDisplaySequence(
             HotkeyCategory::Window, "openSettings");
         QString shortcut = " (no key bound to open them otherwise)";
         // TODO: maybe prevent the user from locking themselves out of the settings?
@@ -573,7 +572,7 @@ void GeneralPage::initLayout(GeneralPageView &layout)
     // as an official description from 7TV devs is best
     s.showUnlistedSevenTVEmotes.connect(
         []() {
-            getIApp()->getTwitch()->forEachChannelAndSpecialChannels(
+            getApp()->getTwitch()->forEachChannelAndSpecialChannels(
                 [](const auto &c) {
                     if (c->isTwitchChannel())
                     {
@@ -827,9 +826,9 @@ void GeneralPage::initLayout(GeneralPageView &layout)
     layout.addButton("Open AppData directory", [] {
 #ifdef Q_OS_DARWIN
         QDesktopServices::openUrl("file://" +
-                                  getIApp()->getPaths().rootAppDataDirectory);
+                                  getApp()->getPaths().rootAppDataDirectory);
 #else
-        QDesktopServices::openUrl(getIApp()->getPaths().rootAppDataDirectory);
+        QDesktopServices::openUrl(getApp()->getPaths().rootAppDataDirectory);
 #endif
     });
 
@@ -841,7 +840,7 @@ void GeneralPage::initLayout(GeneralPageView &layout)
     auto *cachePathLabel = layout.addDescription("placeholder :D");
     getSettings()->cachePath.connect([cachePathLabel](const auto &,
                                                       auto) mutable {
-        QString newPath = getIApp()->getPaths().cacheDirectory();
+        QString newPath = getApp()->getPaths().cacheDirectory();
 
         QString pathShortened = "Cache saved at <a href=\"file:///" + newPath +
                                 "\"><span style=\"color: white;\">" +
@@ -869,9 +868,9 @@ void GeneralPage::initLayout(GeneralPageView &layout)
 
             if (reply == QMessageBox::Yes)
             {
-                auto cacheDir = QDir(getIApp()->getPaths().cacheDirectory());
+                auto cacheDir = QDir(getApp()->getPaths().cacheDirectory());
                 cacheDir.removeRecursively();
-                cacheDir.mkdir(getIApp()->getPaths().cacheDirectory());
+                cacheDir.mkdir(getApp()->getPaths().cacheDirectory());
             }
         }));
         box->addStretch(1);
@@ -893,7 +892,7 @@ void GeneralPage::initLayout(GeneralPageView &layout)
                        "Show the stream title");
 
     layout.addSubtitle("R9K");
-    auto toggleLocalr9kSeq = getIApp()->getHotkeys()->getDisplaySequence(
+    auto toggleLocalr9kSeq = getApp()->getHotkeys()->getDisplaySequence(
         HotkeyCategory::Window, "toggleLocalR9K");
     QString toggleLocalr9kShortcut =
         "an assigned hotkey (Window -> Toggle local R9K)";
@@ -916,7 +915,7 @@ void GeneralPage::initLayout(GeneralPageView &layout)
                        s.shownSimilarTriggerHighlights);
     s.hideSimilar.connect(
         []() {
-            getIApp()->getWindows()->forceLayoutChannelViews();
+            getApp()->getWindows()->forceLayoutChannelViews();
         },
         false);
     layout.addDropdown<float>(
@@ -973,6 +972,40 @@ void GeneralPage::initLayout(GeneralPageView &layout)
     layout.addCheckbox("Use custom FrankerFaceZ VIP badges",
                        s.useCustomFfzVipBadges);
 
+    layout.addSubtitle("Overlay");
+    layout.addIntInput(
+        "Background opacity (0-255)", s.overlayBackgroundOpacity, 0, 255, 1,
+        "Controls the opacity of the (possibly alternating) background behind "
+        "messages. The color is set through the current theme. 255 corresponds "
+        "to a fully opaque background.");
+    layout.addCheckbox("Enable Shadow", s.enableOverlayShadow, false,
+                       "Enables a drop shadow on the overlay. This will use "
+                       "more processing power.");
+    layout.addIntInput("Shadow opacity (0-255)", s.overlayShadowOpacity, 0, 255,
+                       1,
+                       "Controls the opacity of the added drop shadow. 255 "
+                       "corresponds to a fully opaque shadow.");
+    layout.addColorButton("Shadow color",
+                          QColor(getSettings()->overlayShadowColor.getValue()),
+                          getSettings()->overlayShadowColor);
+    layout
+        .addIntInput("Shadow radius", s.overlayShadowRadius, 0, 40, 1,
+                     "Controls how far the shadow is spread (the blur "
+                     "radius) in device-independent pixels.")
+        ->setSuffix("dp");
+    layout
+        .addIntInput("Shadow offset x", s.overlayShadowOffsetX, -20, 20, 1,
+                     "Controls how far the shadow is offset on the x axis in "
+                     "device-independent pixels. A negative value offsets to "
+                     "the left and a positive to the right.")
+        ->setSuffix("dp");
+    layout
+        .addIntInput("Shadow offset y", s.overlayShadowOffsetY, -20, 20, 1,
+                     "Controls how far the shadow is offset on the y axis in "
+                     "device-independent pixels. A negative value offsets to "
+                     "the top and a positive to the bottom.")
+        ->setSuffix("dp");
+
     layout.addSubtitle("Miscellaneous");
 
     if (supportsIncognitoLinks())
@@ -984,15 +1017,15 @@ void GeneralPage::initLayout(GeneralPageView &layout)
     layout.addCustomCheckbox(
         "Restart on crash (requires restart)",
         [] {
-            return getIApp()->getCrashHandler()->shouldRecover();
+            return getApp()->getCrashHandler()->shouldRecover();
         },
         [](bool on) {
-            return getIApp()->getCrashHandler()->saveShouldRecover(on);
+            return getApp()->getCrashHandler()->saveShouldRecover(on);
         },
         "When possible, restart Chatterino if the program crashes");
 
 #if defined(Q_OS_LINUX) && !defined(NO_QTKEYCHAIN)
-    if (!getIApp()->getPaths().isPortable())
+    if (!getApp()->getPaths().isPortable())
     {
         layout.addCheckbox(
             "Use libsecret/KWallet/Gnome keychain to secure passwords",
@@ -1033,6 +1066,10 @@ void GeneralPage::initLayout(GeneralPageView &layout)
                        false,
                        "Make all clickable links lowercase to deter "
                        "phishing attempts.");
+    layout.addCheckbox(
+        "Show user's pronouns in user card", s.showPronouns, false,
+        "Shows users' pronouns in their user card. "
+        "Pronouns are retrieved from alejo.io when the user card is opened.");
     layout.addCheckbox("Bold @usernames", s.boldUsernames, false,
                        "Bold @mentions to make them more noticable.");
     layout.addCheckbox("Color @usernames", s.colorUsernames, false,
@@ -1133,13 +1170,6 @@ void GeneralPage::initLayout(GeneralPageView &layout)
     layout.addIntInput("Usercard scrollback limit (requires restart)",
                        s.scrollbackUsercardLimit, 100, 100000, 100);
 
-    layout.addCheckbox("Enable experimental IRC support (requires restart)",
-                       s.enableExperimentalIrc, false,
-                       "When enabled, attempting to join a channel will "
-                       "include an \"IRC (Beta)\" tab allowing the user to "
-                       "connect to an IRC server outside of Twitch ");
-    layout.addCheckbox("Show unhandled IRC messages",
-                       s.showUnhandledIrcMessages);
     layout.addDropdown<int>(
         "Stack timeouts", {"Stack", "Stack until timeout", "Don't stack"},
         s.timeoutStackStyle,
@@ -1199,7 +1229,7 @@ void GeneralPage::initExtra()
     {
         getSettings()->cachePath.connect(
             [cachePath = this->cachePath_](const auto &, auto) mutable {
-                QString newPath = getIApp()->getPaths().cacheDirectory();
+                QString newPath = getApp()->getPaths().cacheDirectory();
 
                 QString pathShortened = "Current location: <a href=\"file:///" +
                                         newPath + "\">" +
@@ -1219,7 +1249,7 @@ QString GeneralPage::getFont(const DropdownArgs &args) const
 
         auto ok = bool();
         auto previousFont =
-            getIApp()->getFonts()->getFont(FontStyle::ChatMedium, 1.);
+            getApp()->getFonts()->getFont(FontStyle::ChatMedium, 1.);
         auto font = QFontDialog::getFont(&ok, previousFont, this->window());
 
         if (ok)

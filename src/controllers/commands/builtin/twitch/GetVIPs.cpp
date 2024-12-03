@@ -8,7 +8,6 @@
 #include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/TwitchAccount.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
-#include "providers/twitch/TwitchMessageBuilder.hpp"
 
 namespace {
 
@@ -82,7 +81,7 @@ QString getVIPs(const CommandContext &ctx)
         return "";
     }
 
-    auto currentUser = getIApp()->getAccounts()->twitch.getCurrent();
+    auto currentUser = getApp()->getAccounts()->twitch.getCurrent();
     if (currentUser->isAnon())
     {
         getHelix()->getChannelVIPs(

@@ -2,9 +2,10 @@
 
 #include "Application.hpp"
 #include "controllers/accounts/AccountController.hpp"
+#include "messages/layouts/MessageLayoutContext.hpp"
 #include "messages/MessageBuilder.hpp"
 #include "messages/MessageElement.hpp"
-#include "mocks/EmptyApplication.hpp"
+#include "mocks/BaseApplication.hpp"
 #include "singletons/Emotes.hpp"
 #include "singletons/Fonts.hpp"
 #include "singletons/Settings.hpp"
@@ -21,23 +22,12 @@ using namespace chatterino;
 
 namespace {
 
-class MockApplication : mock::EmptyApplication
+class MockApplication : public mock::BaseApplication
 {
 public:
     MockApplication()
-        : settings(this->settingsDir.filePath("settings.json"))
-        , fonts(this->settings)
-        , windowManager(this->paths_)
+        : windowManager(this->paths_, this->settings, this->theme, this->fonts)
     {
-    }
-    Theme *getThemes() override
-    {
-        return &this->theme;
-    }
-
-    Fonts *getFonts() override
-    {
-        return &this->fonts;
     }
 
     WindowManager *getWindows() override
@@ -45,9 +35,12 @@ public:
         return &this->windowManager;
     }
 
-    Settings settings;
-    Theme theme;
-    Fonts fonts;
+    AccountController *getAccounts() override
+    {
+        return &this->accounts;
+    }
+
+    AccountController accounts;
     WindowManager windowManager;
 };
 
@@ -63,7 +56,16 @@ public:
         builder.append(
             std::make_unique<TextElement>(text, MessageElementFlag::Text));
         this->layout = std::make_unique<MessageLayout>(builder.release());
-        this->layout->layout(WIDTH, 1, 1, MessageElementFlag::Text, false);
+        MessageColors colors;
+        this->layout->layout(
+            {
+                .messageColors = colors,
+                .flags = MessageElementFlag::Text,
+                .width = WIDTH,
+                .scale = 1,
+                .imageScale = 1,
+            },
+            false);
     }
 
     MockApplication mockApplication;

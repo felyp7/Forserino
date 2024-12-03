@@ -26,8 +26,7 @@ EditHotkeyDialog::EditHotkeyDialog(const std::shared_ptr<Hotkey> hotkey,
     this->ui_->easyArgsPicker->setVisible(false);
     this->ui_->easyArgsLabel->setVisible(false);
     // dynamically add category names to the category picker
-    for (const auto &[_, hotkeyCategory] :
-         getIApp()->getHotkeys()->categories())
+    for (const auto &[_, hotkeyCategory] : hotkeyCategories())
     {
         this->ui_->categoryPicker->addItem(hotkeyCategory.displayName,
                                            hotkeyCategory.name);
@@ -80,7 +79,7 @@ void EditHotkeyDialog::setFromHotkey(std::shared_ptr<Hotkey> hotkey)
         this->ui_->easyArgsLabel->setText(def->argumentsPrompt);
         this->ui_->easyArgsLabel->setToolTip(def->argumentsPromptHover);
         int matchIdx = -1;
-        for (int i = 0; i < def->possibleArguments.size(); i++)
+        for (size_t i = 0; i < def->possibleArguments.size(); i++)
         {
             const auto &[displayText, argData] = def->possibleArguments.at(i);
             this->ui_->easyArgsPicker->addItem(displayText);
@@ -91,7 +90,7 @@ void EditHotkeyDialog::setFromHotkey(std::shared_ptr<Hotkey> hotkey)
                 continue;
             }
             bool matches = true;
-            for (int j = 0; j < argData.size(); j++)
+            for (size_t j = 0; j < argData.size(); j++)
             {
                 if (argData.at(j) != hotkey->arguments().at(j))
                 {
@@ -101,7 +100,7 @@ void EditHotkeyDialog::setFromHotkey(std::shared_ptr<Hotkey> hotkey)
             }
             if (matches)
             {
-                matchIdx = i;
+                matchIdx = static_cast<int>(i);
             }
         }
         if (matchIdx != -1)
@@ -154,7 +153,7 @@ void EditHotkeyDialog::afterEdit()
     auto arguments =
         parseHotkeyArguments(this->ui_->argumentsEdit->toPlainText());
 
-    auto category = getIApp()->getHotkeys()->hotkeyCategoryFromName(
+    auto category = getApp()->getHotkeys()->hotkeyCategoryFromName(
         this->ui_->categoryPicker->currentData().toString());
     if (!category)
     {
@@ -166,7 +165,7 @@ void EditHotkeyDialog::afterEdit()
 
     // check if another hotkey with this name exists, accounts for editing a hotkey
     bool isEditing = bool(this->data_);
-    if (getIApp()->getHotkeys()->getHotkeyByName(nameText))
+    if (getApp()->getHotkeys()->getHotkeyByName(nameText))
     {
         // A hotkey with this name already exists
         if (isEditing && this->data()->name() == nameText)
@@ -243,8 +242,8 @@ void EditHotkeyDialog::afterEdit()
     {
         if (keyComboWasEdited || nameWasEdited)
         {
-            if (getIApp()->getHotkeys()->isDuplicate(hotkey,
-                                                     this->data()->name()))
+            if (getApp()->getHotkeys()->isDuplicate(hotkey,
+                                                    this->data()->name()))
             {
                 this->showEditError(
                     "Keybinding needs to be unique in the category.");
@@ -254,7 +253,7 @@ void EditHotkeyDialog::afterEdit()
     }
     else
     {
-        if (getIApp()->getHotkeys()->isDuplicate(hotkey, QString()))
+        if (getApp()->getHotkeys()->isDuplicate(hotkey, QString()))
         {
             this->showEditError(
                 "Keybinding needs to be unique in the category.");
@@ -268,7 +267,7 @@ void EditHotkeyDialog::afterEdit()
 
 void EditHotkeyDialog::updatePossibleActions()
 {
-    const auto &hotkeys = getIApp()->getHotkeys();
+    const auto &hotkeys = getApp()->getHotkeys();
     auto category = hotkeys->hotkeyCategoryFromName(
         this->ui_->categoryPicker->currentData().toString());
     if (!category)
@@ -320,7 +319,7 @@ void EditHotkeyDialog::updateArgumentsInput()
         this->ui_->argumentsEdit->setEnabled(true);
         return;
     }
-    const auto &hotkeys = getIApp()->getHotkeys();
+    const auto &hotkeys = getApp()->getHotkeys();
     auto category = hotkeys->hotkeyCategoryFromName(
         this->ui_->categoryPicker->currentData().toString());
     if (!category)

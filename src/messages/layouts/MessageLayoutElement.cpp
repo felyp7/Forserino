@@ -514,9 +514,10 @@ int TextLayoutElement::getXFromIndex(size_t index)
     else if (index < static_cast<size_t>(this->getText().size()))
     {
         int x = 0;
-        for (int i = 0; i < index; i++)
+        for (size_t i = 0; i < index; i++)
         {
-            x += metrics.horizontalAdvance(this->getText()[i]);
+            x += metrics.horizontalAdvance(
+                this->getText()[static_cast<QString::size_type>(i)]);
         }
         return x + this->getRect().left();
     }
@@ -555,7 +556,7 @@ void TextIconLayoutElement::paint(QPainter &painter,
 
     QFont font = app->getFonts()->getFont(FontStyle::Tiny, this->scale);
 
-    painter.setPen(messageColors.system);
+    painter.setPen(messageColors.systemText);
     painter.setFont(font);
 
     QTextOption option;
