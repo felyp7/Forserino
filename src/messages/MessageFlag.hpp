@@ -53,6 +53,8 @@ enum class MessageFlag : std::int64_t {
     /// The message is sent in a different source channel as part of a Shared Chat session
     SharedMessage = (1LL << 37),
     WebchatDetected = (1LL << 38),
+    /// AutoMod message that showed up due to containing a blocked term in the channel
+    AutoModBlockedTerm = (1LL << 38),
 };
 using MessageFlags = FlagsEnum<MessageFlag>;
 
