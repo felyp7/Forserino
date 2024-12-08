@@ -1675,9 +1675,8 @@ std::pair<MessagePtr, MessagePtr> MessageBuilder::makeAutomodMessage(
     builder.emplace<BadgeElement>(makeAutoModBadge(),
                                   MessageElementFlag::BadgeChannelAuthority);
     // AutoMod "username"
-    builder2.emplace<TextElement>("AutoMod:", MessageElementFlag::Text,
-                                  AUTOMOD_USER_COLOR,
-                                  FontStyle::ChatMediumBold);
+    builder.emplace<TextElement>("AutoMod:", MessageElementFlag::Text,
+                                 AUTOMOD_USER_COLOR, FontStyle::ChatMediumBold);
     // AutoMod header message
     builder.emplace<TextElement>(
         ("Held a message for reason: " + action.reason +
