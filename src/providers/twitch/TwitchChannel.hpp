@@ -36,7 +36,6 @@ using EmotePtr = std::shared_ptr<const Emote>;
 class EmoteMap;
 
 class TwitchBadges;
-class SeventvEmotes;
 class FfzEmotes;
 class BttvEmotes;
 struct BttvLiveUpdateEmoteUpdateAddMessage;
