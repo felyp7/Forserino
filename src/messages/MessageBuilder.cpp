@@ -1247,6 +1247,8 @@ void MessageBuilder::triggerHighlights(const Channel *channel,
     {
         return;
     }
+    actuallyTriggerHighlights(channel->getName(), alert.playSound,
+                              alert.customSound, alert.windowAlert);
 }
 
 void MessageBuilder::appendChannelPointRewardMessage(
