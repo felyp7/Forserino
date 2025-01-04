@@ -26,6 +26,7 @@
 #include "providers/twitch/api/Helix.hpp"
 #include "providers/twitch/ChannelPointReward.hpp"
 #include "providers/twitch/PubSubActions.hpp"
+#include "providers/twitch/pubsubmessages/AutoMod.hpp"
 #include "providers/twitch/TwitchAccount.hpp"
 #include "providers/twitch/TwitchBadge.hpp"
 #include "providers/twitch/TwitchBadges.hpp"
@@ -1652,6 +1653,12 @@ std::pair<MessagePtr, MessagePtr> MessageBuilder::makeAutomodMessage(
 {
     MessageBuilder builder, builder2;
 
+    if (action.reasonCode == PubSubAutoModQueueMessage::Reason::BlockedTerm)
+    {
+        builder.message().flags.set(MessageFlag::AutoModBlockedTerm);
+        builder2.message().flags.set(MessageFlag::AutoModBlockedTerm);
+    }
+
     //
     // Builder for AutoMod message with explanation
     builder.message().id = "automod_" + action.msgID;
@@ -1666,9 +1673,8 @@ std::pair<MessagePtr, MessagePtr> MessageBuilder::makeAutomodMessage(
     builder.emplace<BadgeElement>(makeAutoModBadge(),
                                   MessageElementFlag::BadgeChannelAuthority);
     // AutoMod "username"
-    builder2.emplace<TextElement>("AutoMod:", MessageElementFlag::Text,
-                                  AUTOMOD_USER_COLOR,
-                                  FontStyle::ChatMediumBold);
+    builder.emplace<TextElement>("AutoMod:", MessageElementFlag::Text,
+                                 AUTOMOD_USER_COLOR, FontStyle::ChatMediumBold);
     // AutoMod header message
     builder.emplace<TextElement>(
         ("Held a message for reason: " + action.reason +

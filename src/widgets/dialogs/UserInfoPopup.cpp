@@ -945,6 +945,8 @@ void UserInfoPopup::updateUserData()
         if (this->userName_.isEmpty())
         {
             this->userName_ = user.login;
+            this->ui_.nameLabel->setText(user.login);
+
             // Ensure recent messages are shown
             this->updateLatestMessages();
         }

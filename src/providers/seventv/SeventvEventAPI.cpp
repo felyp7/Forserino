@@ -237,6 +237,10 @@ void SeventvEventAPI::handleDispatch(const Dispatch &dispatch)
             // unhandled (not clear what we'd do here yet)
         }
         break;
+        case SubscriptionType::CreateEmoteSet: {
+            // unhandled (c2 does not support custom emote sets)
+        }
+        break;
         default: {
             qCDebug(chatterinoSeventvEventAPI)
                 << "Unknown subscription type:"
@@ -359,7 +363,13 @@ void SeventvEventAPI::onUserUpdate(const Dispatch &dispatch)
 
 void SeventvEventAPI::onCosmeticCreate(const CosmeticCreateDispatch &cosmetic)
 {
-    auto *badges = getApp()->getSeventvBadges();
+    auto *app = tryGetApp();
+    if (!app)
+    {
+        return;  // shutting down
+    }
+
+    auto *badges = app->getSeventvBadges();
     switch (cosmetic.kind)
     {
         case CosmeticKind::Badge: {
@@ -374,7 +384,13 @@ void SeventvEventAPI::onCosmeticCreate(const CosmeticCreateDispatch &cosmetic)
 void SeventvEventAPI::onEntitlementCreate(
     const EntitlementCreateDeleteDispatch &entitlement)
 {
-    auto *badges = getApp()->getSeventvBadges();
+    auto *app = tryGetApp();
+    if (!app)
+    {
+        return;  // shutting down
+    }
+
+    auto *badges = app->getSeventvBadges();
     switch (entitlement.kind)
     {
         case CosmeticKind::Badge: {
@@ -390,7 +406,13 @@ void SeventvEventAPI::onEntitlementCreate(
 void SeventvEventAPI::onEntitlementDelete(
     const EntitlementCreateDeleteDispatch &entitlement)
 {
-    auto *badges = getApp()->getSeventvBadges();
+    auto *app = tryGetApp();
+    if (!app)
+    {
+        return;  // shutting down
+    }
+
+    auto *badges = app->getSeventvBadges();
     switch (entitlement.kind)
     {
         case CosmeticKind::Badge: {
