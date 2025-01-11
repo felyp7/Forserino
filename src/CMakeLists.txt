@@ -319,11 +319,6 @@ set(SOURCE_FILES
         providers/NetworkConfigurationProvider.cpp
         providers/NetworkConfigurationProvider.hpp
 
-        providers/seventv/SeventvBadges.cpp
-        providers/seventv/SeventvBadges.hpp
-        providers/seventv/SeventvEmotes.cpp
-        providers/seventv/SeventvEmotes.hpp
-
         providers/bttv/BttvEmotes.cpp
         providers/bttv/BttvEmotes.hpp
         providers/bttv/BttvLiveUpdates.cpp
