@@ -55,6 +55,8 @@ enum class MessageFlag : std::int64_t {
     /// AutoMod message that showed up due to containing a blocked term in the channel
     AutoModBlockedTerm = (1LL << 38),
     WebchatDetected = (1LL << 39),
+    /// The message is a full clear chat message (/clear)
+    ClearChat = (1LL << 39),
 };
 using MessageFlags = FlagsEnum<MessageFlag>;
 
