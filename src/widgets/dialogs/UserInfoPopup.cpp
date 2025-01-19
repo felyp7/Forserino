@@ -47,17 +47,16 @@
 #include <QToolTip>
 #include <QStringBuilder>
 
-const QString TEXT_FOLLOWERS("Followers: %1");
-const QString TEXT_CREATED("Created: %1");
-const QString TEXT_BANNED("User not found: %1");
-const QString TEXT_TITLE("%1's Usercard - #%2");
-#define TEXT_USER_ID "ID: "
-#define TEXT_UNAVAILABLE "(not available)"
-const QString TEXT_PRONOUNS("Pronouns: %1");
-const QString TEXT_UNSPECIFIED("unspecified");
-const QString TEXT_LOADING("(loading...)"); 
-
 namespace {
+
+constexpr QStringView TEXT_FOLLOWERS = u"Followers: %1";
+constexpr QStringView TEXT_CREATED = u"Created: %1";
+constexpr QStringView TEXT_TITLE = u"%1's Usercard - #%2";
+constexpr QStringView TEXT_USER_ID = u"ID: ";
+constexpr QStringView TEXT_UNAVAILABLE = u"(not available)";
+constexpr QStringView TEXT_PRONOUNS = u"Pronouns: %1";
+constexpr QStringView TEXT_UNSPECIFIED = u"(unspecified)";
+constexpr QStringView TEXT_LOADING = u"(loading...)";
 
 using namespace chatterino;
 
@@ -753,11 +752,9 @@ void UserInfoPopup::installEvents()
 
                 bool wasPinned = this->ensurePinned();
                 auto btn = QMessageBox::warning(
-                    this,
-                    QString("Blocking %1").arg(this->userName_),
-                    QStringLiteral("Blocking %1 can cause unintended side-effects like unfollowing.\n\n"
-                                    "Are you sure you want to block %1?")
-                        .arg(this->userName_),
+                    this, u"Blocking " % this->userName_,
+                    u"Blocking %1 can cause unintended side-effects like unfollowing.\n\n"_s
+                    "Are you sure you want to block %1?".arg(this->userName_),
                     QMessageBox::Yes | QMessageBox::Cancel,
                     QMessageBox::Cancel);
 
@@ -994,10 +991,10 @@ void UserInfoPopup::updateUserData()
                     this->ui_.rolesLabel->setVisible(false);
                 }
                 this->ui_.nameLabel->setText(this->userName_);
-                this->ui_.userIDLabel->setText(QString("ID ") +
-                                               QString(TEXT_UNAVAILABLE));
+                
+                this->ui_.userIDLabel->setText(u"ID " % TEXT_UNAVAILABLE);
                 this->ui_.userIDLabel->setProperty("copy-text",
-                                                   QString(TEXT_UNAVAILABLE));
+                                           TEXT_UNAVAILABLE.toString());
                 getHelix()->getUserColor(this->userId_, userColorSuccess,
                                       userColorFailure);
             },
@@ -1047,7 +1044,7 @@ void UserInfoPopup::updateUserData()
         if (getSettings()->showBannedReason){
             this->ui_.bannedReasonLabel->setVisible(false);
         }
-        this->ui_.userIDLabel->setText(TEXT_USER_ID + user.id);
+        this->ui_.userIDLabel->setText(TEXT_USER_ID % user.id);
         this->ui_.userIDLabel->setProperty("copy-text", user.id);
         getHelix()->getUserColor(this->userId_, userColorSuccess,
                                       userColorFailure);
