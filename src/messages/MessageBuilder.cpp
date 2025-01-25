@@ -736,7 +736,8 @@ MessageBuilder::MessageBuilder(TimeoutMessageTag, const QString &username,
     this->message().serverReceivedTime = time;
 }
 
-MessageBuilder::MessageBuilder(const BanAction &action, uint32_t count)
+MessageBuilder::MessageBuilder(const BanAction &action, const QDateTime &time,
+                               uint32_t count)
     : MessageBuilder()
 {
     auto current = getApp()->getAccounts()->twitch.getCurrent();
@@ -834,9 +835,11 @@ MessageBuilder::MessageBuilder(const BanAction &action, uint32_t count)
 
     this->message().messageText = text;
     this->message().searchText = text;
+
+    this->message().serverReceivedTime = time;
 }
 
-MessageBuilder::MessageBuilder(const UnbanAction &action)
+MessageBuilder::MessageBuilder(const UnbanAction &action, const QDateTime &time)
     : MessageBuilder()
 {
     this->emplace<TimestampElement>();
@@ -856,6 +859,8 @@ MessageBuilder::MessageBuilder(const UnbanAction &action)
 
     this->message().messageText = text;
     this->message().searchText = text;
+
+    this->message().serverReceivedTime = time;
 }
 
 MessageBuilder::MessageBuilder(const WarnAction &action)

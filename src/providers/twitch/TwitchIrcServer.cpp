@@ -253,6 +253,12 @@ void TwitchIrcServer::initialize()
                 auto now = QDateTime::currentDateTime();
                 chan->addOrReplaceClearChat(
                     MessageBuilder::makeClearChatMessage(now, actor), now);
+                if (getSettings()->hideModerated)
+                {
+                    // XXX: This is expensive. We could use a layout request if the layout
+                    //      would store the previous message flags.
+                    getApp()->getWindows()->forceLayoutChannelViews();
+                }
             });
         });
 
@@ -314,10 +320,18 @@ void TwitchIrcServer::initialize()
             }
 
             postToThread([chan, action] {
-                MessageBuilder msg(action);
+                // TODO: Can we utilize some pubsub time field? maybe not worth
+                auto time = QDateTime::currentDateTime();
+                MessageBuilder msg(action, time);
                 msg->flags.set(MessageFlag::PubSub);
                 chan->addOrReplaceTimeout(msg.release(),
                                           QDateTime::currentDateTime());
+                if (getSettings()->hideModerated)
+                {
+                    // XXX: This is expensive. We could use a layout request if the layout
+                    //      would store the previous message flags.
+                    getApp()->getWindows()->forceLayoutChannelViews();
+                }
             });
         });
 
@@ -388,7 +402,9 @@ void TwitchIrcServer::initialize()
                 return;
             }
 
-            auto msg = MessageBuilder(action).release();
+            // TODO: Can we utilize some pubsub time field? maybe not worth
+            auto time = QDateTime::currentDateTime();
+            auto msg = MessageBuilder(action, time).release();
 
             postToThread([chan, msg] {
                 chan->addMessage(msg, MessageContext::Original);
