@@ -1984,6 +1984,7 @@ MessagePtr MessageBuilder::makeLowTrustUpdateMessage(
                               MessageColor::System, FontStyle::ChatMediumBold)
         ->setLink({Link::UserInfo, action.updatedByUserLogin});
 
+    QString text;
     assert(action.treatment != PubSubLowTrustUsersMessage::Treatment::INVALID);
     switch (action.treatment)
     {
@@ -1999,6 +2000,9 @@ MessagePtr MessageBuilder::makeLowTrustUpdateMessage(
             builder.emplace<TextElement>("from the suspicious user list.",
                                          MessageElementFlag::Text,
                                          MessageColor::System);
+            text = QString("%1 removed %2 from the suspicious user list.")
+                       .arg(action.updatedByUserDisplayName,
+                            action.suspiciousUserDisplayName);
         }
         break;
 
@@ -2014,6 +2018,9 @@ MessagePtr MessageBuilder::makeLowTrustUpdateMessage(
             builder.emplace<TextElement>("as a monitored suspicious chatter.",
                                          MessageElementFlag::Text,
                                          MessageColor::System);
+            text = QString("%1 added %2 as a monitored suspicious chatter.")
+                       .arg(action.updatedByUserDisplayName,
+                            action.suspiciousUserDisplayName);
         }
         break;
 
@@ -2029,6 +2036,9 @@ MessagePtr MessageBuilder::makeLowTrustUpdateMessage(
             builder.emplace<TextElement>("as a restricted suspicious chatter.",
                                          MessageElementFlag::Text,
                                          MessageColor::System);
+            text = QString("%1 added %2 as a restricted suspicious chatter.")
+                       .arg(action.updatedByUserDisplayName,
+                            action.suspiciousUserDisplayName);
         }
         break;
 
@@ -2038,6 +2048,8 @@ MessagePtr MessageBuilder::makeLowTrustUpdateMessage(
             break;
     }
 
+    builder->messageText = text;
+    builder->searchText = text;
     return builder.release();
 }
 
