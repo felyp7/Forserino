@@ -1101,16 +1101,20 @@ void UserInfoPopup::updateUserData()
         this->ui_.block->setEnabled(true);
         this->ui_.ignoreHighlights->setChecked(isIgnoringHighlights);
 
-        // get followage and subage
-        getIvr()->getSubage(
-            this->userName_, this->underlyingChannel_->getName(),
-            [this, hack](const IvrSubage &subageInfo) {
-                if (!hack.lock())
-                {
-                    return;
-                }
+        auto type = this->underlyingChannel_->getType();
 
-                if (!subageInfo.followingSince.isEmpty())
+        if (type == Channel::Type::Twitch)
+        {
+            // get followage and subage
+            getIvr()->getSubage(
+                this->userName_, this->underlyingChannel_->getName(),
+                [this, hack](const IvrSubage &subageInfo) {
+                    if (!hack.lock())
+                    {
+                        return;
+                    }
+
+                 if (!subageInfo.followingSince.isEmpty())
                 {
                     QDateTime followedAt = QDateTime::fromString(
                         subageInfo.followingSince, Qt::ISODate);
@@ -1147,7 +1151,7 @@ void UserInfoPopup::updateUserData()
                 }
             },
             [] {});
-
+        }
 
         getIvr()->getUserRoles(
             this->userName_,
