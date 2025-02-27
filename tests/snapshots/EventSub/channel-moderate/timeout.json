@@ -1,6 +1,7 @@
 {
     "input": {
-        "action": "warn",
+        "__timestamp": "2025-02-22T17:53:49.800959069Z",
+        "action": "timeout",
         "automod_terms": null,
         "ban": null,
         "broadcaster_user_id": "11148817",
@@ -8,9 +9,10 @@
         "broadcaster_user_name": "pajlada",
         "delete": null,
         "followers": null,
-        "moderator_user_id": "424596340",
-        "moderator_user_login": "quotrok",
-        "moderator_user_name": "quotrok",
+        "mod": null,
+        "moderator_user_id": "129546453",
+        "moderator_user_login": "nerixyz",
+        "moderator_user_name": "nerixyz",
         "raid": null,
         "shared_chat_ban": null,
         "shared_chat_delete": null,
@@ -18,10 +20,16 @@
         "shared_chat_unban": null,
         "shared_chat_untimeout": null,
         "slow": null,
-        "source_broadcaster_user_id": "11148817",
-        "source_broadcaster_user_login": "pajlada",
-        "source_broadcaster_user_name": "pajlada",
-        "timeout": null,
+        "source_broadcaster_user_id": null,
+        "source_broadcaster_user_login": null,
+        "source_broadcaster_user_name": null,
+        "timeout": {
+            "expires_at": "2025-02-22T17:53:50.782129948Z",
+            "reason": "test",
+            "user_id": "141981764",
+            "user_login": "twitchdev",
+            "user_name": "TwitchDev"
+        },
         "unban": null,
         "unban_request": null,
         "unmod": null,
@@ -29,13 +37,7 @@
         "untimeout": null,
         "unvip": null,
         "vip": null,
-        "warn": {
-            "chat_rules_cited": null,
-            "reason": "cut it out",
-            "user_id": "141981764",
-            "user_login": "twitchdev",
-            "user_name": "TwitchDev"
-        }
+        "warn": null
     },
     "output": [
         {
@@ -60,7 +62,7 @@
                         "trailingSpace": true,
                         "type": "TextElement",
                         "words": [
-                            "12:31"
+                            "17:53"
                         ]
                     },
                     "flags": "Timestamp",
@@ -69,7 +71,7 @@
                         "type": "None",
                         "value": ""
                     },
-                    "time": "12:31:47",
+                    "time": "17:53:49",
                     "tooltip": "",
                     "trailingSpace": true,
                     "type": "TimestampElement"
@@ -87,9 +89,9 @@
                     "trailingSpace": true,
                     "type": "MentionElement",
                     "userColor": "System",
-                    "userLoginName": "quotrok",
+                    "userLoginName": "nerixyz",
                     "words": [
-                        "quotrok"
+                        "nerixyz"
                     ]
                 },
                 {
@@ -104,8 +106,8 @@
                     "trailingSpace": true,
                     "type": "TextElement",
                     "words": [
-                        "has",
-                        "warned"
+                        "timed",
+                        "out"
                     ]
                 },
                 {
@@ -118,12 +120,42 @@
                     },
                     "style": "ChatMedium",
                     "tooltip": "",
-                    "trailingSpace": false,
+                    "trailingSpace": true,
                     "type": "MentionElement",
                     "userColor": "System",
                     "userLoginName": "twitchdev",
                     "words": [
                         "TwitchDev"
+                    ]
+                },
+                {
+                    "color": "System",
+                    "flags": "Text",
+                    "link": {
+                        "type": "None",
+                        "value": ""
+                    },
+                    "style": "ChatMedium",
+                    "tooltip": "",
+                    "trailingSpace": true,
+                    "type": "TextElement",
+                    "words": [
+                        "for"
+                    ]
+                },
+                {
+                    "color": "System",
+                    "flags": "Text",
+                    "link": {
+                        "type": "None",
+                        "value": ""
+                    },
+                    "style": "ChatMedium",
+                    "tooltip": "",
+                    "trailingSpace": false,
+                    "type": "TextElement",
+                    "words": [
+                        "1s"
                     ]
                 },
                 {
@@ -153,20 +185,18 @@
                     "trailingSpace": true,
                     "type": "TextElement",
                     "words": [
-                        "cut",
-                        "it",
-                        "out"
+                        "test"
                     ]
                 }
             ],
             "flags": "System|Timeout|EventSub",
             "id": "",
             "localizedName": "",
-            "loginName": "quotrok",
-            "messageText": "quotrok has warned twitchdev: cut it out ",
-            "searchText": "quotrok has warned twitchdev: cut it out ",
-            "serverReceivedTime": "2024-05-14T12:31:47Z",
-            "timeoutUser": "",
+            "loginName": "nerixyz",
+            "messageText": "nerixyz timed out twitchdev for 1s : test ",
+            "searchText": "nerixyz timed out twitchdev for 1s : test ",
+            "serverReceivedTime": "2025-02-22T17:53:49Z",
+            "timeoutUser": "twitchdev",
             "userID": "",
             "usernameColor": "#ff000000"
         }

@@ -5,6 +5,7 @@
 
 #include <boost/json.hpp>
 
+#include <chrono>
 #include <string>
 
 namespace chatterino::eventsub::lib::payload::channel_moderate::v2 {
@@ -161,13 +162,11 @@ struct Unmod {
 
 struct Ban {
     static constexpr std::string_view TAG = "ban";
-    static constexpr std::string_view FIELD = "ban";
 
-    std::string userID;
-    std::string userLogin;
-    std::string userName;
-    // TODO: Verify that we handle null here
-    std::string reason;
+    String userID;
+    String userLogin;
+    String userName;
+    String reason;
 };
 struct SharedChatBan : public Ban {
     static constexpr std::string_view TAG = "shared_chat_ban";
@@ -179,13 +178,12 @@ struct SharedChatBan : public Ban {
 
 struct Unban {
     static constexpr std::string_view TAG = "unban";
-    static constexpr std::string_view FIELD = "unban";
 
-    std::string userID;
-    std::string userLogin;
-    std::string userName;
+    String userID;
+    String userLogin;
+    String userName;
 };
-struct SharedChatUnban : public Ban {
+struct SharedChatUnban : public Unban {
     static constexpr std::string_view TAG = "shared_chat_unban";
 };
 
@@ -199,17 +197,15 @@ struct SharedChatUnban : public Ban {
 
 struct Timeout {
     static constexpr std::string_view TAG = "timeout";
-    static constexpr std::string_view FIELD = "timeout";
 
-    std::string userID;
-    std::string userLogin;
-    std::string userName;
-    // TODO: Verify that we handle null here
-    std::string reason;
-    // TODO: This should be a timestamp?
-    std::string expiresAt;
+    String userID;
+    String userLogin;
+    String userName;
+    String reason;
+    /// json_tag=AsISO8601
+    std::chrono::system_clock::time_point expiresAt;
 };
-struct SharedChatTimeout : public Ban {
+struct SharedChatTimeout : public Timeout {
     static constexpr std::string_view TAG = "shared_chat_timeout";
 };
 
@@ -219,13 +215,12 @@ struct SharedChatTimeout : public Ban {
 
 struct Untimeout {
     static constexpr std::string_view TAG = "untimeout";
-    static constexpr std::string_view FIELD = "untimeout";
 
     std::string userID;
     std::string userLogin;
     std::string userName;
 };
-struct SharedChatUntimeout : public Ban {
+struct SharedChatUntimeout : public Untimeout {
     static constexpr std::string_view TAG = "shared_chat_untimeout";
 };
 
@@ -261,15 +256,15 @@ struct Unraid {
 
 struct Delete {
     static constexpr std::string_view TAG = "delete";
-    static constexpr std::string_view FIELD = "delete";
 
-    std::string userID;
-    std::string userLogin;
-    std::string userName;
-    std::string messageID;
-    std::string messageBody;
+    String userID;
+    String userLogin;
+    String userName;
+    String messageID;
+    String messageBody;
 };
-struct SharedChatDelete : public Ban {
+
+struct SharedChatDelete : public Delete {
     static constexpr std::string_view TAG = "shared_chat_delete";
 };
 

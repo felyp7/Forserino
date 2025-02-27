@@ -1643,6 +1643,8 @@ const IndirectChannel &TwitchIrcServer::getWatchingChannel() const
 
 void TwitchIrcServer::setWatchingChannel(ChannelPtr newWatchingChannel)
 {
+    assertInGuiThread();
+
     this->watchingChannel.reset(newWatchingChannel);
 }
 
@@ -1673,6 +1675,8 @@ QString TwitchIrcServer::getLastUserThatWhisperedMe() const
 
 void TwitchIrcServer::setLastUserThatWhisperedMe(const QString &user)
 {
+    assertInGuiThread();
+
     this->lastUserThatWhisperedMe.set(user);
 }
 
@@ -1791,6 +1795,8 @@ void TwitchIrcServer::markChannelsConnected()
 
 void TwitchIrcServer::addFakeMessage(const QString &data)
 {
+    assertInGuiThread();
+
     auto *fakeMessage = Communi::IrcMessage::fromData(
         data.toUtf8(), this->readConnection_.get());
 
@@ -1842,6 +1848,8 @@ void TwitchIrcServer::forEachChannel(std::function<void(ChannelPtr)> func)
 
 void TwitchIrcServer::connect()
 {
+    assertInGuiThread();
+
     this->disconnect();
 
     this->initializeConnection(this->writeConnection_.get(),
