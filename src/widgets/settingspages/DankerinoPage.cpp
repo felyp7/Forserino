@@ -6,6 +6,7 @@
 #include "widgets/BaseWindow.hpp"
 #include "widgets/helper/Line.hpp"
 #include "widgets/settingspages/GeneralPageView.hpp"
+#include "widgets/settingspages/SettingWidget.hpp"
 
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -21,7 +22,7 @@ DankerinoPage::DankerinoPage()
 {
     auto y = new QVBoxLayout;
     auto x = new QHBoxLayout;
-    auto view = new GeneralPageView;
+    auto *view = GeneralPageView::withNavigation(this);
     this->view_ = view;
     x->addWidget(view);
     auto z = new QFrame;
@@ -85,10 +86,8 @@ void DankerinoPage::initLayout(GeneralPageView &layout)
                            s.normalNonceDetection, false,
                            "Highlights messages sent from webchat in orange or "
                            "the specified color below.");
-
-        layout.addColorButton("Webchat detected color",
-                              QColor(getSettings()->webchatColor.getValue()),
-                              getSettings()->webchatColor);
+        SettingWidget::colorButton("Webchat detected color", s.webchatColor)
+        ->addTo(layout);
     }
     layout.addStretch();
     // invisible element for width

@@ -135,9 +135,9 @@ struct Unvip {
 struct Mod {
     static constexpr std::string_view TAG = "mod";
 
-    std::string userID;
-    std::string userLogin;
-    std::string userName;
+    String userID;
+    String userLogin;
+    String userName;
 };
 
 /* user is unmodded
@@ -147,9 +147,9 @@ struct Mod {
 struct Unmod {
     static constexpr std::string_view TAG = "unmod";
 
-    std::string userID;
-    std::string userLogin;
-    std::string userName;
+    String userID;
+    String userLogin;
+    String userName;
 };
 
 /* user is banned with reason
@@ -202,7 +202,6 @@ struct Timeout {
     String userLogin;
     String userName;
     String reason;
-    /// json_tag=AsISO8601
     std::chrono::system_clock::time_point expiresAt;
 };
 struct SharedChatTimeout : public Timeout {
@@ -216,9 +215,9 @@ struct SharedChatTimeout : public Timeout {
 struct Untimeout {
     static constexpr std::string_view TAG = "untimeout";
 
-    std::string userID;
-    std::string userLogin;
-    std::string userName;
+    String userID;
+    String userLogin;
+    String userName;
 };
 struct SharedChatUntimeout : public Untimeout {
     static constexpr std::string_view TAG = "shared_chat_untimeout";
@@ -231,9 +230,9 @@ struct SharedChatUntimeout : public Untimeout {
 struct Raid {
     static constexpr std::string_view TAG = "raid";
 
-    std::string userID;
-    std::string userLogin;
-    std::string userName;
+    String userID;
+    String userLogin;
+    String userName;
 
     int viewerCount;
 };
@@ -245,9 +244,9 @@ struct Raid {
 struct Unraid {
     static constexpr std::string_view TAG = "unraid";
 
-    std::string userID;
-    std::string userLogin;
-    std::string userName;
+    String userID;
+    String userLogin;
+    String userName;
 };
 
 /* message deleted
@@ -282,11 +281,11 @@ struct AutomodTerms {
     static constexpr std::string_view FIELD = "automod_terms";
 
     // either add or remove
-    std::string action;
+    String action;
     // either blocked or permitted
-    std::string list;
+    String list;
 
-    std::vector<std::string> terms;
+    std::vector<String> terms;
     bool fromAutomod;
 };
 
