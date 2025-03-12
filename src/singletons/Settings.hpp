@@ -3,6 +3,7 @@
 #include "common/Channel.hpp"
 #include "common/ChatterinoSetting.hpp"
 #include "common/enums/MessageOverflow.hpp"
+#include "common/Modes.hpp"
 #include "common/SignalVector.hpp"
 #include "controllers/filters/FilterRecord.hpp"
 #include "controllers/highlights/HighlightBadge.hpp"
@@ -91,6 +92,11 @@ enum StreamerModeSetting {
     DetectStreamingSoftware = 2,
 };
 
+enum class TabStyle : std::uint8_t {
+    Normal,
+    Compact,
+};
+
 /// Settings which are availlable for reading and writing on the gui thread.
 // These settings are still accessed concurrently in the code but it is bad practice.
 class Settings
@@ -169,6 +175,10 @@ public:
         "/appearance/currentFontSize",
         DEFAULT_FONT_SIZE,
     };
+    IntSetting chatFontWeight = {
+        "/appearance/currentFontWeight",
+        QFont::Normal,
+    };
     BoolSetting hideReplyContext = {"/appearance/hideReplyContext", false};
     BoolSetting showReplyButton = {"/appearance/showReplyButton", false};
     BoolSetting stripReplyMention = {"/appearance/stripReplyMention", true};
@@ -180,6 +190,10 @@ public:
     FloatSetting boldScale = {"/appearance/boldScale", 63};
     BoolSetting showTabCloseButton = {"/appearance/showTabCloseButton", true};
     BoolSetting showTabLive = {"/appearance/showTabLiveButton", true};
+    EnumStringSetting<TabStyle> tabStyle = {
+        "/appearance/tabStyle",
+        TabStyle::Normal,
+    };
     BoolSetting hidePreferencesButton = {"/appearance/hidePreferencesButton",
                                          false};
     BoolSetting hideUserButton = {"/appearance/hideUserButton", false};
@@ -362,6 +376,12 @@ public:
     BoolSetting lowercaseDomains = {"/links/linkLowercase", true};
 
     /// Streamer Mode
+    // TODO: Should these settings be converted to booleans that live outside of
+    // streamer mode?
+    // Something like:
+    //  - "Hide when streamer mode is enabled"
+    //  - "Always hide"
+    //  - "Don't hide"
     EnumSetting<StreamerModeSetting> enableStreamerMode = {
         "/streamerMode/enabled", StreamerModeSetting::DetectStreamingSoftware};
     BoolSetting streamerModeHideUsercardAvatars = {
@@ -372,6 +392,10 @@ public:
         "/streamerMode/hideViewerCountAndDuration", false};
     BoolSetting streamerModeHideModActions = {"/streamerMode/hideModActions",
                                               true};
+    BoolSetting streamerModeHideRestrictedUsers = {
+        "/streamerMode/hideRestrictedUsers",
+        true,
+    };
     BoolSetting streamerModeMuteMentions = {"/streamerMode/muteMentions", true};
     BoolSetting streamerModeSuppressLiveNotifications = {
         "/streamerMode/supressLiveNotifications", false};
@@ -559,6 +583,12 @@ public:
         "/notifications/suppressInitialLive", false};
 
     BoolSetting notificationToast = {"/notifications/enableToast", false};
+    BoolSetting createShortcutForToasts = {
+        "/notifications/createShortcutForToasts",
+        (Modes::instance().isPortable || Modes::instance().isExternallyPackaged)
+            ? false
+            : true,
+    };
     IntSetting openFromToast = {"/notifications/openFromToast",
                                 static_cast<int>(ToastReaction::OpenInBrowser)};
 
@@ -703,7 +733,7 @@ public:
     };
     BoolSetting enableExperimentalEventSub = {
         "/eventsub/enableExperimental",
-        false,
+        true,
     };
 
     QStringSetting additionalExtensionIDs{"/misc/additionalExtensionIDs", ""};

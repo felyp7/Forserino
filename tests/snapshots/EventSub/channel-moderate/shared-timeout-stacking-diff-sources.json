@@ -179,7 +179,7 @@
                             "type": "None",
                             "value": ""
                         },
-                        "style": "ChatMedium",
+                        "style": "TimestampMedium",
                         "tooltip": "",
                         "trailingSpace": true,
                         "type": "TextElement",
@@ -294,7 +294,7 @@
                     ]
                 }
             ],
-            "flags": "System|Timeout|PubSub|SharedMessage|EventSub",
+            "flags": "System|Timeout|PubSub|SharedMessage|EventSub|ModerationAction",
             "id": "",
             "localizedName": "",
             "loginName": "",
@@ -322,7 +322,7 @@
                             "type": "None",
                             "value": ""
                         },
-                        "style": "ChatMedium",
+                        "style": "TimestampMedium",
                         "tooltip": "",
                         "trailingSpace": true,
                         "type": "TextElement",
@@ -433,7 +433,7 @@
                     ]
                 }
             ],
-            "flags": "System|Timeout|PubSub|EventSub",
+            "flags": "System|Timeout|PubSub|EventSub|ModerationAction",
             "id": "",
             "localizedName": "",
             "loginName": "nerixyz",
@@ -461,7 +461,7 @@
                             "type": "None",
                             "value": ""
                         },
-                        "style": "ChatMedium",
+                        "style": "TimestampMedium",
                         "tooltip": "",
                         "trailingSpace": true,
                         "type": "TextElement",
@@ -602,7 +602,7 @@
                     ]
                 }
             ],
-            "flags": "System|Timeout|PubSub|SharedMessage|EventSub",
+            "flags": "System|Timeout|PubSub|SharedMessage|EventSub|ModerationAction",
             "id": "",
             "localizedName": "",
             "loginName": "nerixyz",
