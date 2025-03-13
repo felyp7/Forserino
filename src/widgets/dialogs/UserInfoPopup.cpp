@@ -1136,7 +1136,7 @@ void UserInfoPopup::updateUserData()
                             .arg(subageInfo.subTier)
                             .arg(subageInfo.totalSubMonths));
                     this->ui_.daysRemainingLabel->setText(
-                        QString("★ Sub anniversary in: %1")
+                        QString("★ Sub anniversary in %1 days")
                             .arg(subageInfo.daysRemaining));
                 }
                 else if (subageInfo.isSubbed && subageInfo.isGifted)
@@ -1147,7 +1147,7 @@ void UserInfoPopup::updateUserData()
                             .arg(subageInfo.totalSubMonths)
                             .arg(subageInfo.giftedBy));
                     this->ui_.daysRemainingLabel->setText(
-                        QString("★ Sub anniversary in: %1")
+                        QString("★ Sub anniversary in %1 days")
                             .arg(subageInfo.daysRemaining));
                 }
                 else if (subageInfo.totalSubMonths)
