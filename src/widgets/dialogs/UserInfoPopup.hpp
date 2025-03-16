@@ -90,6 +90,7 @@ private:
         Label *followageLabel = nullptr;
         Label *subageLabel = nullptr;
         Label *daysRemainingLabel = nullptr;
+        Label *endsAtLabel = nullptr;
         Label *rolesLabel = nullptr;
 
         QCheckBox *block = nullptr;

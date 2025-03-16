@@ -21,6 +21,7 @@ struct IvrSubage {
     const int totalSubMonths;
     const int daysRemaining;
     const QString followingSince;
+    const QString endsAt;
     const bool isGifted;
     const QString giftedBy;
 
@@ -33,6 +34,7 @@ struct IvrSubage {
         , daysRemaining(
               root.value("cumulative").toObject().value("daysRemaining").toInt())
         , followingSince(root.value("followedAt").toString())
+        , endsAt(root.value("meta").toObject().value("endsAt").toString())
         , isGifted(!root.value("meta").toObject().value("giftMeta").isNull())
         , giftedBy(root.value("meta").toObject().value("giftMeta").toObject().value("gifter").isNull() ? "anonymous" : root.value("meta").toObject().value("giftMeta").toObject().value("gifter").toObject().value("login").toString())
     {

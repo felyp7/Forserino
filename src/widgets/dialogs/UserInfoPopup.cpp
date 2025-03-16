@@ -398,6 +398,7 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
             vbox.emplace<Label>("").assign(&this->ui_.followageLabel);
             vbox.emplace<Label>("").assign(&this->ui_.subageLabel);
             vbox.emplace<Label>("").assign(&this->ui_.daysRemainingLabel);
+            vbox.emplace<Label>("").assign(&this->ui_.endsAtLabel);
             if (getSettings()->showUserBio){
                 vbox.emplace<Label>("").assign(&this->ui_.userBioLabel);
             }
@@ -1128,6 +1129,8 @@ void UserInfoPopup::updateUserData()
                 {
                     this->ui_.subageLabel->setText(
                         "Subscription status hidden");
+                    this->ui_.daysRemainingLabel->setVisible(false);
+                    this->ui_.endsAtLabel->setVisible(false);
                 }
                 else if (subageInfo.isSubbed && !subageInfo.isGifted)
                 {
@@ -1138,6 +1141,9 @@ void UserInfoPopup::updateUserData()
                     this->ui_.daysRemainingLabel->setText(
                         QString("★ Sub anniversary in %1 days")
                             .arg(subageInfo.daysRemaining));
+                    this->ui_.endsAtLabel->setText(
+                        QString("★ Sub ends at %1 ")
+                            .arg(subageInfo.endsAt.left(10) + " " + subageInfo.endsAt.mid(11,5)));
                 }
                 else if (subageInfo.isSubbed && subageInfo.isGifted)
                 {
@@ -1149,12 +1155,18 @@ void UserInfoPopup::updateUserData()
                     this->ui_.daysRemainingLabel->setText(
                         QString("★ Sub anniversary in %1 days")
                             .arg(subageInfo.daysRemaining));
+                    this->ui_.endsAtLabel->setText(
+                        QString("★ Sub ends at %1 ")
+                            .arg(subageInfo.endsAt.left(10) + " " + subageInfo.endsAt.mid(11,5)));
                 }
                 else if (subageInfo.totalSubMonths)
                 {
                     this->ui_.subageLabel->setText(
                         QString("★ Previously subscribed for %1 months")
                             .arg(subageInfo.totalSubMonths));
+                } else {
+                    this->ui_.daysRemainingLabel->setVisible(false);
+                    this->ui_.endsAtLabel->setVisible(false);
                 }
             },
             [] {});

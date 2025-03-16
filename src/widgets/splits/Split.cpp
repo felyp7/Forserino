@@ -1034,6 +1034,10 @@ void Split::showChangeChannelPopup(const char *dialogTitle, bool empty,
     {
         dialog->setSelectedChannel(this->getIndirectChannel());
     }
+    else
+    {
+        dialog->setSelectedChannel({});
+    }
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->setWindowTitle(dialogTitle);
     dialog->show();
