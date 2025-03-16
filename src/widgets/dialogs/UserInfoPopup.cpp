@@ -1141,9 +1141,13 @@ void UserInfoPopup::updateUserData()
                     this->ui_.daysRemainingLabel->setText(
                         QString("★ Sub anniversary in %1 days")
                             .arg(subageInfo.daysRemaining));
-                    this->ui_.endsAtLabel->setText(
+                    if (subageInfo.endsAt.isNull()) {
+                        this->ui_.endsAtLabel->setText("★ Permanent subscription");
+                    } else {
+                        this->ui_.endsAtLabel->setText(
                         QString("★ Sub ends at %1 ")
-                            .arg(subageInfo.endsAt.left(10) + " " + subageInfo.endsAt.mid(11,5)));
+                            .arg(subageInfo.endsAt.left(10) + " " + subageInfo.endsAt.mid(11,5)) + " UTC");
+                    }
                 }
                 else if (subageInfo.isSubbed && subageInfo.isGifted)
                 {
@@ -1157,14 +1161,17 @@ void UserInfoPopup::updateUserData()
                             .arg(subageInfo.daysRemaining));
                     this->ui_.endsAtLabel->setText(
                         QString("★ Sub ends at %1 ")
-                            .arg(subageInfo.endsAt.left(10) + " " + subageInfo.endsAt.mid(11,5)));
+                            .arg(subageInfo.endsAt.left(10) + " " + subageInfo.endsAt.mid(11,5)) + " UTC");
                 }
                 else if (subageInfo.totalSubMonths)
                 {
                     this->ui_.subageLabel->setText(
                         QString("★ Previously subscribed for %1 months")
                             .arg(subageInfo.totalSubMonths));
-                } else {
+                    this->ui_.daysRemainingLabel->setVisible(false);
+                    this->ui_.endsAtLabel->setVisible(false);
+                }
+                else {
                     this->ui_.daysRemainingLabel->setVisible(false);
                     this->ui_.endsAtLabel->setVisible(false);
                 }
