@@ -2,6 +2,9 @@
 
 ## Unversioned
 
+- Bugfix: Fixed the channel name input not being focused when opening the select-channel dialog. (#6096)
+- Bugfix: Fixed inputs in dialogs not having a border around and padding in them. (#6098)
+
 ## 2.5.3-beta.1
 
 - Minor: Added an option to allow multiple user-selected extensions to interact with Chatterino. (#5997)
