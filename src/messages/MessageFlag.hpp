@@ -54,7 +54,6 @@ enum class MessageFlag : std::int64_t {
     SharedMessage = (1LL << 37),
     /// AutoMod message that showed up due to containing a blocked term in the channel
     AutoModBlockedTerm = (1LL << 38),
-    WebchatDetected = (1LL << 39),
     /// The message is a full clear chat message (/clear)
     ClearChat = (1LL << 39),
     /// The message is built from EventSub
@@ -66,6 +65,7 @@ enum class MessageFlag : std::int64_t {
     ///  - forsen added "blockedterm" as a blocked term
     ///  - Your message is being checked by mods and has not been sent
     ModerationAction = (1LL << 41),
+    WebchatDetected = (1LL << 42),
 };
 using MessageFlags = FlagsEnum<MessageFlag>;
 

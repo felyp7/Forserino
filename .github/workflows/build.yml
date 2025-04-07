@@ -173,29 +173,21 @@ jobs:
           submodules: recursive
           fetch-depth: 0 # allows for tags access
 
-      - name: Fetch upstream commit
-        run: |
-            git remote add upstream https://github.com/chatterino/Chatterino2
-            git fetch upstream master
-            echo "☑ Fetched upstream"
-            OLD_BRANCH=$(git branch --show-current)
-            OLD_COMMIT=$(git rev-parse HEAD)
-            echo "Old branch was \"$OLD_BRANCH\"; old commit was \"$OLD_COMMIT\""
-            git checkout -b master --track upstream/master
-            echo "☑ Checked out upstream"
-            git pull
-            echo "☑ Pulled upstream"
-            git checkout "$OLD_BRANCH" || git checkout "$OLD_COMMIT"
-            echo "☑ Checked out old position"
-        shell: bash
-
-      - name: Install Qt5
-        if: startsWith(matrix.qt-version, '5.')
-        uses: jurplel/install-qt-action@v4.1.1
-        with:
-          cache: true
-          cache-key-prefix: ${{ runner.os }}-QtCache-${{ matrix.qt-version }}-v2
-          version: ${{ matrix.qt-version }}
+#      - name: Fetch upstream commit
+#        run: |
+#            git remote add upstream https://github.com/chatterino/Chatterino2
+#            git fetch upstream master
+#            echo "☑ Fetched upstream"
+#            OLD_BRANCH=$(git branch --show-current)
+#            OLD_COMMIT=$(git rev-parse HEAD)
+#            echo "Old branch was \"$OLD_BRANCH\"; old commit was \"$OLD_COMMIT\""
+#            git checkout -b master --track upstream/master
+#            echo "☑ Checked out upstream"
+#            git pull
+#            echo "☑ Pulled upstream"
+#            git checkout "$OLD_BRANCH" || git checkout "$OLD_COMMIT"
+#            echo "☑ Checked out old position"
+#        shell: bash
 
       - name: Install Qt6
         if: startsWith(matrix.qt-version, '6.')

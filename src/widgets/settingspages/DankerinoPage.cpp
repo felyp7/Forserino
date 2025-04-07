@@ -20,12 +20,12 @@ namespace chatterino {
 
 DankerinoPage::DankerinoPage()
 {
-    auto y = new QVBoxLayout;
-    auto x = new QHBoxLayout;
+    auto *y = new QVBoxLayout;
+    auto *x = new QHBoxLayout;
     auto *view = GeneralPageView::withNavigation(this);
     this->view_ = view;
     x->addWidget(view);
-    auto z = new QFrame;
+    auto *z = new QFrame;
     z->setLayout(x);
     y->addWidget(z);
     this->setLayout(y);
@@ -86,8 +86,13 @@ void DankerinoPage::initLayout(GeneralPageView &layout)
                            s.normalNonceDetection, false,
                            "Highlights messages sent from webchat in orange or "
                            "the specified color below.");
-        SettingWidget::colorButton("Webchat detected color", s.webchatColor)
-        ->addTo(layout);
+
+        SettingWidget::colorButton("Webchat detected color",
+                                   getSettings()->webchatColor)
+            ->addTo(layout);
+        //layout.addColorButton(",
+        //
+        //                      getSettings()->webchatColor);
     }
     layout.addStretch();
     // invisible element for width
