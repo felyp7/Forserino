@@ -11,6 +11,7 @@
 #include <widgets/helper/EffectLabel.hpp>
 
 #include <chrono>
+#include <QPointer>
 
 class QCheckBox;
 
@@ -19,6 +20,7 @@ namespace chatterino {
 class Channel;
 using ChannelPtr = std::shared_ptr<Channel>;
 class Label;
+class EditUserNotesDialog;
 class ChannelView;
 class Split;
 
@@ -40,11 +42,13 @@ public:
 protected:
     void themeChangedEvent() override;
     void scaleChangedEvent(float scale) override;
+    void windowDeactivationEvent() override;
 
 private:
     void installEvents();
     void updateUserData();
     void updateLatestMessages();
+    void updateNotes();
 
     void loadAvatar(const QUrl &url);
     bool isMod_{};
@@ -66,6 +70,8 @@ private:
     pajlada::Signals::NoArgSignal userStateChanged_;
 
     std::unique_ptr<pajlada::Signals::ScopedConnection> refreshConnection_;
+    std::unique_ptr<pajlada::Signals::ScopedConnection>
+        userDataUpdatedConnection_;
 
     std::mutex checkAfkRateLimiter_;
 
@@ -95,12 +101,16 @@ private:
 
         QCheckBox *block = nullptr;
         QCheckBox *ignoreHighlights = nullptr;
+        Label *notesPreview = nullptr;
+        EffectLabel2 *notesAdd = nullptr;
 
         Label *noMessagesLabel = nullptr;
         ChannelView *latestMessages = nullptr;
 
         EffectLabel2 *usercardLabel = nullptr;
     } ui_;
+
+    QPointer<EditUserNotesDialog> editUserNotesDialog_;
 
     class TimeoutWidget : public BaseWidget
     {
