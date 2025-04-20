@@ -346,6 +346,11 @@ public:
                                          true};
     BoolSetting lowercaseUsernames = {"/behaviour/lowercaseUsernames", false};
 
+    BoolSetting disableTabRenamingOnClick = {
+        "/behaviour/disableTabRenamingOnClick",
+        false,
+    };
+
     /// Emotes
     BoolSetting scaleEmotesByLineHeight = {"/emotes/scaleEmotesByLineHeight",
                                            false};
