@@ -1959,7 +1959,7 @@ void ChannelView::mouseMoveEvent(QMouseEvent *event)
 
     if (this->isScrolling_)
     {
-        this->currentMousePosition_ = event->screenPos();
+        this->currentMousePosition_ = event->globalPosition();
     }
 
     // check for word underneath cursor
@@ -2117,8 +2117,9 @@ void ChannelView::mouseMoveEvent(QMouseEvent *event)
             }
         }
 
-        this->tooltipWidget_->moveTo(event->globalPos() + QPoint(16, 16),
-                                     widgets::BoundsChecking::CursorPosition);
+        this->tooltipWidget_->moveTo(
+            event->globalPosition().toPoint() + QPoint(16, 16),
+            widgets::BoundsChecking::CursorPosition);
         this->tooltipWidget_->setWordWrap(isLinkValid);
         this->tooltipWidget_->show();
     }
@@ -2173,7 +2174,7 @@ void ChannelView::mousePressEvent(QMouseEvent *event)
                 this->disableScrolling();
             }
 
-            this->lastLeftPressPosition_ = event->screenPos();
+            this->lastLeftPressPosition_ = event->globalPosition();
             this->isLeftMouseDown_ = true;
 
             if (layout->flags.has(MessageLayoutFlag::Collapsed))
@@ -2198,7 +2199,7 @@ void ChannelView::mousePressEvent(QMouseEvent *event)
                 this->disableScrolling();
             }
 
-            this->lastRightPressPosition_ = event->screenPos();
+            this->lastRightPressPosition_ = event->globalPosition();
             this->isRightMouseDown_ = true;
         }
         break;
@@ -2227,7 +2228,7 @@ void ChannelView::mousePressEvent(QMouseEvent *event)
                 }
                 else if (this->scrollBar_->isVisible())
                 {
-                    this->enableScrolling(event->screenPos());
+                    this->enableScrolling(event->globalPosition());
                 }
             }
         }
@@ -2259,7 +2260,7 @@ void ChannelView::mouseReleaseEvent(QMouseEvent *event)
             this->isDoubleClick_ = false;
             // Was actually not a wanted triple-click
             if (std::abs(distanceBetweenPoints(this->lastDoubleClickPosition_,
-                                               event->screenPos())) > 10.F)
+                                               event->globalPosition())) > 10.F)
             {
                 this->clickTimer_.stop();
                 return;
@@ -2270,7 +2271,7 @@ void ChannelView::mouseReleaseEvent(QMouseEvent *event)
             this->isLeftMouseDown_ = false;
 
             if (std::abs(distanceBetweenPoints(this->lastLeftPressPosition_,
-                                               event->screenPos())) > 15.F)
+                                               event->globalPosition())) > 15.F)
             {
                 return;
             }
@@ -2278,7 +2279,8 @@ void ChannelView::mouseReleaseEvent(QMouseEvent *event)
             // Triple-clicking a message selects the whole message
             if (foundElement && this->clickTimer_.isActive() &&
                 (std::abs(distanceBetweenPoints(this->lastDoubleClickPosition_,
-                                                event->screenPos())) < 10.F))
+                                                event->globalPosition())) <
+                 10.F))
             {
                 this->selectWholeMessage(layout.get(), messageIndex);
                 return;
@@ -2296,7 +2298,7 @@ void ChannelView::mouseReleaseEvent(QMouseEvent *event)
             this->isRightMouseDown_ = false;
 
             if (std::abs(distanceBetweenPoints(this->lastRightPressPosition_,
-                                               event->screenPos())) > 15.F)
+                                               event->globalPosition())) > 15.F)
             {
                 return;
             }
@@ -2310,9 +2312,9 @@ void ChannelView::mouseReleaseEvent(QMouseEvent *event)
     {
         if (this->isScrolling_ && this->scrollBar_->isVisible())
         {
-            if (event->screenPos() == this->lastMiddlePressPosition_)
+            if (event->globalPosition() == this->lastMiddlePressPosition_)
             {
-                this->enableScrolling(event->screenPos());
+                this->enableScrolling(event->globalPosition());
             }
             else
             {
@@ -2811,7 +2813,7 @@ void ChannelView::mouseDoubleClickEvent(QMouseEvent *event)
     }
 
     this->isDoubleClick_ = true;
-    this->lastDoubleClickPosition_ = event->screenPos();
+    this->lastDoubleClickPosition_ = event->globalPosition();
     this->clickTimer_.start();
 
     // message under cursor is collapsed
