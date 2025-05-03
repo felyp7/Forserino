@@ -11,7 +11,7 @@
 - Minor: Popup overlay now only draws an outline when being interacted with. (#6140)
 - Minor: Made filters searchable in the Settings dialog search bar. (#5890)
 - Minor: Updated emojis to Unicode 16.0. (#6155)
-- Minor: Allow disabling of double-click tab renaming through setting. (#6163)
+- Minor: Allow disabling of double-click tab renaming through setting. (#6163, #6184)
 - Bugfix: Don't create native messaging manifest file if browser directory doesn't exist. (#6116)
 - Bugfix: Fixed scrolling now working on inputs in the settings. (#6128)
 - Bugfix: Make reply-cancel button less coarse-grained. (#6106)
@@ -20,6 +20,7 @@
 - Bugfix: Fixed the emote popup erroneously logging messages to the `Other` directory. (#6165)
 - Bugfix: Handle <kbd>CMD</kbd> + <kbd>BACKSPACE</kbd> behavior explicitly in main chat dialog input for macOS. (#6111)
 - Bugfix: Fixed a small typo in the settings page. (#6134)
+- Bugfix: Fixed blocked users showing up in "Users joined:" and "Users parted:" messages. (#6181)
 - Bugfix: Fixed an issue where Splits could get lost by dragging it onto your Recycle Bin. (#6147)
 - Bugfix: Fixed some Twitch commands not getting tab-completed correctly. (#6143)
 - Bugfix: Fixed shared chat badges displaying pixelated when Chatterino is scaled too much. (#6146)
@@ -31,6 +32,8 @@
 - Dev: Removed authenticated PubSub implementation. (#6158)
 - Dev: Save settings in `aboutToQuit`. (#6159)
 - Dev: Bumped deprecation cutoff to Qt 6.4.3. (#6169)
+- Dev: Updated GoogleTest to v1.17.0. (#6180)
+- Dev: Mini refactor of `TwitchAccount`. (#6182)
 - Dev: Simplified string literals to be a re-export of Qt functions. (#6175)
 
 ## 2.5.3
