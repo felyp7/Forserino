@@ -28,8 +28,10 @@
 - Bugfix: Fixed an issue where Splits could get lost by dragging it onto your Recycle Bin. (#6147)
 - Bugfix: Fixed some Twitch commands not getting tab-completed correctly. (#6143)
 - Bugfix: Fixed shared chat badges displaying pixelated when Chatterino is scaled too much. (#6146)
+- Bugfix: Fixed a few crashes that could occur when Chatterino was shutting down, some related to network tasks still firing despite us shutting down. (#6187)
 - Bugfix: Fixed a crash that could occur when eventsub was enabled and Chatterino was attached to a conhost on Windows that was later gone. (#6161)
 - Bugfix: Fixed a crash that could occur an eventsub connection's keepalive timer would run after the connection was dead, causing the keepalive timer to use-itself-after-free. (#6204)
+- Bugfix: Fixed a crash that could occur when an image started loading mid app shutdown. (#6213)
 - Bugfix: Fixed some minor typos. (#6196)
 - Dev: Mini refactor of Split. (#6148)
 - Dev: Conan will no longer generate a `CMakeUserPresets.json` file. (#6117)
@@ -40,12 +42,15 @@
 - Dev: Bumped deprecation cutoff to Qt 6.4.3. (#6169)
 - Dev: Use `QMetaObject::invokeMethod` to run code on a specific thread. (#6203)
 - Dev: Added a `run-and-kill.sh` script to help debug crash-on-exit bugs. (#6188)
+- Dev: Refactored the `TimeoutStackStyle` enum into its own file. (#6216)
+- Dev: Refactored `Notebook`-related enums into their own file. (#6220)
 - Dev: Refactored event API initialization away from Application and into TwitchIrcServer. (#6198)
 - Dev: Updated GoogleTest to v1.17.0. (#6180)
 - Dev: Mini refactor of `TwitchAccount`. (#6182)
 - Dev: Refactored away some `getApp` usages in `WindowManager`. (#6194)
 - Dev: Simplified string literals to be a re-export of Qt functions. (#6175)
 - Dev: Fixed incorrect lua generation of `c2.HTTPRequest.create` for typescript plugins. (#6190)
+- Dev: Merged top/bottom and left/right notebook layouts. (#6215)
 
 ## 2.5.3
 
