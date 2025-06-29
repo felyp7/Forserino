@@ -3,12 +3,10 @@
 #include "singletons/Paths.hpp"
 #include "widgets/BaseWindow.hpp"
 #include "widgets/DraggablePopup.hpp"
-#include "widgets/helper/EffectLabel.hpp"
 
 #include <pajlada/signals/scoped-connection.hpp>
 #include <pajlada/signals/signal.hpp>
 #include <QMovie>
-#include <widgets/helper/EffectLabel.hpp>
 
 #include <chrono>
 #include <QPointer>
@@ -23,6 +21,8 @@ class Label;
 class EditUserNotesDialog;
 class ChannelView;
 class Split;
+class LabelButton;
+class PixmapButton;
 
 class UserInfoPopup final : public DraggablePopup
 {
@@ -81,8 +81,8 @@ private:
     const bool closeAutomatically_;
 
     struct {
-        Button *avatarButton = nullptr;
-        Button *localizedNameCopyButton = nullptr;
+        PixmapButton *avatarButton = nullptr;
+        PixmapButton *localizedNameCopyButton = nullptr;
 
         Label *nameLabel = nullptr;
         Label *localizedNameLabel = nullptr;
@@ -102,12 +102,12 @@ private:
         QCheckBox *block = nullptr;
         QCheckBox *ignoreHighlights = nullptr;
         Label *notesPreview = nullptr;
-        EffectLabel2 *notesAdd = nullptr;
+        LabelButton *notesAdd = nullptr;
 
         Label *noMessagesLabel = nullptr;
         ChannelView *latestMessages = nullptr;
 
-        EffectLabel2 *usercardLabel = nullptr;
+        LabelButton *usercardLabel = nullptr;
     } ui_;
 
     QPointer<EditUserNotesDialog> editUserNotesDialog_;

@@ -1,5 +1,8 @@
 #include "widgets/settingspages/SettingWidget.hpp"
 
+#include "common/QLogging.hpp"
+#include "singletons/Settings.hpp"  // IWYU pragma: keep
+#include "util/QMagicEnumTagged.hpp"
 #include "util/RapidJsonSerializeQString.hpp"  // IWYU pragma: keep
 #include "widgets/dialogs/ColorPickerDialog.hpp"
 #include "widgets/helper/color/ColorButton.hpp"
@@ -7,6 +10,7 @@
 
 #include <QBoxLayout>
 #include <QCheckBox>
+#include <QFontDialog>
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -132,6 +136,10 @@ SettingWidget *SettingWidget::intInput(const QString &label,
     {
         input->setSingleStep(params.singleStep.value());
     }
+    if (params.suffix.has_value())
+    {
+        input->setSuffix(params.suffix.value());
+    }
 
     widget->hLayout->addWidget(lbl);
     widget->hLayout->addStretch(1);
@@ -155,6 +163,156 @@ SettingWidget *SettingWidget::intInput(const QString &label,
 
     return widget;
 }
+
+template <typename T>
+SettingWidget *SettingWidget::dropdown(const QString &label,
+                                       EnumStringSetting<T> &setting)
+{
+    auto *widget = new SettingWidget(label);
+
+    auto *lbl = new QLabel(label % ":");
+    auto *combo = new ComboBox;
+    combo->setFocusPolicy(Qt::StrongFocus);
+
+    for (const auto value : magic_enum::enum_values<T>())
+    {
+        combo->addItem(qmagicenum::enumDisplayNameString(value),
+                       QVariant(static_cast<std::underlying_type_t<T>>(value)));
+    }
+
+    // TODO: this can probably use some other size hint/size strategy
+    combo->setMinimumWidth(combo->minimumSizeHint().width());
+
+    widget->actionWidget = combo;
+    widget->label = lbl;
+
+    widget->hLayout->addWidget(lbl);
+    widget->hLayout->addStretch(1);
+    widget->hLayout->addWidget(combo);
+
+    setting.connect(
+        [&setting, combo](const QString &value) {
+            auto enumValue =
+                qmagicenum::enumCast<T>(value, qmagicenum::CASE_INSENSITIVE)
+                    .value_or(setting.defaultValue);
+
+            auto i = magic_enum::enum_index(enumValue).value_or(0);
+
+            combo->setCurrentIndex(i);
+        },
+        widget->managedConnections);
+
+    QObject::connect(
+        combo, &QComboBox::currentTextChanged,
+        [label, combo, &setting](const auto &newText) {
+            bool ok = true;
+            auto enumValue = combo->currentData().toInt(&ok);
+            if (!ok)
+            {
+                qCWarning(chatterinoWidget)
+                    << "Combo" << label << " with value" << newText
+                    << "did not contain an intable UserRole data";
+                return;
+            }
+
+            setting = qmagicenum::enumNameString(static_cast<T>(enumValue));
+        });
+
+    return widget;
+}
+
+template SettingWidget *SettingWidget::dropdown<SoundBackend>(
+    const QString &label, EnumStringSetting<SoundBackend> &setting);
+template SettingWidget *SettingWidget::dropdown<EmoteTooltipScale>(
+    const QString &label, EnumStringSetting<EmoteTooltipScale> &setting);
+template SettingWidget *SettingWidget::dropdown<StreamLinkPreferredQuality>(
+    const QString &label,
+    EnumStringSetting<StreamLinkPreferredQuality> &setting);
+template SettingWidget *SettingWidget::dropdown<ChatSendProtocol>(
+    const QString &label, EnumStringSetting<ChatSendProtocol> &setting);
+template SettingWidget *SettingWidget::dropdown<TabStyle>(
+    const QString &label, EnumStringSetting<TabStyle> &setting);
+template SettingWidget *SettingWidget::dropdown<ShowModerationState>(
+    const QString &label, EnumStringSetting<ShowModerationState> &setting);
+template SettingWidget *SettingWidget::dropdown<EmojiStyle>(
+    const QString &label, EnumStringSetting<EmojiStyle> &setting);
+
+template <typename T>
+SettingWidget *SettingWidget::dropdown(const QString &label,
+                                       EnumSetting<T> &setting)
+{
+    auto *widget = new SettingWidget(label);
+
+    auto *lbl = new QLabel(label % ":");
+    auto *combo = new ComboBox;
+    combo->setFocusPolicy(Qt::StrongFocus);
+
+    for (const auto value : magic_enum::enum_values<T>())
+    {
+        combo->addItem(qmagicenum::enumDisplayNameString(value),
+                       QVariant(static_cast<std::underlying_type_t<T>>(value)));
+    }
+
+    // TODO: this can probably use some other size hint/size strategy
+    combo->setMinimumWidth(combo->minimumSizeHint().width());
+
+    widget->actionWidget = combo;
+    widget->label = lbl;
+
+    widget->hLayout->addWidget(lbl);
+    widget->hLayout->addStretch(1);
+    widget->hLayout->addWidget(combo);
+
+    setting.connect(
+        [combo, label](const auto &value) {
+            std::optional<int> foundRow;
+
+            for (auto row = 0; row < combo->model()->rowCount(); ++row)
+            {
+                auto index = combo->model()->index(row, 0);
+                auto rowEnumValue = index.data(Qt::UserRole);
+                if (rowEnumValue == value)
+                {
+                    foundRow = row;
+                    break;
+                }
+            }
+
+            if (foundRow)
+            {
+                combo->setCurrentIndex(*foundRow);
+            }
+            else
+            {
+                qCWarning(chatterinoWidget)
+                    << "Did not find a correct combo box row for" << label
+                    << " with value" << value;
+            }
+        },
+        widget->managedConnections);
+
+    QObject::connect(combo, &QComboBox::currentTextChanged,
+                     [label, combo, &setting](const auto &newText) {
+                         bool ok = true;
+                         auto enumValue = combo->currentData().toInt(&ok);
+                         if (!ok)
+                         {
+                             qCWarning(chatterinoWidget)
+                                 << "Combo" << label << " with value" << newText
+                                 << "did not contain an intable UserRole data";
+                             return;
+                         }
+
+                         setting.setValue(enumValue);
+                     });
+
+    return widget;
+}
+
+template SettingWidget *SettingWidget::dropdown<LastMessageLineStyle>(
+    const QString &label, EnumSetting<LastMessageLineStyle> &setting);
+template SettingWidget *SettingWidget::dropdown<ThumbnailPreviewMode>(
+    const QString &label, EnumSetting<ThumbnailPreviewMode> &setting);
 
 SettingWidget *SettingWidget::colorButton(const QString &label,
                                           QStringSetting &setting)
@@ -202,73 +360,88 @@ SettingWidget *SettingWidget::lineEdit(const QString &label,
                                        QStringSetting &setting,
                                        const QString &placeholderText)
 {
-    QColor color(setting.getValue());
     auto *widget = new SettingWidget(label);
 
     auto *lbl = new QLabel(label + ":");
+    auto *lineEdit = new QLineEdit;
 
-    auto *edit = new QLineEdit;
-    edit->setText(setting);
     if (!placeholderText.isEmpty())
     {
-        edit->setPlaceholderText(placeholderText);
+        lineEdit->setPlaceholderText(placeholderText);
     }
 
     widget->hLayout->addWidget(lbl);
-    // widget->hLayout->addStretch(1);
-    widget->hLayout->addWidget(edit);
+    widget->hLayout->addStretch(1);
+    widget->hLayout->addWidget(lineEdit);
 
     // update when setting changes
-    QObject::connect(edit, &QLineEdit::textChanged,
-                     [&setting](const QString &newValue) {
-                         setting = newValue;
+    setting.connect(
+        [lineEdit](const QString &value, const auto &) {
+            if (lineEdit->text() != value)
+            {
+                lineEdit->setText(value);
+            }
+        },
+        widget->managedConnections);
+
+    QObject::connect(lineEdit, &QLineEdit::textChanged, widget,
+                     [&setting](const QString &text) {
+                         setting = text;
                      });
 
-    widget->actionWidget = edit;
+    widget->actionWidget = lineEdit;
     widget->label = lbl;
+
+    return widget;
+}
+
+SettingWidget *SettingWidget::fontButton(const QString &label,
+                                         QStringSetting &familySetting,
+                                         std::function<QFont()> currentFont,
+                                         std::function<void(QFont)> onChange)
+{
+    auto *widget = new SettingWidget(label);
+
+    auto *lbl = new QLabel(label + ":");
+    auto *button = new QPushButton("Select Font");
+
+    widget->hLayout->addWidget(lbl);
+    widget->hLayout->addStretch(1);
+    widget->hLayout->addWidget(button);
+
+    QObject::connect(button, &QPushButton::clicked, widget, [widget, currentFont, onChange]() {
+        bool ok;
+        QFont font = QFontDialog::getFont(&ok, currentFont(), widget);
+        if (ok)
+        {
+            onChange(font);
+        }
+    });
+
+    widget->label = lbl;
+    widget->actionWidget = button;
 
     return widget;
 }
 
 SettingWidget *SettingWidget::setTooltip(QString tooltip)
 {
-    assert(!tooltip.isEmpty());
+    // Format tooltip with newlines at max length
+    tooltip.replace(MAX_TOOLTIP_LINE_LENGTH_REGEX, QStringLiteral("\n"));
 
-    if (tooltip.length() > MAX_TOOLTIP_LINE_LENGTH)
-    {
-        // match MAX_TOOLTIP_LINE_LENGTH characters, any remaining
-        // non-space, and then capture the following space for
-        // replacement with newline
-        tooltip.replace(MAX_TOOLTIP_LINE_LENGTH_REGEX, "\n");
-    }
-
-    if (this->label != nullptr)
-    {
-        this->label->setToolTip(tooltip);
-    }
-
-    if (this->actionWidget != nullptr)
-    {
-        this->actionWidget->setToolTip(tooltip);
-    }
-
-    this->keywords.append(tooltip);
+    this->setToolTip(tooltip);
 
     return this;
 }
 
 SettingWidget *SettingWidget::setDescription(const QString &text)
 {
-    auto *lbl = new QLabel(text);
-    lbl->setTextInteractionFlags(Qt::TextBrowserInteraction |
-                                 Qt::LinksAccessibleByKeyboard);
-    lbl->setOpenExternalLinks(true);
-    lbl->setWordWrap(true);
-    lbl->setObjectName("description");
+    // Use QLabel to show the description below the main widget content
+    auto *descLabel = new QLabel(text, this);
+    descLabel->setWordWrap(true);
+    descLabel->setStyleSheet("color: gray; font-size: 11px;");
 
-    this->vLayout->insertWidget(0, lbl);
-
-    this->keywords.append(text);
+    this->vLayout->addWidget(descLabel);
 
     return this;
 }
@@ -276,41 +449,34 @@ SettingWidget *SettingWidget::setDescription(const QString &text)
 SettingWidget *SettingWidget::addKeywords(const QStringList &newKeywords)
 {
     this->keywords.append(newKeywords);
-
     return this;
 }
 
 SettingWidget *SettingWidget::conditionallyEnabledBy(BoolSetting &setting)
 {
-    setting.connect(
-        [this](const auto &value, const auto &) {
-            this->actionWidget->setEnabled(value);
-        },
-        this->managedConnections);
+    this->setEnabled(setting.getValue());
+
+    setting.connect([this](bool value, auto) {
+        this->setEnabled(value);
+    },
+                    this->managedConnections);
 
     return this;
 }
 
 void SettingWidget::addTo(GeneralPageView &view)
 {
-    view.pushWidget(this);
-
-    if (this->label != nullptr)
-    {
-        view.registerWidget(this->label, this->keywords, this);
-    }
-    view.registerWidget(this->actionWidget, this->keywords, this);
+    view.addWidget(this);
 }
 
 void SettingWidget::addTo(GeneralPageView &view, QFormLayout *formLayout)
 {
-    if (this->label != nullptr)
-    {
-        view.registerWidget(this->label, this->keywords, this);
-    }
-    view.registerWidget(this->actionWidget, this->keywords, this);
+    formLayout->addRow(this);
+}
 
-    formLayout->addRow(this->label, this->actionWidget);
+QCheckBox *SettingWidget::getCheckbox() const
+{
+    return qobject_cast<QCheckBox *>(this->actionWidget);
 }
 
 }  // namespace chatterino

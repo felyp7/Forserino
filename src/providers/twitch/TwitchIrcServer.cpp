@@ -130,22 +130,6 @@ void sendHelixMessage(const std::shared_ptr<TwitchChannel> &channel,
         });
 }
 
-/// Returns true if chat messages should be sent over Helix
-bool shouldSendHelixChat()
-{
-    switch (getSettings()->chatSendProtocol)
-    {
-        case ChatSendProtocol::Helix:
-            return true;
-        case ChatSendProtocol::Default:
-        case ChatSendProtocol::IRC:
-            return false;
-        default:
-            assert(false && "Invalid chat protocol value");
-            return false;
-    }
-}
-
 }  // namespace
 
 namespace chatterino {
@@ -836,7 +820,7 @@ void TwitchIrcServer::onMessageSendRequested(
             else
             {
                 // Send message without changing the color
-                if (shouldSendHelixChat())
+                if (getSettings()->shouldSendHelixChat())
                 {
                     sendHelixMessage(channel, message);
                 }
@@ -855,7 +839,7 @@ void TwitchIrcServer::onMessageSendRequested(
 
 
         if (getSettings()->rainbowMethod) {
-                if (shouldSendHelixChat())
+                if (getSettings()->shouldSendHelixChat())
                   {
                   sendHelixMessage(channel, message);
                   }
@@ -902,7 +886,7 @@ void TwitchIrcServer::onMessageSendRequested(
 
                 channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
 
-                if (shouldSendHelixChat())
+                if (getSettings()->shouldSendHelixChat())
                   {
                   sendHelixMessage(channel, message);
                   }
@@ -922,7 +906,7 @@ void TwitchIrcServer::onMessageSendRequested(
             getHelix()->updateUserChatColor(
             getApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message] {
-                    if (shouldSendHelixChat())
+                    if (getSettings()->shouldSendHelixChat())
                     {
                     sendHelixMessage(channel, message);
                     }
@@ -959,7 +943,7 @@ void TwitchIrcServer::onMessageSendRequested(
 
                 channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
 
-                if (shouldSendHelixChat())
+                if (getSettings()->shouldSendHelixChat())
                   {
                   sendHelixMessage(channel, message);
                   }
@@ -978,7 +962,7 @@ void TwitchIrcServer::onMessageSendRequested(
     }
     else
     {
-    if (shouldSendHelixChat())
+    if (getSettings()->shouldSendHelixChat())
         {
             sendHelixMessage(channel, message);
         }
@@ -1019,7 +1003,7 @@ if (getSettings()->rainbowMessages)
             !splitCommaSeparatedString(getSettings()->rainbowChannels).contains(channelName, Qt::CaseInsensitive))
             {
            
-                if (shouldSendHelixChat())
+                if (getSettings()->shouldSendHelixChat())
                   {
                   sendHelixMessage(channel, message, replyId);
                   }
@@ -1074,7 +1058,7 @@ if (getSettings()->rainbowMessages)
         getHelix()->updateUserChatColor(
             getApp()->getAccounts()->twitch.getCurrent()->getUserId(), color,
             [channel, this, &sent, message, replyId] {
-                  if (shouldSendHelixChat())
+                  if (getSettings()->shouldSendHelixChat())
                   {
                   sendHelixMessage(channel, message, replyId);
                   }
@@ -1112,7 +1096,7 @@ if (getSettings()->rainbowMessages)
 
                 channel->addMessage(makeSystemMessage(errorMessage), MessageContext::Original);
 
-                    if (shouldSendHelixChat())
+                    if (getSettings()->shouldSendHelixChat())
                     {
                     sendHelixMessage(channel, message, replyId);
                     }
@@ -1125,7 +1109,7 @@ if (getSettings()->rainbowMessages)
     }
     else
     {
-    if (shouldSendHelixChat())
+    if (getSettings()->shouldSendHelixChat())
     {
         sendHelixMessage(channel, message, replyId);
     }

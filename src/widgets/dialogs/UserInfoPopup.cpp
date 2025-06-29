@@ -28,9 +28,10 @@
 #include "util/Helpers.hpp"
 #include "util/LayoutCreator.hpp"
 #include "util/PostToThread.hpp"
+#include "widgets/buttons/LabelButton.hpp"
+#include "widgets/buttons/PixmapButton.hpp"
 #include "widgets/dialogs/EditUserNotesDialog.hpp"
 #include "widgets/helper/ChannelView.hpp"
-#include "widgets/helper/EffectLabel.hpp"
 #include "widgets/helper/InvisibleSizeGrip.hpp"
 #include "widgets/helper/Line.hpp"
 #include "widgets/Label.hpp"
@@ -50,7 +51,6 @@
 #include <QStringBuilder>
 
 namespace {
-
 constexpr QStringView TEXT_FOLLOWERS = u"Followers: %1";
 constexpr QStringView TEXT_CREATED = u"Created: %1";
 constexpr QStringView TEXT_TITLE = u"%1's Usercard - #%2";
@@ -64,17 +64,17 @@ constexpr qsizetype NOTES_PREVIEW_LENGTH = 80;
 using namespace chatterino;
 
 Label *addCopyableLabel(LayoutCreator<QHBoxLayout> box, const char *tooltip,
-                        Button **copyButton = nullptr)
+                        PixmapButton **copyButton = nullptr)
 {
     auto label = box.emplace<Label>();
-    auto button = box.emplace<Button>();
+    auto button = box.emplace<PixmapButton>();
     if (copyButton != nullptr)
     {
         button.assign(copyButton);
     }
     button->setPixmap(getApp()->getThemes()->buttons.copy);
     button->setScaleIndependentSize(18, 18);
-    button->setDim(Button::Dim::Lots);
+    button->setDim(DimButton::Dim::Lots);
     button->setToolTip(tooltip);
     QObject::connect(
         button.getElement(), &Button::leftClicked,
@@ -275,9 +275,9 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
     {
         // avatar
         auto avatar =
-            head.emplace<Button>(nullptr).assign(&this->ui_.avatarButton);
+            head.emplace<PixmapButton>(nullptr).assign(&this->ui_.avatarButton);
         avatar->setScaleIndependentSize(100, 100);
-        avatar->setDim(Button::Dim::None);
+        avatar->setDim(DimButton::Dim::None);
         QObject::connect(
             avatar.getElement(), &Button::clicked,
             [this](Qt::MouseButton button) {
@@ -426,26 +426,21 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
             .assign(&this->ui_.ignoreHighlights);
         // visibility of this is updated in setData
 
-        auto notesAdd =
-            user.emplace<EffectLabel2>(this).assign(&this->ui_.notesAdd);
-        notesAdd->getLabel().setText("Add notes");
-        auto usercard =
-            user.emplace<EffectLabel2>(this).assign(&this->ui_.usercardLabel);
-        usercard->getLabel().setText("Usercard");
-
-        auto checkAfk = user.emplace<EffectLabel2>(this);
-        checkAfk->getLabel().setText("Check AFK");
-
-        auto mod = user.emplace<Button>(this);
+        user.emplace<LabelButton>("Add notes", this)
+            .assign(&this->ui_.notesAdd);
+        auto usercard = user.emplace<LabelButton>("Usercard", this)
+                            .assign(&this->ui_.usercardLabel);
+        auto checkAfk = user.emplace<LabelButton>("Check AFK", this);
+        auto mod = user.emplace<PixmapButton>(this);
         mod->setPixmap(getResources().buttons.mod);
         mod->setScaleIndependentSize(30, 30);
-        auto unmod = user.emplace<Button>(this);
+        auto unmod = user.emplace<PixmapButton>(this);
         unmod->setPixmap(getResources().buttons.unmod);
         unmod->setScaleIndependentSize(30, 30);
-        auto vip = user.emplace<Button>(this);
+        auto vip = user.emplace<PixmapButton>(this);
         vip->setPixmap(getResources().buttons.vip);
         vip->setScaleIndependentSize(30, 30);
-        auto unvip = user.emplace<Button>(this);
+        auto unvip = user.emplace<PixmapButton>(this);
         unvip->setPixmap(getResources().buttons.unvip);
         unvip->setScaleIndependentSize(30, 30);
 
@@ -862,7 +857,7 @@ void UserInfoPopup::installEvents()
 
     // user notes
     QObject::connect(
-        this->ui_.notesAdd, &EffectLabel2::clicked, [this]() mutable {
+        this->ui_.notesAdd, &LabelButton::clicked, [this]() mutable {
             if (this->editUserNotesDialog_.isNull())
             {
                 this->editUserNotesDialog_ = new EditUserNotesDialog(this);
@@ -1433,7 +1428,7 @@ UserInfoPopup::TimeoutWidget::TimeoutWidget()
 
     const auto addButton = [&](Action action, const QString &title,
                                const QPixmap &pixmap) {
-        auto button = addLayout(title).emplace<Button>(nullptr);
+        auto button = addLayout(title).emplace<PixmapButton>(nullptr);
         button->setPixmap(pixmap);
         button->setScaleIndependentSize(buttonHeight, buttonHeight);
         button->setBorderColor(QColor(255, 255, 255, 127));
@@ -1449,8 +1444,9 @@ UserInfoPopup::TimeoutWidget::TimeoutWidget()
 
         for (const auto &item : getSettings()->timeoutButtons.getValue())
         {
-            auto a = hbox.emplace<EffectLabel2>();
-            a->getLabel().setText(QString::number(item.second) + item.first);
+            auto a = hbox.emplace<LabelButton>();
+            a->setPadding({0, 0});
+            a->setText(QString::number(item.second) + item.first);
 
             a->setScaleIndependentSize(buttonWidth, buttonHeight);
             a->setBorderColor(borderColor);
@@ -1458,7 +1454,7 @@ UserInfoPopup::TimeoutWidget::TimeoutWidget()
             const auto pair =
                 std::make_pair(Action::Timeout, calculateTimeoutDuration(item));
 
-            QObject::connect(a.getElement(), &EffectLabel2::leftClicked,
+            QObject::connect(a.getElement(), &LabelButton::leftClicked,
                              [this, pair] {
                                  this->buttonClicked.invoke(pair);
                              });

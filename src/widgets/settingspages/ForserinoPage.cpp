@@ -1,4 +1,4 @@
-#include "ForserinoPage.hpp"
+#include "widgets/settingspages/ForserinoPage.hpp"
 
 #include "Application.hpp"
 #include "common/Version.hpp"
@@ -6,6 +6,7 @@
 #include "widgets/BaseWindow.hpp"
 #include "widgets/helper/Line.hpp"
 #include "widgets/settingspages/GeneralPageView.hpp"
+#include "widgets/settingspages/SettingWidget.hpp"
 
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -44,66 +45,75 @@ void ForserinoPage::initLayout(GeneralPageView &layout)
 {
     auto &s = *getSettings();
 
-       layout.addTitle("Rainbow username colors");
-     // First checkbox: Main setting
-    QCheckBox *rainbowMessagesCheckBox = layout.addCheckbox(
+    layout.addTitle("Rainbow username colors");
+
+    // Main checkbox
+    auto *rainbowMessages = SettingWidget::checkbox(
         "Change color to create a rainbow effect before sending each message",
         s.rainbowMessages);
+    rainbowMessages->addTo(layout);
 
-    // Second checkbox: Subsetting, initially disabled
-    QCheckBox *rainbowMethodCheckBox = layout.addCheckbox(
-        "Make colors change after sending a message",  
-        s.rainbowMethod, false, 
-        "By default, colors change before the message is sent (for slower internet, Enabled is better)");
+    // Dependent checkbox (no longer conditionally enabled)
+    auto *rainbowMethod = SettingWidget::checkbox(
+        "Make colors change after sending a message",
+        s.rainbowMethod);
+    rainbowMethod->addTo(layout);
 
-    // Disable the second checkbox initially if the first one is not checked
-    rainbowMethodCheckBox->setEnabled(s.rainbowMessages.getValue());
+    SettingWidget::checkbox("Use true rainbow colors (requires Twitch Prime or Turbo)",
+                            s.rainbowMessagesPrime)
+        ->addTo(layout);
+    SettingWidget::intInput("Rainbow speed (HSL hue increase per new color)",
+                            s.rainbowSpeed, {1, 100, 1})
+        ->addTo(layout);
+    SettingWidget::intInput("Rainbow starting color (HSL hue)",
+                            s.rainbowStartingHue, {0, 359, 1})
+        ->addTo(layout);
+    SettingWidget::intInput("Rainbow saturation (default is 153)",
+                            s.rainbowSaturation, {0, 255, 1})
+        ->addTo(layout);
+    SettingWidget::intInput("Rainbow light (default is 128)",
+                            s.rainbowLight, {0, 255, 1})
+        ->addTo(layout);
 
-    QObject::connect(rainbowMessagesCheckBox, &QCheckBox::stateChanged, 
-    [rainbowMethodCheckBox](int state) {
-        rainbowMethodCheckBox->setEnabled(state == Qt::Checked);
-    });
-    
-    layout.addCheckbox(
-        "Use true rainbow colors (requires Twitch Prime or Turbo)",
-        s.rainbowMessagesPrime);
-    layout.addIntInput("Rainbow speed (HSL hue increase per new color)",
-                       s.rainbowSpeed, 1, 100, 1);
-    layout.addIntInput("Rainbow starting color (HSL hue)", s.rainbowStartingHue,
-                       0, 359, 1);
-    layout.addIntInput("Rainbow saturation (default is 153)", s.rainbowSaturation, 0, 255, 1);
-    layout.addIntInput("Rainbow light (default is 128)", s.rainbowLight, 0, 255, 1);
-    auto *groupLayout = new QFormLayout();
-    auto *lineEdit = this->createLineEdit(s.rainbowChannels);
-        groupLayout->addRow(
-            this->createCheckBox("Allow rainbow to only work in certain channels",
-                                 s.allowRainbowChannels));
-        lineEdit->setPlaceholderText("forsen");
-        groupLayout->addRow("Channels where to use rainbow: ", lineEdit);
-        layout.addLayout(groupLayout);
-    auto *groupLayout2 = new QFormLayout();
-    auto *lineEdit2 = this->createLineEdit(s.defaultColor);
-    groupLayout->addRow(
-            this->createCheckBox("Enable default color",
-                                 s.enableDefaultColor));
-    lineEdit2->setPlaceholderText("#000000");
-    groupLayout2->addRow("Default color: ", lineEdit2);
-    layout.addLayout(groupLayout2);
+    // Channel whitelist group
+    auto *channelLayout = new QFormLayout;
+    SettingWidget::checkbox("Allow rainbow to only work in certain channels",
+                            s.allowRainbowChannels)
+        ->addTo(layout, channelLayout);
+    SettingWidget::lineEdit("Channels where to use rainbow",
+                            s.rainbowChannels, "forsen")
+        ->addTo(layout, channelLayout);
+    layout.addLayout(channelLayout);
+
+    // Default color group
+    auto *colorLayout = new QFormLayout;
+    SettingWidget::checkbox("Enable default color",
+                            s.enableDefaultColor)
+        ->addTo(layout, colorLayout);
+    SettingWidget::lineEdit("Default color",
+                            s.defaultColor, "#000000")
+        ->addTo(layout, colorLayout);
+    layout.addLayout(colorLayout);
 
     layout.addTitle("Miscellaneous");
-    layout.addCheckbox(
-        "Disable 20 messages/30sec rate limit (enables bot limits)",
-        s.ignoreMaxMessageRateLimit);
-    layout.addCheckbox("Use bot limits for JOINs", s.useBotLimitsJoin);
-    layout.addCheckbox("Show banned reason in usercard", s.showBannedReason);
-    layout.addCheckbox("Show user roles in usercard", s.showUserRoles);
-    layout.addCheckbox("Show user bio in usercard", s.showUserBio);
+    SettingWidget::checkbox("Disable 20 messages/30sec rate limit (enables bot limits)",
+                            s.ignoreMaxMessageRateLimit)
+        ->addTo(layout);
+    SettingWidget::checkbox("Use bot limits for JOINs",
+                            s.useBotLimitsJoin)
+        ->addTo(layout);
+    SettingWidget::checkbox("Show banned reason in usercard",
+                            s.showBannedReason)
+        ->addTo(layout);
+    SettingWidget::checkbox("Show user roles in usercard",
+                            s.showUserRoles)
+        ->addTo(layout);
+    SettingWidget::checkbox("Show user bio in usercard",
+                            s.showUserBio)
+        ->addTo(layout);
 
     layout.addStretch();
-    // invisible element for width
-    auto inv = new BaseWidget(this);
-    //    inv->setScaleIndependantWidth(600);
-    layout.addWidget(inv);
+    layout.addWidget(new BaseWidget(this));
 }
 
 }  // namespace chatterino
