@@ -1,25 +1,36 @@
-#include "widgets/settingspages/DankerinoPage.hpp"
+#include "DankerinoPage.hpp"
 
 #include "Application.hpp"
-#include "common/Channel.hpp"
-#include "controllers/hotkeys/HotkeyController.hpp"
-#include "controllers/notifications/NotificationController.hpp"
+#include "common/Version.hpp"
 #include "singletons/Settings.hpp"
-#include "widgets/BaseWidget.hpp"
+#include "widgets/BaseWindow.hpp"
+#include "widgets/helper/Line.hpp"
 #include "widgets/settingspages/GeneralPageView.hpp"
-#include "widgets/settingspages/SettingsPage.hpp"
 #include "widgets/settingspages/SettingWidget.hpp"
 
-#include <QVBoxLayout>
+#include <QDesktopServices>
+#include <QFileDialog>
+#include <QFontDialog>
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QLabel>
+#include <QScrollArea>
 
 namespace chatterino {
 
 DankerinoPage::DankerinoPage()
 {
-    this->setLayout(new QVBoxLayout);
-    auto *layout = GeneralPageView::withNavigation(this);    
-    this->layout()->addWidget(layout);
-    this->initLayout(*layout);
+    auto *y = new QVBoxLayout;
+    auto *x = new QHBoxLayout;
+    auto *view = GeneralPageView::withNavigation(this);
+    this->view_ = view;
+    x->addWidget(view);
+    auto *z = new QFrame;
+    z->setLayout(x);
+    y->addWidget(z);
+    this->setLayout(y);
+
+    this->initLayout(*view);
 }
 
 bool DankerinoPage::filterElements(const QString &query)
@@ -35,52 +46,76 @@ void DankerinoPage::initLayout(GeneralPageView &layout)
     auto &s = *getSettings();
 
     layout.addTitle("Appearance");
-    SettingWidget::checkbox("Show placeholder in text input box", s.showTextInputPlaceholder)
+    SettingWidget::checkbox("Show placeholder in text input box",
+                            s.showTextInputPlaceholder)
         ->addTo(layout);
-    layout.addDescription(
-        "The placeholder helps indicate where to type. This setting affects the message box.");
-
+    layout.addDescription("Gray-out recent messages was upstreamed as \"Reduce "
+                          "opacity of message history\"");
     layout.addTitle("Behavior");
-    SettingWidget::checkbox("Lowercase tab-completed usernames", s.lowercaseUsernames)
+    SettingWidget::checkbox("Lowercase tab-completed usernames",
+                            s.lowercaseUsernames)
         ->addTo(layout);
-
-    layout.addTitle("Bridge user");
-    SettingWidget::checkbox("Allow \"bridge\" users to impersonate others",
-                            s.allowBridgeImpersonation)
+    {
+        auto *groupLayout = new QFormLayout();
+        groupLayout->addRow(
+            this->createCheckBox("Allow \"bridge\" users to impersonate others",
+                                 s.allowBridgeImpersonation));
+        SettingWidget::lineEdit("Bridge user:", s.bridgeUser, "supabridge")
+            ->addTo(layout);
+        layout.addLayout(groupLayout);
+    }
+    //layout.addTitle("Emotes");
+    //layout.addCheckbox("Enable loading 7TV emotes", s.enableLoadingSevenTV);
+    layout.addTitle("Miscellaneous");
+    SettingWidget::intInput(
+        "High rate limit spam delay in milliseconds (mod/vip)",
+        s.twitchHighRateLimitDelay,
+        {
+            .min = 100,
+            .max = 2000,
+            .singleStep = 100,
+        })
         ->addTo(layout);
-    SettingWidget::lineEdit("Bridge user", s.bridgeUser, "supabridge")
-    ->addTo(layout);
-
-    layout.addTitle("Rate Limits");
-    SettingWidget::intInput("High rate limit spam delay (ms)", s.twitchHighRateLimitDelay,
-                            {.min = 100, .max = 2000, .singleStep = 100})
-        ->addTo(layout);
-    SettingWidget::intInput("Low rate limit spam delay (ms)", s.twitchLowRateLimitDelay,
-                            {.min = 500, .max = 3000, .singleStep = 100})
+    SettingWidget::intInput(
+        "Low rate limit spam delay in milliseconds (non mod/vip)",
+        s.twitchLowRateLimitDelay,
+        {
+            .min = 500,
+            .max = 3000,
+            .singleStep = 1100,
+        })
         ->addTo(layout);
 
     if (s.dankerinoThreeLetterApiEasterEgg)
     {
-        layout.addTitle("Advanced Settings");
-        SettingWidget::checkbox(
-            "Click to disable GraphQL easter egg and advanced settings (requires restart)",
-            s.dankerinoThreeLetterApiEasterEgg)
+        SettingWidget::checkbox("Click to disable GraphQL easter egg and "
+                                "advanced settings "
+                                "(requires restart)",
+                                s.dankerinoThreeLetterApiEasterEgg)
             ->addTo(layout);
-
-        layout.addTitle("Random Hacks");
+        layout.addTitle("Random 'hacks'");
         SettingWidget::checkbox("Enable. Required for settings below to work!",
                                 s.nonceFuckeryEnabled)
             ->addTo(layout);
-        SettingWidget::checkbox("Abnormal nonce detection", s.abnormalNonceDetection)
+        SettingWidget::checkbox("Abnormal nonce detection",
+                                s.abnormalNonceDetection)
             ->addTo(layout);
-        SettingWidget::checkbox("Webchat detection highlights.", s.normalNonceDetection)
+
+        SettingWidget::checkbox("Webchat detection highlights. ",
+                                s.normalNonceDetection)
+            ->setTooltip("Highlights messages sent from webchat in orange or "
+                         "the specified color below.")
             ->addTo(layout);
-        SettingWidget::colorButton("Webchat detected color", s.webchatColor)
+
+        SettingWidget::colorButton("Webchat detected color",
+                                   getSettings()->webchatColor)
             ->addTo(layout);
     }
-
     layout.addStretch();
-    layout.addWidget(new BaseWidget(this));
+    // invisible element for width
+    auto inv = new BaseWidget(this);
+    //    inv->setScaleIndependantWidth(600);
+    layout.addWidget(inv);
 }
 
 }  // namespace chatterino
