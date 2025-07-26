@@ -101,18 +101,14 @@ void DankerinoPage::initLayout(GeneralPageView &layout)
                                 s.abnormalNonceDetection)
             ->addTo(layout);
 
-        layout.addTitle("Client detection");
-        SettingWidget::checkbox("Client detection highlights. ",
+        SettingWidget::checkbox("Webchat detection highlights. ",
                                 s.normalNonceDetection)
-            ->setTooltip("Highlights messages sent from specified clients "
-                         "using the specified color below.")
+            ->setTooltip("Highlights messages sent from webchat in orange or "
+                         "the specified color below.")
             ->addTo(layout);
 
-        SettingWidget::colorButton("Webchat color", getSettings()->webchatColor)
-            ->addTo(layout);
-        SettingWidget::colorButton("Android color", getSettings()->androidColor)
-            ->addTo(layout);
-        SettingWidget::colorButton("iOS color", getSettings()->iosColor)
+        SettingWidget::colorButton("Webchat detected color",
+                                   getSettings()->webchatColor)
             ->addTo(layout);
     }
     layout.addStretch();
