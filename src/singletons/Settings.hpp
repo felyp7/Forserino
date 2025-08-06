@@ -592,6 +592,10 @@ public:
         "/logging/logTimestampFormat",
         "hh:mm:ss",
     };
+    BoolSetting tryUseTwitchTimestamps = {
+        "/logging/tryUseTwitchTimestamps",
+        false,
+    };
     QStringSetting logPath = {"/logging/path", ""};
 
     QStringSetting pathHighlightSound = {"/highlighting/highlightSoundPath",

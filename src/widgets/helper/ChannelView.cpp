@@ -2134,10 +2134,9 @@ void ChannelView::mouseMoveEvent(QMouseEvent *event)
                     element->getTooltip(), getTooltipScale(scale)));
             }
         }
-        else
+        else if (auto *linkElement = dynamic_cast<LinkElement *>(element))
         {
             auto thumbnailSize = getSettings()->thumbnailSize;
-            auto *linkElement = dynamic_cast<LinkElement *>(element);
             if (linkElement)
             {
                 if (linkElement->linkInfo()->isPending())
@@ -2147,6 +2146,13 @@ void ChannelView::mouseMoveEvent(QMouseEvent *event)
                 }
                 this->setLinkInfoTooltip(linkElement->linkInfo());
             }
+        }
+        else
+        {
+            this->tooltipWidget_->setOne(TooltipEntry{
+                .image = nullptr,
+                .text = element->getTooltip(),
+            });
         }
 
         this->tooltipWidget_->moveTo(

@@ -21,6 +21,7 @@
 #include <vector>
 
 class QFormLayout;
+class QLayout;
 
 namespace chatterino {
 
@@ -122,7 +123,8 @@ public:
     void addTo(GeneralPageView &view);
     void addTo(GeneralPageView &view, QFormLayout *formLayout);
 
-    QCheckBox *getCheckbox() const;
+    /// For settings pages without a page view
+    void addToLayout(QLayout *layout);
 
 private:
     /// Registers this widget & its optional label to the given page view
