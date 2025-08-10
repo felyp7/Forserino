@@ -659,6 +659,8 @@ auto formatVIPListError = [](HelixListVIPsError error,
     this->registerCommand("/debug-invalidate-buffers",
                           &commands::invalidateBuffers);
 
+    this->registerCommand("/debug-eventsub", &commands::eventsub);
+
     this->registerCommand("/debug-test", &commands::debugTest);
 
     this->registerCommand("/shield", &commands::shieldModeOn);
