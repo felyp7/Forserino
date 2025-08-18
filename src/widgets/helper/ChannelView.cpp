@@ -978,6 +978,7 @@ void ChannelView::setChannel(const ChannelPtr &underlyingChannel)
                 }
                 this->channel_->addMessage(message, MessageContext::Repost,
                                            overridingFlags);
+                this->messageAddedToChannel(message);
             }
         });
 
