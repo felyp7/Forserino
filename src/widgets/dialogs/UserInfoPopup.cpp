@@ -286,8 +286,9 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
                 switch (button)
                 {
                     case Qt::LeftButton: {
-                        QDesktopServices::openUrl(QUrl(
-                            "https://twitch.tv/" + this->userName_.toLower()));
+                        QDesktopServices::openUrl(
+                            QUrl("https://www.twitch.tv/" +
+                                 this->userName_.toLower()));
                     }
                     break;
 
@@ -1195,6 +1196,7 @@ void UserInfoPopup::updateUserData()
         this->ui_.block->setChecked(isIgnoring);
         this->ui_.block->setEnabled(true);
         this->ui_.ignoreHighlights->setChecked(isIgnoringHighlights);
+        this->ui_.notesAdd->setEnabled(true);
 
         auto type = this->underlyingChannel_->getType();
 
@@ -1387,6 +1389,8 @@ void UserInfoPopup::updateUserData()
 
     this->ui_.block->setEnabled(false);
     this->ui_.ignoreHighlights->setEnabled(false);
+    this->ui_.notesAdd->setEnabled(false);
+
     bool isMyself =
         getApp()->getAccounts()->twitch.getCurrent()->getUserName().compare(
             this->userName_, Qt::CaseInsensitive) == 0;
