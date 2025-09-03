@@ -107,8 +107,11 @@ void DankerinoPage::initLayout(GeneralPageView &layout)
                          "the specified color below.")
             ->addTo(layout);
 
-        SettingWidget::colorButton("Webchat detected color",
-                                   getSettings()->webchatColor)
+        SettingWidget::colorButton("Webchat color", getSettings()->webchatColor)
+            ->addTo(layout);
+        SettingWidget::colorButton("Android color", getSettings()->androidColor)
+            ->addTo(layout);
+        SettingWidget::colorButton("iOS color", getSettings()->iosColor)
             ->addTo(layout);
     }
     layout.addStretch();

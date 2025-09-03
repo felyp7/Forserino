@@ -450,8 +450,25 @@ void MessageLayout::updateBuffer(QPixmap *buffer,
     else if (this->message_->flags.has(MessageFlag::WebchatDetected) &&
              getSettings()->normalNonceDetection)
     {
-        backgroundColor =
-            blendColors(backgroundColor, QColor(getSettings()->webchatColor));
+        switch (this->message_->clientDetection)
+        {
+            case Message::ClientDetectionStatus::Webchat:
+                backgroundColor = blendColors(
+                    backgroundColor, QColor(getSettings()->webchatColor));
+                break;
+            case Message::ClientDetectionStatus::Android:
+                backgroundColor = blendColors(
+                    backgroundColor, QColor(getSettings()->androidColor));
+                break;
+            case Message::ClientDetectionStatus::IOS:
+                backgroundColor = blendColors(backgroundColor,
+                                              QColor(getSettings()->iosColor));
+                break;
+
+            case Message::ClientDetectionStatus::Unknown:
+            case Message::ClientDetectionStatus::Abnormal:
+                break;
+        }
     }
 
     painter.fillRect(buffer->rect(), backgroundColor);
