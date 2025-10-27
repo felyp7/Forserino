@@ -1,9 +1,8 @@
 set(LIBRARY_PROJECT "${PROJECT_NAME}-lib")
 set(VERSION_PROJECT "${LIBRARY_PROJECT}-version")
 set(EXECUTABLE_PROJECT "${PROJECT_NAME}")
-add_compile_definitions(QT_DISABLE_DEPRECATED_BEFORE=0x060403)
-add_compile_definitions(QT_WARN_DEPRECATED_UP_TO=0x060403)
-add_compile_definitions(QT_NO_KEYWORDS)
+# used for QT_DISABLE_DEPRECATED_BEFORE/QT_WARN_DEPRECATED_UP_TO
+set(CHATTERINO_MIN_QT_VERSION 0x060403)
 
 # registers the native messageing host
 option(CHATTERINO_DEBUG_NATIVE_MESSAGES "Debug native messages" OFF)
@@ -157,6 +156,9 @@ set(SOURCE_FILES
         controllers/completion/strategies/Strategy.hpp
         controllers/completion/TabCompletionModel.cpp
         controllers/completion/TabCompletionModel.hpp
+
+        controllers/emotes/EmoteController.cpp
+        controllers/emotes/EmoteController.hpp
 
         controllers/filters/FilterModel.cpp
         controllers/filters/FilterModel.hpp
@@ -473,8 +475,6 @@ set(SOURCE_FILES
 
         singletons/CrashHandler.cpp
         singletons/CrashHandler.hpp
-        singletons/Emotes.cpp
-        singletons/Emotes.hpp
         singletons/Fonts.cpp
         singletons/Fonts.hpp
         singletons/ImageUploader.cpp
@@ -1085,6 +1085,14 @@ target_compile_definitions(${LIBRARY_PROJECT} PUBLIC
     $<$<BOOL:${BUILD_TESTS}>:CHATTERINO_WITH_TESTS>
     )
 
+set(_c2_qt_defs
+    QT_DISABLE_DEPRECATED_BEFORE=${CHATTERINO_MIN_QT_VERSION}
+    QT_WARN_DEPRECATED_UP_TO=${CHATTERINO_MIN_QT_VERSION}
+    QT_NO_KEYWORDS
+)
+target_compile_definitions(${VERSION_PROJECT} PUBLIC ${_c2_qt_defs})
+target_compile_definitions(${LIBRARY_PROJECT} PUBLIC ${_c2_qt_defs})
+
 if (USE_SYSTEM_QTKEYCHAIN)
     target_compile_definitions(${LIBRARY_PROJECT} PUBLIC
         CMAKE_BUILD
@@ -1233,6 +1241,14 @@ if (MSVC)
         # Enable updated '__cplusplus' macro - workaround for CMake#18837
         /Zc:__cplusplus
     )
+
+    # Warnings on clang-cl
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        target_compile_options(${LIBRARY_PROJECT} PUBLIC
+            -Wno-missing-designated-field-initializers
+        )
+    endif()
+
     # Disable min/max macros from Windows.h
     target_compile_definitions(${LIBRARY_PROJECT} PUBLIC NOMINMAX)
 else ()
