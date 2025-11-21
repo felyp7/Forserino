@@ -547,6 +547,11 @@ public:
                                            ""};
     QStringSetting subHighlightColor = {"/highlighting/subHighlightColor", ""};
 
+    BoolSetting enableWatchStreakHighlight = {
+        "/highlighting/watchStreak/enabled", true};
+    QStringSetting watchStreakHighlightColor = {
+        "/highlighting/watchStreak/color", ""};
+
     BoolSetting enableAutomodHighlight = {
         "/highlighting/automod/enabled",
         true,
@@ -712,6 +717,10 @@ public:
                                                true};
     BoolSetting lockNotebookLayout = {"/misc/lockNotebookLayout", false};
     BoolSetting showPronouns = {"/misc/showPronouns", false};
+    BoolSetting showTitleInLiveMessage = {
+        "/extraChannels/live/showTitle",
+        false,
+    };
 
     /// UI
 

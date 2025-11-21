@@ -6,6 +6,7 @@
 
 ## Unversioned
 
+- Minor: Add a separate highlight option for watchstreak notifications. (#6571, #6581)
 - Minor: Badges now link to their home page like emotes in the context menu. (#6437)
 - Minor: Fixed usercard resizing improperly without recent messages. (#6496)
 - Minor: Added setting for character limit of deleted messages. (#6491)
@@ -14,6 +15,7 @@
 - Minor: Consolidate font picking into one dialog. (#6531)
 - Minor: Added a menu action to sort tabs alphabetically. (#6551)
 - Minor: Fixed "edit hotkey" dialog opening like a normal window. (#6540)
+- Minor: Added a setting to show the stream title in live messages. (#6572)
 - Bugfix: Expose the "Extra extension IDs" setting on non-Windows systems too. (#6509)
 - Bugfix: Fixed some commands and filters not working as expected in seach popups. (#6539)
 - Bugfix: Fixed settings occasionally not opening when clicking on "Manage Accounts" in the account switcher. (#6543)
@@ -23,6 +25,7 @@
 - Bugfix: Fixed Lua errors from handlers of HTTP requests not being logged. (#6452)
 - Bugfix: Fixed restore button not showing on Windows. (#6565)
 - Bugfix: Fixed popups and the overlay not being draggable on Wayland. (#6573)
+- Bugfix: Fixed middle-clicking usernames in a local channel opening an invalid viewercard. (#6577)
 - Dev: Update release documentation. (#6498)
 - Dev: Make code sanitizers opt in with the `CHATTERINO_SANITIZER_SUPPORT` CMake option. After that's enabled, use the `SANITIZE_*` flag to enable individual sanitizers. (#6493)
 - Dev: Remove unused QTextCodec includes. (#6487)
@@ -47,6 +50,8 @@
 - Dev: Compile time definitions for `Windows.h` are now conditional based on `WIN32` instead of `MSVC`. (#6534)
 - Dev: Refactored split container nodes to use shared pointers. (#6435)
 - Dev: Mock headers are now added as a header set if supported by CMake. (#6561)
+- Dev: Set settings directory to temporary one used in tests. (#6584)
+- Dev: Check Lua unwinding and version in tests. (#6586)
 
 ## 2.5.4
 
