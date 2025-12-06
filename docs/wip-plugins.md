@@ -219,6 +219,51 @@ c2.register_callback(
 )
 ```
 
+#### `current_account()`
+
+Returns a `TwitchAccount` representing the current account.
+
+#### `TwitchAccount`
+
+Represents a Twitch account. There can only be one selected at a time but
+unselected accounts stay valid. An account can become invalid if removed by the
+user in the settings. Using an invalid account produces an error.
+
+```lua
+local acc = c2.current_account()
+
+print(acc:is_valid()) -- true unless user removed account
+```
+
+##### `TwitchAccount:login()`
+
+Returns the login name of the account. This string may only contain lowercase ASCII.
+
+```lua
+print(acc:login()) -- "mm2pl"
+```
+
+##### `TwitchAccount:id()`
+
+Returns the Twitch user ID of the account. This uniquely and persistently identifies the account.
+
+```lua
+print(acc:id()) -- "117691339"
+```
+
+##### `TwitchAccount:color()`
+
+Returns the color in chat of this account. If the user has not sent any
+messages this will be `nil`.
+
+```lua
+print(acc:color()) -- "#ffdaa520"
+```
+
+##### `TwitchAccount:is_anon()`
+
+Returns `true` if this account is an anonymous account (no associated Twitch user).
+
 #### `ChannelType` enum
 
 This table describes channel types Chatterino supports. The values behind the
@@ -770,3 +815,80 @@ require("data.file") -- tried to load Plugins/name/data/file.lua and errors beca
 #### `print(Args...)`
 
 The `print` global function is equivalent to calling `c2.log(c2.LogLevel.Debug, Args...)`
+
+### JSON API
+
+Chatterino includes the `chatterino.json` module for parsing and serializing JSON:
+
+```lua
+local json = require('chatterino.json')
+
+local parsed = json.parse('{"foo": 1}')
+-- { foo = 1 }
+
+local str = json.stringify({ foo = 1 })
+-- '{"foo":1}'
+```
+
+#### `parse(string[, options])`
+
+Parse a string as JSON. Errors if the input was invalid JSON. Use [`pcall`](https://www.lua.org/pil/8.4.html) when parsing untrusted/user input.
+
+```lua
+local json = require('chatterino.json')
+
+local parsed = json.parse('{"foo": 1}')
+-- { foo = 1 }
+
+local ok, result = pcall(json.parse, 'invalid input')
+-- ok = false, result = "Failed to parse JSON: syntax error..."
+
+local ok, result = pcall(json.parse, '{"foo": 1 /* foo */ }', { allow_comments = true })
+-- ok = true, result = { foo = 1 }
+```
+
+`options` can be an optional table with the following optional keys:
+
+- `allow_comments` (boolean): Allow C++ style comments (`/* foo */` and `// foo`)
+- `allow_trailing_commas` (boolean): Allow trailing comments in objects and arrays (`[1, 2,]`)
+
+#### `stringify(value[, options])`
+
+Stringify a Lua value as JSON. Only tables and scalars (strings/numbers/booleans) are supported.
+Empty tables are stringified as objects. To get an empty array, use the following: `{ [0] = json.null }` (will produce `[]`).
+Tables with `nil` values like `{ foo = nil }` will be stringified as `{}` (they are identical to the empty table).
+To get `null` there, use `json.null`.
+
+```lua
+local json = require('chatterino.json')
+
+local str = json.stringify({ foo = 1, bar = nil, baz = json.null })
+-- '{"foo":1,"baz":null}'
+
+local str = json.stringify({ foo = 1 }, { pretty = true })
+-- {
+--     "foo": 1
+-- }
+```
+
+`options` can be an optional table with the following optional keys:
+
+- `pretty` (boolean): Use newlines and indentation when stringifying
+- `indent_char` (string, default: space): Character to use when indenting object/array items
+- `indent_size` (number, default: 4): Amount of times `indent_char` is repeated per nesting-level
+
+#### `null`
+
+A sentinel to indicate a `null` value.
+This is useful if `nil` would hide the value (such as in tables):
+
+```lua
+local json = require('chatterino.json')
+
+local str = json.stringify({ foo = 1, bar = nil, baz = json.null })
+-- '{"foo":1,"baz":null}'
+
+local obj = json.parse(str)
+assert(obj.baz == json.null)
+assert(obj.baz ~= nil)
+```

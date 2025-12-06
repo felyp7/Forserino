@@ -376,4 +376,34 @@ declare namespace c2 {
         Original,
         Repost,
     }
+
+    class TwitchAccount implements IWeakResource {
+        is_valid(): boolean;
+        user_login(): string;
+        user_id(): string;
+        color(): string;
+        is_anon(): boolean;
+    }
+
+    function current_account(): TwitchAccount;
+}
+
+declare module "chatterino.json" {
+    class _Dummy {}
+
+    function parse(
+        text: string,
+        opts?: { allow_comments?: boolean; allow_trailing_commas?: boolean }
+    ): any;
+    function stringify(
+        item: any,
+        opts?: { pretty?: boolean; indent_char?: string; indent_size?: number }
+    ): string;
+
+    let exports: {
+        null: _Dummy;
+        parse: typeof parse;
+        stringify: typeof stringify;
+    };
+    export = exports;
 }
