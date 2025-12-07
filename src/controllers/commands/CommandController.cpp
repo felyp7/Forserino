@@ -676,6 +676,8 @@ auto formatVIPListError = [](HelixListVIPsError error,
     this->registerCommand("/endpoll", &commands::endPoll);
 
     this->registerCommand("/prediction", &commands::createPrediction);
+    this->registerCommand("/lockprediction", &commands::lockPrediction);
+    this->registerCommand("/cancelprediction", &commands::cancelPrediction);
 
     this->registerCommand("/c2-set-logging-rules", &commands::setLoggingRules);
     this->registerCommand("/c2-theme-autoreload", &commands::toggleThemeReload);
