@@ -17,6 +17,7 @@
 #include "messages/MessageColor.hpp"
 #include "messages/MessageElement.hpp"
 #include "messages/MessageThread.hpp"
+#include "providers/bttv/BttvBadges.hpp"
 #include "providers/bttv/BttvEmotes.hpp"
 #include "providers/chatterino/ChatterinoBadges.hpp"
 #include "providers/colors/ColorProvider.hpp"
@@ -1732,6 +1733,7 @@ std::pair<MessagePtrMut, HighlightAlert> MessageBuilder::makeIrcMessage(
 
     builder.appendChatterinoBadges(userID);
     builder.appendFfzBadges(twitchChannel, userID);
+    builder.appendBttvBadges(userID);
     builder.appendSeventvBadges(userID);
 
     builder.appendUsername(tags, args);
@@ -2538,6 +2540,14 @@ void MessageBuilder::appendFfzBadges(TwitchChannel *twitchChannel,
     {
         this->emplace<FfzBadgeElement>(
             badge.emote, MessageElementFlag::BadgeFfz, badge.color);
+    }
+}
+
+void MessageBuilder::appendBttvBadges(const QString &userID)
+{
+    if (auto badge = getApp()->getBttvBadges()->getBadge({userID}))
+    {
+        this->emplace<BadgeElement>(*badge, MessageElementFlag::BadgeBttv);
     }
 }
 

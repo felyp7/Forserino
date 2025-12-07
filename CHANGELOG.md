@@ -10,6 +10,7 @@
 - Minor: Badges now link to their home page like emotes in the context menu. (#6437)
 - Minor: Fixed usercard resizing improperly without recent messages. (#6496)
 - Minor: Added setting for character limit of deleted messages. (#6491)
+- Minor: Added message introspection and manipulation. (#6353)
 - Minor: Added link support to plugin message API. (#6386, #6527)
 - Minor: Added a description for the logging option under moderation tab. (#6514)
 - Minor: Added a JSON API for plugins (`require('chatterino.json')`). (#6420)
@@ -22,6 +23,7 @@
 - Minor: Add categories to the emoji viewer. (#6598)
 - Minor: Added broadcaster-only `/poll`, `/cancelpoll`, and `/endpoll` commands. (#6583, #6605)
 - Minor: Added broadcaster-only `/prediction`, `/cancelprediction`, and `/lockprediction` commands. (#6583, #6612)
+- Minor: Added support for BetterTTV Pro subscriber badges. (#6625)
 - Bugfix: Expose the "Extra extension IDs" setting on non-Windows systems too. (#6509)
 - Bugfix: Fixed some commands and filters not working as expected in seach popups. (#6539)
 - Bugfix: Fixed settings occasionally not opening when clicking on "Manage Accounts" in the account switcher. (#6543)
@@ -64,6 +66,7 @@
 - Dev: Simplified uses of `getMessageSnapshot`. (#6607)
 - Dev: Disabled `llvm-prefer-static-over-anonymous-namespace` in clang-tidy. (#6610)
 - Dev: Added Clazy linting in CI. (#6623)
+- Dev: Added custom clang-tidy module linting in CI. (#6626)
 
 ## 2.5.4
 
