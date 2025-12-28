@@ -488,7 +488,7 @@ void Split::addShortcuts()
              auto *twitchChannel =
                  dynamic_cast<TwitchChannel *>(this->getChannel().get());
 
-             twitchChannel->createClip();
+             twitchChannel->createClip({}, {});
              return "";
          }},
         {"reloadEmotes",
