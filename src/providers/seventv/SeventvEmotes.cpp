@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2022 Contributors to Chatterino <https://chatterino.com>
+//
+// SPDX-License-Identifier: MIT
+
 #include "providers/seventv/SeventvEmotes.hpp"
 
 #include "Application.hpp"
@@ -101,7 +105,7 @@ CreateEmoteResult createEmote(const QJsonObject &activeEmote,
             ? createAliasedTooltip(emoteName.string, baseEmoteName.string,
                                    author.string, isGlobal)
             : createTooltip(emoteName.string, author.string, isGlobal);
-    auto imageSet = SeventvEmotes::createImageSet(emoteData);
+    auto imageSet = SeventvEmotes::createImageSet(emoteData, false);
 
     auto emote = Emote({
         emoteName,
@@ -445,7 +449,8 @@ void SeventvEmotes::getEmoteSet(
         });
 }
 
-ImageSet SeventvEmotes::createImageSet(const QJsonObject &emoteData)
+ImageSet SeventvEmotes::createImageSet(const QJsonObject &emoteData,
+                                       bool useStatic)
 {
     auto host = emoteData["host"].toObject();
     // "//cdn.7tv[...]"
@@ -481,9 +486,21 @@ ImageSet SeventvEmotes::createImageSet(const QJsonObject &emoteData)
             baseWidth = width;
         }
 
-        auto image = Image::fromUrl(
-            {QString("https:%1/%2").arg(baseUrl, file["name"].toString())},
-            scale, {static_cast<int>(width), file["height"].toInt(16)});
+        auto name = [&] {
+            if (useStatic)
+            {
+                auto staticName = file["static_name"].toString();
+                if (!staticName.isEmpty())
+                {
+                    return staticName;
+                }
+            }
+            return file["name"].toString();
+        }();
+
+        auto image =
+            Image::fromUrl({QString("https:%1/%2").arg(baseUrl, name)}, scale,
+                           {static_cast<int>(width), file["height"].toInt(16)});
 
         sizes.at(nextSize) = image;
         nextSize++;

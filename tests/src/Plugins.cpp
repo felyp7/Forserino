@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2024 Contributors to Chatterino <https://chatterino.com>
+//
+// SPDX-License-Identifier: MIT
+
 #include "mocks/Helix.hpp"
 #ifdef CHATTERINO_HAVE_PLUGINS
 #    include "Application.hpp"
@@ -34,6 +38,7 @@
 
 using namespace chatterino;
 using chatterino::mock::MockChannel;
+using namespace std::chrono_literals;
 
 namespace {
 
@@ -626,7 +631,7 @@ TEST_F(PluginTest, testTimerRec)
         end
         c2.later(f, 1)
     )lua");
-    waiter.waitForRequest();
+    waiter.waitForRequest(1ms);
 }
 
 TEST_F(PluginTest, tryCallTest)

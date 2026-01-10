@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2017 Contributors to Chatterino <https://chatterino.com>
+//
+// SPDX-License-Identifier: MIT
+
 #include "widgets/splits/SplitInput.hpp"
 
 #include "Application.hpp"
@@ -5,6 +9,7 @@
 #include "common/QLogging.hpp"
 #include "controllers/commands/CommandController.hpp"
 #include "controllers/hotkeys/HotkeyController.hpp"
+#include "controllers/spellcheck/SpellChecker.hpp"
 #include "messages/Link.hpp"
 #include "messages/Message.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
@@ -25,6 +30,7 @@
 #include "widgets/Notebook.hpp"
 #include "widgets/Scrollbar.hpp"
 #include "widgets/splits/InputCompletionPopup.hpp"
+#include "widgets/splits/InputHighlighter.hpp"
 #include "widgets/splits/Split.hpp"
 #include "widgets/splits/SplitContainer.hpp"
 
@@ -73,14 +79,26 @@ SplitInput::SplitInput(QWidget *parent, Split *_chatWidget,
         new QCompleter(this->split_->getChannel()->completionModel);
     this->ui_.textEdit->setCompleter(completer);
 
+    // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
+    auto *spellChecker = getApp()->getSpellChecker();
+    this->inputHighlighter = new InputHighlighter(*spellChecker, this);
+    this->inputHighlighter->setChannel(this->split_->getChannel());
+
     this->signalHolder_.managedConnect(this->split_->channelChanged, [this] {
         auto channel = this->split_->getChannel();
         auto *completer = new QCompleter(channel->completionModel);
         this->ui_.textEdit->setCompleter(completer);
+        this->inputHighlighter->setChannel(this->split_->getChannel());
     });
 
+    getSettings()->enableSpellChecking.connect(
+        [this] {
+            this->checkSpellingChanged();
+        },
+        this->signalHolder_);
+
     // misc
-    this->installKeyPressedEvent();
+    this->installTextEditEvents();
     this->addShortcuts();
     // The textEdit's signal will be destroyed before this SplitInput is
     // destroyed, so we can safely ignore this signal's connection.
@@ -374,7 +392,7 @@ QString SplitInput::handleSendMessage(const std::vector<QString> &arguments)
     if (!c->isTwitchChannel() || this->replyTarget_ == nullptr)
     {
         // standard message send behavior
-        QString message = ui_.textEdit->toPlainText();
+        QString message = this->ui_.textEdit->toPlainText();
 
         message = message.replace('\n', ' ');
         QString sendMessage =
@@ -544,7 +562,7 @@ void SplitInput::addShortcuts()
 
              if (this->prevIndex_ == (this->prevMsg_.size()))
              {
-                 this->currMsg_ = ui_.textEdit->toPlainText();
+                 this->currMsg_ = this->ui_.textEdit->toPlainText();
              }
 
              this->prevIndex_--;
@@ -568,7 +586,7 @@ void SplitInput::addShortcuts()
                  return "";
              }
              bool cursorToEnd = true;
-             QString message = ui_.textEdit->toPlainText();
+             QString message = this->ui_.textEdit->toPlainText();
 
              if (this->prevIndex_ != (this->prevMsg_.size() - 1) &&
                  this->prevIndex_ != this->prevMsg_.size())
@@ -720,7 +738,7 @@ bool SplitInput::eventFilter(QObject *obj, QEvent *event)
     return BaseWidget::eventFilter(obj, event);
 }
 
-void SplitInput::installKeyPressedEvent()
+void SplitInput::installTextEditEvents()
 {
     // We can safely ignore this signal's connection because SplitInput owns
     // the textEdit object, so it will always be deleted before SplitInput
@@ -752,10 +770,42 @@ void SplitInput::installKeyPressedEvent()
             }
         });
 
-#ifdef DEBUG
-    assert(this->keyPressedEventInstalled == false);
-    this->keyPressedEventInstalled = true;
+    std::ignore = this->ui_.textEdit->contextMenuRequested.connect(
+        [this](QMenu *menu, QPoint pos) {
+#ifdef CHATTERINO_WITH_SPELLCHECK
+            menu->addSeparator();
+            auto *spellcheckAction = new QAction("Check spelling", menu);
+            spellcheckAction->setCheckable(true);
+            spellcheckAction->setChecked(this->shouldCheckSpelling());
+            QObject::connect(spellcheckAction, &QAction::toggled, this,
+                             [this](bool enabled) {
+                                 this->checkSpellingOverride_ = enabled;
+                                 this->checkSpellingChanged();
+                             });
+            menu->addAction(spellcheckAction);
+
+            auto cursor = this->ui_.textEdit->cursorForPosition(pos);
+            cursor.select(QTextCursor::WordUnderCursor);
+            auto word = cursor.selectedText();
+            if (!word.isEmpty())
+            {
+                auto suggestions =
+                    getApp()->getSpellChecker()->suggestions(word);
+                for (const auto &sugg : suggestions)
+                {
+                    auto qSugg = QString::fromStdString(sugg);
+                    menu->addAction(qSugg, [this, qSugg, cursor]() mutable {
+                        cursor.insertText(qSugg);
+                        this->ui_.textEdit->setTextCursor(cursor);
+                    });
+                }
+            }
+#else
+            (void)menu;
+            (void)pos;
+            (void)this;
 #endif
+        });
 }
 
 void SplitInput::mousePressEvent(QMouseEvent *event)
@@ -1338,6 +1388,40 @@ void SplitInput::setBackgroundColor(QColor newColor)
     this->backgroundColor_ = newColor;
 
     this->updateTextEditPalette();
+}
+
+std::optional<bool> SplitInput::checkSpellingOverride() const
+{
+    return this->checkSpellingOverride_;
+}
+
+void SplitInput::setCheckSpellingOverride(std::optional<bool> override)
+{
+    this->checkSpellingOverride_ = override;
+    this->checkSpellingChanged();
+}
+
+bool SplitInput::shouldCheckSpelling() const
+{
+    if (this->checkSpellingOverride_)
+    {
+        return *this->checkSpellingOverride_;
+    }
+    return getSettings()->enableSpellChecking;
+}
+
+void SplitInput::checkSpellingChanged()
+{
+    QTextDocument *target = nullptr;
+    if (this->shouldCheckSpelling())
+    {
+        target = this->ui_.textEdit->document();
+    }
+
+    if (this->inputHighlighter->document() != target)
+    {
+        this->inputHighlighter->setDocument(target);
+    }
 }
 
 void SplitInput::updateFonts()

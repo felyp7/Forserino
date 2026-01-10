@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2020 Contributors to Chatterino <https://chatterino.com>
+//
+// SPDX-License-Identifier: MIT
+
 #pragma once
 
 #include "common/Aliases.hpp"
@@ -425,7 +429,7 @@ struct HelixBadgeSet {
         const auto jsonVersions = json.value("versions").toArray();
         for (const auto &version : jsonVersions)
         {
-            versions.emplace_back(version.toObject());
+            this->versions.emplace_back(version.toObject());
         }
     }
 };

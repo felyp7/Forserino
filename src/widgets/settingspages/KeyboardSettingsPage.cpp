@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2018 Contributors to Chatterino <https://chatterino.com>
+//
+// SPDX-License-Identifier: MIT
+
 #include "widgets/settingspages/KeyboardSettingsPage.hpp"
 
 #include "Application.hpp"
@@ -77,7 +81,7 @@ KeyboardSettingsPage::KeyboardSettingsPage()
         }
     });
 
-    QObject::connect(view_->getTableView(), &QTableView::doubleClicked,
+    QObject::connect(this->view_->getTableView(), &QTableView::doubleClicked,
                      [view, model](const QModelIndex &clicked) {
                          tableCellClicked(clicked, view, model);
                      });

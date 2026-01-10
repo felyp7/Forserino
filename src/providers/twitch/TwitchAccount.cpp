@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2018 Contributors to Chatterino <https://chatterino.com>
+//
+// SPDX-License-Identifier: MIT
+
 #include "providers/twitch/TwitchAccount.hpp"
 
 #include "Application.hpp"
@@ -336,7 +340,7 @@ void TwitchAccount::loadSeventvUserID()
         },
         [](const auto &result) {
             qCDebug(chatterinoSeventv)
-                << "Failed to load 7TV user-id:" << result.formatError();
+                << "Failed to load your 7TV user-id:" << result.formatError();
         });
 }
 

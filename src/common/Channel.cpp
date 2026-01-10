@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2017 Contributors to Chatterino <https://chatterino.com>
+//
+// SPDX-License-Identifier: MIT
+
 #include "common/Channel.hpp"
 
 #include "Application.hpp"
@@ -451,7 +455,7 @@ IndirectChannel::IndirectChannel(ChannelPtr channel, Channel::Type type)
 
 ChannelPtr IndirectChannel::get() const
 {
-    return data_->channel;
+    return this->data_->channel;
 }
 
 void IndirectChannel::reset(ChannelPtr channel)

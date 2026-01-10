@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2023 Contributors to Chatterino <https://chatterino.com>
+//
+// SPDX-License-Identifier: MIT
+
 #ifdef CHATTERINO_HAVE_PLUGINS
 #    include "controllers/plugins/PluginController.hpp"
 
@@ -450,7 +454,7 @@ std::pair<bool, QStringList> PluginController::updateCustomCompletions(
                 qCDebug(chatterinoLua)
                     << "Got error from plugin " << pl->meta.name
                     << " while refreshing tab completion: "
-                    << errOrList.get_unexpected().error();
+                    << errOrList.error();
                 continue;
             }
 
