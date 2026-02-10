@@ -4,34 +4,27 @@
 
 #include "common/Version.hpp"
 
-#include "common/Literals.hpp"
-#include "common/Modes.hpp"
-
 #include <QFileInfo>
 #include <QStringBuilder>
 
-namespace chatterino {
+using namespace Qt::StringLiterals;
 
-using namespace literals;
+namespace chatterino {
 
 Version::Version()
     : version_(CHATTERINO_VERSION)
     , commitHash_(QStringLiteral(CHATTERINO_GIT_HASH))
     , isModified_(CHATTERINO_GIT_MODIFIED == 1)
     , dateOfBuild_(QStringLiteral(CHATTERINO_CMAKE_GEN_DATE))
-    , upstreamCommitHash_(QStringLiteral(CHATTERINO_GIT_UPSTREAM_HASH))
+    , isNightly_(CHATTERINO_NIGHTLY_BUILD == 1)
 {
-#ifdef CHATTERINO_GIT_MODIFIED
-    this->isModified_ = true;
-#endif
-
     this->fullVersion_ = "Forserino ";
-    if (Modes::instance().isNightly)
+    if (this->isNightly())
     {
         this->fullVersion_ += "Nightly ";
     }
     this->fullVersion_ += "+ Dankerino patches ";
-
+    
     this->fullVersion_ += this->version_;
 
 #ifndef NDEBUG
@@ -46,6 +39,7 @@ Version::Version()
 
     this->generateBuildString();
     this->generateRunningString();
+    this->generateExtraString();
 
 #ifdef Q_OS_WIN
     // keep in sync with .CI/chatterino-installer.iss
@@ -72,10 +66,6 @@ const QString &Version::fullVersion() const
 const QString &Version::commitHash() const
 {
     return this->commitHash_;
-}
-const QString &Version::upstreamCommitHash() const
-{
-    return this->upstreamCommitHash_;
 }
 
 const bool &Version::isModified() const
@@ -133,6 +123,16 @@ const QString &Version::runningString() const
     return this->runningString_;
 }
 
+const QString &Version::extraString() const
+{
+    return this->extraString_;
+}
+
+bool Version::isNightly() const
+{
+    return this->isNightly_;
+}
+
 void Version::generateBuildString()
 {
     // e.g. Chatterino 2.3.5 or Chatterino Nightly 2.3.5
@@ -141,8 +141,8 @@ void Version::generateBuildString()
     // Add commit information
     s +=
         QString(
-            R"( (commit <a href="https://github.com/Mm2PL/dankerino/commit/%1">%1</a>; based on <a href="https://github.com/chatterino/chatterino2/commit/%2">%2</a>)")
-            .arg(this->commitHash(), this->upstreamCommitHash());
+            R"( (commit <a href="https://github.com/Chatterino/chatterino2/commit/%1">%1</a>)")
+            .arg(this->commitHash());
     if (this->isModified())
     {
         s += " modified)";
@@ -155,7 +155,7 @@ void Version::generateBuildString()
     s += " built";
 
     // If the build is a nightly build (decided with modes atm), include build date information
-    if (Modes::instance().isNightly)
+    if (this->isNightly())
     {
         s += " on " + this->dateOfBuild();
     }
@@ -171,11 +171,6 @@ void Version::generateRunningString()
     auto s = QString("Running on %1, kernel: %2")
                  .arg(QSysInfo::prettyProductName(), QSysInfo::kernelVersion());
 
-    if (this->isFlatpak())
-    {
-        s += ", running from Flatpak";
-    }
-
     if (!this->isSupportedOS())
     {
         s += " (unsupported OS)";
@@ -183,6 +178,19 @@ void Version::generateRunningString()
 
     this->runningString_ = s;
 }
+
+#define STRINGIFY(x) #x
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
+#define STRINGIFY2(x) STRINGIFY(x)
+
+void Version::generateExtraString()
+{
+    this->extraString_ =
+        QStringLiteral(STRINGIFY2(CHATTERINO_EXTRA_BUILD_STRING)).trimmed();
+}
+
+#undef STRINGIFY2
+#undef STRINGIFY
 
 #ifdef Q_OS_WIN
 const std::wstring &Version::appUserModelID() const
