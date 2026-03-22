@@ -3360,11 +3360,6 @@ void Helix::getUserEmotes(
         [pageCallback](const QJsonObject &json, const auto &state) mutable {
             const auto data = json["data"_L1].toArray();
 
-            if (data.isEmpty())
-            {
-                return false;
-            }
-
             std::vector<HelixChannelEmote> emotes;
             emotes.reserve(data.count());
 
@@ -4050,6 +4045,8 @@ void Helix::paginate(
         if (!onPage(json, state))
         {
             // The consumer doesn't want any more pages
+            qCDebug(chatterinoTwitch)
+                << "paginate onPage returned false for" << url;
             return;
         }
 
