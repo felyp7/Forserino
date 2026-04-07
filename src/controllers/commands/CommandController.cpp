@@ -676,6 +676,11 @@ auto formatVIPListError = [](HelixListVIPsError error,
 
     this->registerCommand("/debug-test", &commands::debugTest);
 
+#ifdef Q_OS_WIN
+    this->registerCommand("/debug-relaunch-with-console",
+                          &commands::relaunchWithConsole);
+#endif
+
     this->registerCommand("/shield", &commands::shieldModeOn);
     this->registerCommand("/shieldoff", &commands::shieldModeOff);
 
