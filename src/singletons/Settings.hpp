@@ -843,7 +843,7 @@ public:
                                             false};
     QStringSetting bridgeUser = {"/misc/bridgeUser", "supabridge"};
 
-    // Advanced
+    // Sound
     EnumStringSetting<SoundBackend> soundBackend = {
         "/sound/backend",
         SoundBackend::Miniaudio,

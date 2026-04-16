@@ -1,4 +1,3 @@
----
 name: Build
 
 on:
@@ -9,6 +8,16 @@ on:
       - "release/*"
   pull_request:
   workflow_dispatch:
+    inputs:
+      buildType:
+        description: "Build type"
+        required: true
+        type: choice
+        default: "auto"
+        options:
+          - auto
+          - nightly
+          - stable
   merge_group:
 
 concurrency:
@@ -18,6 +27,7 @@ concurrency:
 env:
   C2_ENABLE_LTO: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/bugfix-release/') || startsWith(github.ref, 'refs/heads/release/') }}
   CHATTERINO_REQUIRE_CLEAN_GIT: On
+  CHATTERINO_BUILD_TYPE: ${{ inputs.buildType || 'auto' }}
   CONAN_VERSION: 2.11.0
 
 jobs:

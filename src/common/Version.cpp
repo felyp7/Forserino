@@ -16,6 +16,7 @@ Version::Version()
     , commitHash_(QStringLiteral(CHATTERINO_GIT_HASH))
     , isModified_(CHATTERINO_GIT_MODIFIED == 1)
     , dateOfBuild_(QStringLiteral(CHATTERINO_CMAKE_GEN_DATE))
+    , upstreamCommitHash_(QStringLiteral(CHATTERINO_GIT_UPSTREAM_HASH))
     , isNightly_(CHATTERINO_NIGHTLY_BUILD == 1)
 {
     this->fullVersion_ = "Forserino ";
