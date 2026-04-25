@@ -78,6 +78,7 @@ enum class MessageFlag : std::int64_t {
     InvalidReplyTarget = (1LL << 42),
     WebchatDetected = (1LL << 43),
     WatchStreak = (1LL << 44),
+    Announcement = (1LL << 45),
 };
 using MessageFlags = FlagsEnum<MessageFlag>;
 
