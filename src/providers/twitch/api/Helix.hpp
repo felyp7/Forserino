@@ -1725,4 +1725,4 @@ void initializeHelix(IHelix *_instance);
 
 IHelix *getHelix();
 
-}  // namespace chatterino
+};  // namespace chatterino

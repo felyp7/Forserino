@@ -7,6 +7,8 @@
 #include <boost/preprocessor.hpp>
 #include <QString>
 #include <QWidget>
+#include <QtGui>
+#include <QtCore>
 
 #include <memory>
 
