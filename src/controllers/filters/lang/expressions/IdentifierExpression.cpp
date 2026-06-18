@@ -2,12 +2,14 @@
 
 #include "Application.hpp"
 #include "common/Channel.hpp"
+#include "controllers/filters/lang/expressions/Expression.hpp"
 #include "controllers/filters/lang/Types.hpp"
 #include "messages/Message.hpp"
 #include "messages/MessageFlag.hpp"
 #include "providers/twitch/TwitchBadge.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
 #include "providers/twitch/TwitchIrcServer.hpp"
+#include "util/QMagicEnum.hpp"
 
 #include <QString>
 
@@ -366,6 +368,25 @@ const AccessorMap &accessorMap()
                         return r->title;
                     }
                     return QString{};
+                },
+            },
+        },
+        {
+            u"flags.webchat_detected"_s,
+            {
+                Type::Bool,
+                [](RunContext ctx) {
+                    return ctx.message.clientDetection ==
+                           Message::ClientDetectionStatus::Webchat;
+                },
+            },
+        },
+        {
+            u"dankerino.client_detection"_s,
+            {
+                Type::String,
+                [](RunContext ctx) {
+                    return qmagicenum::enumName(ctx.message.clientDetection);
                 },
             },
         },
