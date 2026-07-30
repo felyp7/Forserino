@@ -75,7 +75,7 @@ jobs:
       C2_ENABLE_CRASHPAD: ${{ matrix.skip-crashpad == false }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
           fetch-depth: 0 # allows for tags access
@@ -160,7 +160,7 @@ jobs:
             skip-artifact: false
             skip-crashpad: false
           # macOS
-          - os: macos-14
+          - os: macos-26
             qt-version: 6.11.1
             force-lto: false
             skip-artifact: false
@@ -178,7 +178,7 @@ jobs:
       C2_ENABLE_CRASHPAD: ${{ matrix.skip-crashpad == false }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
           fetch-depth: 0 # allows for tags access
@@ -211,7 +211,7 @@ jobs:
       # WINDOWS
       - name: Enable Developer Command Prompt (Windows)
         if: startsWith(matrix.os, 'windows')
-        uses: Chatterino/msvc-dev-cmd@v2.0.5
+        uses: Chatterino/msvc-dev-cmd@v2.0.7
 
       - name: Setup sccache (Windows)
         # sccache v0.7.4
@@ -227,7 +227,7 @@ jobs:
 
       - name: Cache conan packages (Windows)
         if: startsWith(matrix.os, 'windows')
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           key: ${{ runner.os }}-conan-user-${{ hashFiles('**/conanfile.py') }}-QT6
           path: ~/.conan2/
@@ -293,7 +293,7 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: |
           cd build
-          windeployqt bin/chatterino.exe --release --no-compiler-runtime --no-translations --no-opengl-sw --dir Chatterino2/
+          windeployqt bin/chatterino.exe --release --no-compiler-runtime --no-translations --no-opengl-sw --force-openssl --dir Chatterino2/
           cp bin/chatterino.exe Chatterino2/
           ..\.CI\deploy-crt.ps1 Chatterino2
           echo nightly > Chatterino2/modes
@@ -374,7 +374,7 @@ jobs:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/forserino')
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # allows for tags access
 
@@ -389,8 +389,13 @@ jobs:
           cp .CI/chatterino-nightly.flatpakref release-artifacts/
         shell: bash
 
+      - name: Remove macOS artifacts
+        run: |
+          rm -f release-artifacts/*macos*.dmg
+        shell: bash
+
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 

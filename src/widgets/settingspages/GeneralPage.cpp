@@ -1073,11 +1073,11 @@ void GeneralPage::initLayout(GeneralPageView &layout)
         ->setTooltip("Show the stream title")
         ->addTo(layout);
 
-    layout.addSubtitle("R9K");
+    layout.addSubtitle("Unique chat (R9K)");
     auto toggleLocalr9kSeq = getApp()->getHotkeys()->getDisplaySequence(
         HotkeyCategory::Window, "toggleLocalR9K");
     QString toggleLocalr9kShortcut =
-        "an assigned hotkey (Window -> Toggle local R9K)";
+        "an assigned hotkey (Window -> Toggle local unique chat (R9K))";
     if (!toggleLocalr9kSeq.isEmpty())
     {
         toggleLocalr9kShortcut = toggleLocalr9kSeq.toString(
@@ -1367,16 +1367,6 @@ void GeneralPage::initLayout(GeneralPageView &layout)
         ->setTooltip("When possible, restart Chatterino if the program crashes")
         ->addTo(layout);
 
-#if defined(Q_OS_LINUX) && !defined(NO_QTKEYCHAIN)
-    if (!getApp()->getPaths().isPortable())
-    {
-        SettingWidget::checkbox(
-            "Use libsecret/KWallet/Gnome keychain to secure passwords",
-            s.useKeyring)
-            ->addTo(layout);
-    }
-#endif
-
     SettingWidget::inverseCheckbox("Show moderation messages",
                                    s.hideModerationActions)
         ->setTooltip(
@@ -1422,6 +1412,13 @@ void GeneralPage::initLayout(GeneralPageView &layout)
     SettingWidget::checkbox(
         "Automatically close reply thread popup when it loses focus",
         s.autoCloseThreadPopup)
+        ->addTo(layout);
+
+    SettingWidget::checkbox("Always show pinned channel message",
+                            s.alwaysShowPinnedMessage)
+        ->setTooltip(
+            "When enabled, pinned messages will stay visible instead of "
+            "automatically hiding after a few seconds.")
         ->addTo(layout);
 
     SettingWidget::checkbox("Lowercase domains (anti-phishing)",
@@ -1510,7 +1507,10 @@ void GeneralPage::initLayout(GeneralPageView &layout)
         s.linksDoubleClickOnly)
         ->setTooltip("When enabled, opening links/usercards requires "
                      "double-clicking.\nUseful for making sure you don't "
-                     "accidentally click on suspicious links.")
+                     "accidentally click on suspicious links.\nClicking a link "
+                     "once will pause the chat briefly to allow for a less "
+                     "accident-prone double-clicking.")
+        ->addKeywords({"pause"})
         ->addTo(layout);
 
     SettingWidget::checkbox("Unshorten links", s.unshortLinks)
@@ -1636,6 +1636,21 @@ void GeneralPage::initLayout(GeneralPageView &layout)
                             s.disableTabRenamingOnClick)
         ->setTooltip("Prevents the rename dialog from opening when a tab is "
                      "double-clicked")
+        ->addTo(layout);
+
+    SettingWidget::intInput(
+        "Shared chat session status refresh interval",
+        s.sharedChatSessionRefreshInterval,
+        {.min = 5, .max = 999, .singleStep = 1, .suffix = "s"})
+        ->setTooltip("How often Chatterino polls the Twitch API for the "
+                     "shared chat session status.")
+        ->addTo(layout);
+
+    SettingWidget::checkbox("Show shared chat badge for all messages",
+                            s.sharedChatAlwaysShowBadge)
+        ->setTooltip(
+            "If turned off, only messages from other participants have a "
+            "shared chat badge")
         ->addTo(layout);
 
     layout.addStretch();

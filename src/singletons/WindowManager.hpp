@@ -26,7 +26,13 @@ class Window;
 class ChannelView;
 class IndirectChannel;
 class Split;
+
 struct SplitDescriptor;
+struct SplitNodeDescriptor;
+struct ContainerNodeDescriptor;
+using NodeDescriptor =
+    std::variant<ContainerNodeDescriptor, SplitNodeDescriptor>;
+
 class Channel;
 using ChannelPtr = std::shared_ptr<Channel>;
 struct Message;
@@ -63,8 +69,7 @@ public:
 
     static void encodeTab(SplitContainer *tab, bool isSelected,
                           QJsonObject &obj);
-    static void encodeChannel(IndirectChannel channel, QJsonObject &obj);
-    static void encodeFilters(Split *split, QJsonArray &arr);
+    static void encodeFilters(std::span<const QUuid> filters, QJsonArray &arr);
 
     void showSettingsDialog(
         QWidget *parent,
@@ -97,8 +102,13 @@ public:
     //  - If the window was unfocused since being selected, this function will still return it.
     Window *getLastSelectedWindow() const;
 
-    Window &createWindow(WindowType type, bool show = true,
-                         QWidget *parent = nullptr);
+    struct CreateWindowArgs {
+        bool show = true;
+        QWidget *parent = nullptr;
+        std::optional<size_t> popupID;
+    };
+
+    Window &createWindow(WindowType type, const CreateWindowArgs &args);
 
     // Use this method if you want to open a "new" channel in a popup. If you want to popup an
     // existing Split or SplitContainer, consider using Split::popup() or SplitContainer::popup().
@@ -162,7 +172,7 @@ public:
     pajlada::Signals::Signal<const MessagePtr &> scrollToMessageSignal;
 
 private:
-    static void encodeNodeRecursively(SplitContainer::Node *node,
+    static void encodeNodeRecursively(const NodeDescriptor &descriptor,
                                       QJsonObject &obj);
 
     // Load window layout from the window-layout.json file
@@ -170,6 +180,10 @@ private:
 
     // Apply a window layout for this window manager.
     void applyWindowLayout(const WindowLayout &layout);
+
+    size_t takePopupID(std::optional<size_t> preferred);
+    void closePopup(size_t id);
+    void refreshNextPopupID();
 
     // Contains the full path to the window layout file, e.g. /home/pajlada/.local/share/Chatterino/Settings/window-layout.json
     const QString windowLayoutFilePath;
@@ -181,6 +195,10 @@ private:
     std::atomic<int> generation_{0};
 
     std::vector<Window *> windows_;
+
+    /// ID to be used for the next popup.
+    size_t nextPopupID = 1;
+    QSet<size_t> usedPopupIDs;
 
     std::unique_ptr<FramelessEmbedWindow> framelessEmbedWindow_;
     Window *mainWindow_{};
