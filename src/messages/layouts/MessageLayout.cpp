@@ -458,8 +458,7 @@ void MessageLayout::updateBuffer(QPixmap *buffer,
     {
         backgroundColor = QColor("#4A273D");
     }
-    else if (this->message_->flags.has(MessageFlag::WebchatDetected) &&
-             getSettings()->normalNonceDetection)
+    else if (getSettings()->normalNonceDetection)
     {
         switch (this->message_->clientDetection)
         {
@@ -480,6 +479,7 @@ void MessageLayout::updateBuffer(QPixmap *buffer,
             case Message::ClientDetectionStatus::Abnormal:
                 break;
         }
+    }
     else if (this->message_->flags.has(MessageFlag::UncategorizedNotification))
     {
         // TODO: Give this a better/its own color :-)
