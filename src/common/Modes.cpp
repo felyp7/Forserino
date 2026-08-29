@@ -4,7 +4,6 @@
 
 #include "common/Modes.hpp"
 
-#include "common/Args.hpp"
 #include "util/CombinePath.hpp"
 
 #include <QCoreApplication>
