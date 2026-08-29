@@ -13,6 +13,8 @@ class Modes
 public:
     explicit Modes(const Args &args);
 
+    static const Modes &instance();
+
     /// Marked by the line `portable` or `portableEnable` from `Args`
     bool isPortable{};
 
