@@ -12,6 +12,7 @@ class Modes
 {
 public:
     explicit Modes(const Args &args);
+    Modes() = default;
 
     static const Modes &instance();
 

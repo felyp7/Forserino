@@ -41,7 +41,7 @@ Modes::Modes(const Args &args)
 
 const Modes &Modes::instance()
 {
-    static Modes instance;
+    static Modes instance{};
     return instance;
 }
 
