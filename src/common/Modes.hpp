@@ -4,9 +4,9 @@
 
 #pragma once
 
-namespace chatterino {
+#include "common/Args.hpp"
 
-class Args;
+namespace chatterino {
 
 class Modes
 {
