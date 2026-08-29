@@ -11,7 +11,7 @@ class Args;
 class Modes
 {
 public:
-    explicit Modes(const Args &args);
+    explicit Modes(const Args &args = {});
 
     static const Modes &instance();
 
@@ -23,6 +23,11 @@ public:
     /// The externally packaged mode comes with the following changes:
     ///  - No shortcuts are created by default
     bool isExternallyPackaged{};
+
+    static void setInstance(const Modes &modes);
+
+private:
+    static const Modes *instancePtr;
 };
 
 }  // namespace chatterino
