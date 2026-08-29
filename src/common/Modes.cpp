@@ -11,6 +11,8 @@
 
 namespace chatterino {
 
+const Modes *Modes::instancePtr = nullptr;
+
 Modes::Modes(const Args &args)
 {
     if (args.portableEnable)
@@ -41,8 +43,17 @@ Modes::Modes(const Args &args)
 
 const Modes &Modes::instance()
 {
-    static Modes instance;
-    return instance;
+    if (!instancePtr)
+    {
+        static Modes fallbackInstance({});
+        return fallbackInstance;
+    }
+    return *instancePtr;
+}
+
+void Modes::setInstance(const Modes &modes)
+{
+    instancePtr = &modes;
 }
 
 }  // namespace chatterino
