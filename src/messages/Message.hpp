@@ -137,6 +137,9 @@ struct Message {
 
     HelixAnnouncementColor announcementColor{HelixAnnouncementColor::Primary};
 
+    /// Returns an identical, non-frozen message, independent from this one.
+    std::shared_ptr<Message> clone() const;
+
     QJsonObject toJson() const;
 
     void freeze() const

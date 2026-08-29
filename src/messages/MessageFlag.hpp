@@ -80,6 +80,7 @@ enum class MessageFlag : std::int64_t {
     WatchStreak = (1LL << 44),
     Announcement = (1LL << 45),
     UncategorizedNotification = (1LL << 46),
+    AsciiArt = (1LL << 47),
 };
 using MessageFlags = FlagsEnum<MessageFlag>;
 

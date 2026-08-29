@@ -64,6 +64,7 @@ struct HelixColor {
         : userColor(jsonObject.value("color").toString())
     {
     }
+};
 struct HelixMinimalUser {
     QString id;
     QString login;
